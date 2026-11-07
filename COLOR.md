@@ -1,0 +1,527 @@
+# Parhelion's colors
+
+Parhelion starts from the look of [Solarized](https://ethanschoonover.com/solarized/) and changes it in two ways. It
+changes how light its text colors are, because measured against the Solarized specification, Solarized's text is too
+faint in specific, nameable places. Pages and hues stay, apart from orange. And it gives plugin interfaces a system of
+their own, described under How plugins use color, where surfaces and text stay neutral and short labels hold the hue.
+The base tables, `lua/parhelion/base/`, hold Solarized's published colors and some shades of their own. Every color
+changed from them is listed in `lua/parhelion/refinement.lua` or `lua/parhelion/chrome.lua`. In the Neogit, Diffview and
+sample file views the suite compares parhelion against the base tables with those changes applied, and fails on any
+other difference.
+
+The first file is the refinement, and it holds two kinds of change. A tone is a color that replaces one color from the
+base tables everywhere it appears, in one mode. A repaired group is a highlight group parhelion sets directly, because a
+plugin derives or hard codes a color for it that is unreadable or foreign to the theme, and no tone can reach that, or
+because the base tables leave out one of a set.
+
+To print the tone tables under What changed from the current code:
+
+```sh
+nvim -l tests/parhelion/color_table.lua
+```
+
+The other tables of measurements in this document were taken once and are not rerun. The tones, the floors and the
+chrome scale are enforced, as How the suite holds this lists.
+
+## What the specification says
+
+The [Solarized README](https://github.com/altercation/solarized) makes four claims that matter here:
+
+- "Solarized reduces *brightness contrast* but, unlike many low contrast colorschemes, retains
+  *contrasting hues*."
+- "The monotones have symmetric CIELAB lightness differences, so switching from dark to light mode
+  retains the same perceived contrast in brightness between each value. Each mode is equally
+  readable."
+- The accents are "based off specific colorwheel relations and subsequently translated to CIELAB to
+  ensure perceptual uniformity in terms of lightness".
+- Body text on a dark page is `base03:base0`, and on a light page the values are "simply inverted".
+
+Solarized sets comments to `base01` and offers a high contrast mode, which moves each text tone up one step, so body
+text becomes `base1` and comments become `base00`. The author therefore shipped the idea that body text can sit one step
+higher. That mode alone does not settle the problem, because it leaves dark accents at 3.25 to 3.43:1 and dark comments
+at Lc 27.3.
+
+The specification's table states its CIELAB values against a D50 white point, and they match its hex colors there to
+within a color difference of 0.9. Under D65 the gap reaches 4.3, on blue, so its numbers should not be read as D65.
+
+## What measuring it shows
+
+Two measures are used throughout. The contrast ratio runs from 1:1 to 21:1, and this document uses 4.5:1 as its floor
+for text. Lightness contrast, written Lc, accounts for polarity, whether text is lighter or darker than its page. Where
+the two disagree on a dark page this document reports both. In practice 4.5:1 is what set the dark accents, as the
+floors below show.
+
+`tests/parhelion/color.lua` defines every measure here: `contrast_ratio`, `lightness_contrast`, `color_difference`, and
+`perceptual_lch` for perceptual lightness, chroma and hue.
+
+Equal CIELAB lightness differences do not give equal readability:
+
+| Pair | Ratio | Lc |
+| --- | --- | --- |
+| Body, dark, `#839496` on `#002b36` | 4.75 | 39.5 |
+| Body, light, `#657b83` on `#fdf6e3` | 4.13 | 65.7 |
+| Comment, dark, `#586e75` on `#002b36` | 2.79 | 21.5 |
+| Comment, light, `#93a1a1` on `#fdf6e3` | 2.48 | 46.7 |
+
+The two measures even disagree on which mode wins, and both comment colors are under 3:1. This document judges that a
+dark page has more need of help, and it acts on that for the accents and not for the monotones.
+
+Fixed accents have a second problem. Orange, red, magenta and violet sit at L\* 50. Yellow, green and
+cyan sit at L\* 60, and blue at 55. A dark page favors the light group and a light page favors the dark
+group, so half the accents are weak in each mode:
+
+| Group | Dark page | Light page |
+| --- | --- | --- |
+| Orange, red, magenta, violet | 3.25 to 3.43, Lc 27 to 28 | 4.06 to 4.29, Lc 65 to 66 |
+| Blue | 4.08, Lc 34 | 3.41, Lc 59 |
+| Yellow, green, cyan | 4.68 to 4.75, Lc 39 to 40 | 2.93 to 2.98, Lc 53 to 54 |
+
+Orange and red are also close to each other, with a color difference of 10.1, the smallest of any accent pair by a wide
+margin.
+
+Here is where Solarized, its high contrast mode and parhelion put their text:
+
+| Theme | Body Lc | Body ratio | Comment Lc | Comment ratio |
+| --- | --- | --- | --- | --- |
+| Solarized dark | 39.5 | 4.75 | 21.5 | 2.79 |
+| Solarized high contrast, dark | 46.4 | 5.61 | 27.3 | 3.37 |
+| **Parhelion dark** | 46.4 | 5.61 | 33.3 | 4.02 |
+| Solarized light | 65.7 | 4.13 | 46.7 | 2.48 |
+| Solarized high contrast, light | 71.6 | 4.99 | 53.5 | 2.93 |
+| **Parhelion light** | 71.6 | 4.99 | 60.0 | 3.50 |
+
+The base tables add a third problem. Neogit computes many colors by darkening a highlight group's foreground by 18%, and
+under the base tables that makes a `deleted` label Lc 18 and 2.35:1 on a dark page. Neogit's active item row puts a
+commit hash at Lc 0, which is unreadable.
+
+## The rules parhelion follows
+
+These rules govern the tones in `lua/parhelion/refinement.lua`. Plugin interfaces follow rules of their own under How
+plugins use color, and they go further: `Directory` moves from blue to the neutral strong step.
+
+1. Page colors keep their values: `#002b36`, `#073642` and `#002731` in dark, `#fdf6e3`, `#eee8d5` and
+   `#fbf3db` in light. They are most of what makes the theme look like Solarized.
+2. Color moves in lightness and keeps its hue. The move happens in a perceptual lightness, chroma and hue space,
+   because CIELAB shifts hue as lightness changes, most of all in blue, the accent this theme uses most. Chroma stays
+   the same unless sRGB cannot hold it, apart from dark body, which moves to the published `base1` and loses 19% of its
+   chroma, and the cursor line number's background. With chroma held and lightness raised, dark mode's orange, red,
+   magenta and violet each lose about 12% of their saturation, measured as chroma over lightness, so a brighter red does
+   not also become a more vivid one. Light mode's blue, cyan and violet go the other way and gain 7 to 10%, since
+   darkening a color at the same chroma raises that ratio.
+3. Body text moves one step up Solarized's own ladder and stops there. Dark body is the published
+   `base1`, and light body is the published `base01`.
+4. Each accent gets its own value per mode. Green and cyan in dark and red and magenta in light keep
+   their published values. Yellow in dark, and orange and violet in light, cleared the floors and moved
+   anyway, because rule 6 needs them apart from the accents around them.
+5. No tone moves further than a color difference of 10.5 from its source. That limit is a judgment and not a standard.
+   It sits just above the largest tone, 10.2, and holds the result in place as the floors below do.
+6. Lightness stays uneven on purpose. Making all accents equally light removes the cue a red-green
+   colorblind reader relies on, as simulating it showed, so blue and yellow stay lighter than the others
+   in dark, and orange and violet stay darker than the others in light.
+
+The floors, tested on every load path:
+
+| Text | Dark | Light |
+| --- | --- | --- |
+| Body | 5.5:1, Lc 46 | 4.9:1, Lc 71 |
+| Code and interface accents | 4.5:1, Lc 38 | 4:1, Lc 64 |
+| Comments, line numbers, inlay hints | 3:1, Lc 30 | 3:1, Lc 55 |
+| Any text cell in a tested view, and any group's text | Lc 30 | Lc 30 |
+
+These floors are not standards. Each one sits just under what the chosen tones reach, so they hold the result in place
+and do not show that the result is right. Dark accents stop at 4.5:1, and their Lc follows from that. A cell at Lc 30 is
+present and findable, not comfortable. Comments stay at least Lc 10 below body text, so selective contrast survives.
+
+The floors are measured on the page. On the cursor line, which is a step closer to the text, dark body
+falls to 4.86:1, dark accents to 3.90 to 4.70:1 and dark comments to 3.48:1. Light body falls to 4.39:1,
+light accents to 3.52 to 4.29:1 and light comments to 3.08:1.
+
+## What changed
+
+Difference is measured from the source color, computed under D65, and lightness is the change in L\*. Hue
+is the shift in degrees of perceptual hue, which means little for the near neutral monotones. Each contrast column gives
+Lc and ratio on the page.
+
+Dark:
+
+| From | To | Difference | Lightness | Hue | Before | After | Role |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `#839496` | `#93a1a1` | 4.5 | +5.1 | -8.4 | 39.5 / 4.75 | 46.4 / 5.61 | Body text |
+| `#93a1a1` | `#a3b1b1` | 4.7 | +6.0 | +0.0 | 46.4 / 5.61 | 55.1 / 6.78 | Keywords, statusline |
+| `#586e75` | `#71888f` | 10.2 | +10.2 | -1.0 | 21.5 / 2.79 | 33.3 / 4.02 | Comments, line numbers |
+| `#268bd2` | `#40a0e8` | 6.9 | +7.8 | -0.2 | 34.3 / 4.08 | 44.4 / 5.30 | Functions, identifiers |
+| `#6c71c4` | `#8188dd` | 8.3 | +8.8 | -0.4 | 28.0 / 3.43 | 38.8 / 4.65 | Constants, special characters |
+| `#cb4b16` | `#e56824` | 9.6 | +9.4 | +5.3 | 27.2 / 3.26 | 38.5 / 4.53 | Types |
+| `#dc322f` | `#f95148` | 9.1 | +9.4 | +0.1 | 27.7 / 3.25 | 38.7 / 4.50 | Errors, deletions |
+| `#d33682` | `#ef5299` | 8.7 | +9.1 | +0.2 | 28.0 / 3.30 | 38.7 / 4.53 | Regexes, markup emphasis |
+| `#b58900` | `#c1951e` | 3.9 | +4.5 | +0.3 | 39.2 / 4.68 | 45.2 / 5.42 | Warnings, modified |
+| `#1d706a` | `#3c8a84` | 10.0 | +10.1 | +0.6 | 19.3 / 2.56 | 30.5 / 3.69 | Inlay hints |
+| `#0c4e53` | `#0b474c` | 2.3 | -2.8 | +0.7 | | | Cursor line number background |
+
+Light:
+
+| From | To | Difference | Lightness | Hue | Before | After | Role |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `#657b83` | `#586e75` | 5.2 | -5.2 | -2.8 | 65.7 / 4.13 | 71.6 / 4.99 | Body text |
+| `#586e75` | `#4c6168` | 4.8 | -5.2 | +1.0 | 71.6 / 4.99 | 77.1 / 6.05 | Keywords |
+| `#93a1a1` | `#798686` | 9.0 | -10.3 | -0.1 | 46.7 / 2.48 | 60.0 / 3.50 | Comments, inlay hints |
+| `#839496` | `#728284` | 6.4 | -6.9 | +0.5 | 53.5 / 2.93 | 62.1 / 3.71 | Quiet interface text |
+| `#268bd2` | `#117fc5` | 4.4 | -4.5 | -0.1 | 58.7 / 3.41 | 64.1 / 4.00 | Functions, identifiers |
+| `#2aa198` | `#018880` | 8.7 | -9.2 | +0.2 | 53.1 / 2.93 | 64.3 / 4.03 | Strings |
+| `#859900` | `#708101` | 8.6 | -8.8 | -0.0 | 53.8 / 2.97 | 64.7 / 4.03 | Statements, added lines |
+| `#b58900` | `#997401` | 8.4 | -8.6 | +0.5 | 53.8 / 2.98 | 64.5 / 4.01 | Types, warnings |
+| `#cb4b16` | `#b74a00` | 5.5 | -3.7 | +5.3 | 65.8 / 4.27 | 70.0 / 4.88 | Includes |
+| `#6c71c4` | `#6165b7` | 4.7 | -4.7 | +0.1 | 65.0 / 4.06 | 70.3 / 4.80 | Special characters |
+
+Orange is the only saturated hue that moves. Five degrees toward yellow, in both modes, takes its difference
+from red from 10.1 to 13.8 in dark and 14.6 in light. The specification's author made the same kind of
+adjustment, since its hues "have been adjusted within a small range to achieve the most pleasing combination
+of colors".
+
+`refinement.repaired_groups` then fixes what the tones cannot reach, in both modes unless a row says
+otherwise:
+
+| Groups | Before | After |
+| --- | --- | --- |
+| Neogit graph grey, Buffon unloaded buffers | As low as Lc 8.3 in dark and 22 in light | The comment color |
+| `LineNr`, `NonText`, `Whitespace`, light only | Darker than body text, so the gutter read louder than the code | Lighter than body text, `#6c7c80` on the gutter and `#728284` on the page |
+| `OkMsg`, Neogit's white graph rows, fzf.vim's status line | Fixed colors from Neovim or the plugin, such as `#b3f6c0` and white on black | The theme's success and body colors, and the status line |
+| `RenderMarkdownH6Bg`, light only | The base tables stop at level 5 | Their recipe, 10% of the color over the page, `#6165b7` on `#eee8df` |
+
+The one color above that appears in neither the base tables nor the tone tables is light's `#6c7c80`.
+
+## How plugins use color
+
+Code needs many hues, because hue is what tells kinds of code apart. A plugin screen needs them for another reason. It
+is mostly short labels, and this document infers, with no study behind it, that a reader finds a kind of label faster by
+its color than by reading it. So the labels hold hue and the text between them does not. That holds where a screen puts
+many kinds of label side by side, as Neogit, Diffview, which-key and markdown do. A picker, a menu or a file tree shows
+rows of one kind, where a hue on every row would mark nothing and would take attention from the match, so they keep to
+neutrals, the accent and the signal colors. That split is a judgment from looking at the screens and not a measurement.
+
+`lua/parhelion/chrome.lua` gives the first group Solarized's hues on Neogit, Diffview, which-key and markdown, and
+gives mini.clue which-key's looks. It works through a scale of steps, the eight accents toned, a short table of label
+hues, roles built from those, families that assign plugin groups to a role, and links that make a plugin group follow
+another group.
+
+The rules, in both modes:
+
+1. Text and structure stay neutral. Surfaces, borders, separators, guides and the text between labels are steps on one
+   scale. Which-key's descriptions are the exception, and mini.clue's match them: they hold a label hue.
+2. In a plugin with label families, each kind of label holds one hue within that plugin, so it can be found without
+   being read. Neogit, Diffview, which-key, mini.clue and the markdown plugins have them. The same kind of label can
+   differ between plugins, so a key is violet in a Neogit popup and blue in which-key. A title adds bold to its hue in
+   Neogit and Diffview. Elsewhere a window's main title holds the strong step and bold, as `FloatTitle`,
+   `TelescopeTitle`, `MasonHeader`, `NeoTreeRootName` and `LazyH2` do, and a secondary one is quiet. Hashes and kinds
+   stay quiet. Counts stay quiet too, apart from Neogit's section headers and Diffview's panel, where they are body.
+3. One interface accent, Solarized blue, marks focus and matches. In Neogit, Diffview and Trouble it also marks paths,
+   folders and popup titles. Other plugins' directories and paths stay neutral.
+4. A signal color keeps one meaning everywhere: red for errors and removals, yellow for warnings, conflicts and a
+   change among unchanged things, as in the gutter or a file tree, green for success. Added things use the color the
+   base tables give added lines, so they match the gutter and Neogit, which makes them blue in dark and olive in light,
+   so in dark added and the accent are the same color.
+   Hints share the accent, as the base tables' diagnostics do. A label may reuse these hues without the meaning, which
+   is how a Neogit tag is yellow, a remote green, and markdown's headings run through the base tables' colors.
+5. A changed word sits on a word wash, a stronger blend of Solarized's published color over the page, and takes strong
+   text. Solid fills are for jump labels, which are a character wide, and window picker labels, which fill a status
+   line. Severity sits on an icon or a bar and the text stays neutral.
+6. A selected row is a neutral step with brighter text, and a focused Neogit hunk header keeps its accent there. That
+   borrows the idea of the specification's highlighted pair `base02:base1` and not its values, since dark body is
+   already `base1`. The pairs are `#0d414e:#c9ccc3` and `#e2dbc7:#2a4c55`. Most pickers let the row's foreground replace
+   the match color, so a match on the selected row keeps only its weight.
+
+| Step | Used for | Dark | L | Light | L |
+| --- | --- | --- | --- | --- | --- |
+| float | Bordered floats, sidebars | `#002731` | 25.2 | `#fbf3db` | 96.4 |
+| page | The buffer | `#002b36` | 26.7 | `#fdf6e3` | 97.4 |
+| raised | Cursor line, code blocks, menus with no border | `#073642` | 30.9 | `#eee8d5` | 93.1 |
+| selected | List selection, occurrence highlights | `#0d414e` | 34.9 | `#e2dbc7` | 89.2 |
+| hairline | Borders, separators, indent guides | `#27505b` | 40.6 | `#c9c6b6` | 82.5 |
+| quiet | Icons, kinds, hashes, most counts, the paths beside a file name | `#71888f` | 61.1 | `#728284` | 59.4 |
+| body | Text | `#93a1a1` | 69.8 | `#586e75` | 52.3 |
+| strong | Titles outside the label families, directories, selected text | `#c9ccc3` | 84.0 | `#2a4c55` | 39.4 |
+
+L is perceptual lightness times 100. Page to raised and raised to selected are each about 4 in both modes, so a
+selection reads the same on a page and on a menu. Float against page is only 1.05:1 in dark and 1.03:1 in light, which
+is enough behind a hairline and not enough alone, so completion menus, which have no border by default, sit on raised.
+which-key has no border by default either and stays on float, which leaves its window's edge faint. On selected, strong
+reads at 6.85:1 and 6.71:1, body at 4.17:1 and 3.89:1, and the accent at 3.94:1 and 3.12:1. Quiet is left off a selected
+row because it falls under 3:1 there in both modes, and under the legibility floor in dark.
+
+Selected, hairline, strong and the backdrop are not published or toned, and were chosen by eye against these measures.
+Selected is the step that keeps the spacing above. Hairline reads at 1.70:1 and 1.59:1 on the page, enough to see a line
+and too little to read as content, which also leaves it under 3:1. Strong sits about
+60% of the way from body to the next published monotone, `base2` in dark and `base02` in light, at 9.23:1 and 8.60:1.
+`base2` itself reaches 12.25:1 in dark, which reads as white beside body, and strong only has to lead it. The backdrop
+is below, and the washes are further down this section.
+
+Label hues sit apart from the scale, and only the plugins rule 2 names may hold them:
+
+| Hue | Dark | Light |
+| --- | --- | --- |
+| Description | `#3fb3a9` | `#007a72` |
+| Magenta | `#ef5299` | `#d33682` |
+| Orange | `#e56824` | `#b74a00` |
+| Violet | `#8188dd` | `#6165b7` |
+
+The others are the toned accents, and the description's value is its own. A description is read and not scanned, so it
+is held to 4.5:1 where light accents stop at 4:1. That takes light's to a color difference of 5.1 from the toned cyan
+and 14.0 from the published one, which is further than a tone may go, as rule 5 of The rules parhelion follows says.
+
+A backdrop dims what sits behind a float. fzf-lua, lazy.nvim and mason default to black at 40%, which suits a dark page,
+taking it to `#001a20` at 1.20:1. On a light page the same black gives `#989488` at 2.81:1, a muddy gray larger than the
+window it frames. So light mode's backdrop is `#a39c87`, which dims the page to `#d9d2be` at 1.40:1 and keeps its
+warmth.
+
+Every group `chrome.lua` names may differ from the base tables, and that file is the complete list. It takes in the
+plugins the base tables style, such as telescope, nvim-tree, neo-tree, nvim-notify and noice, the plugins that draw from
+core groups, such as which-key, blink.cmp, mason, trouble, flash, fzf-lua and grug-far, and some core groups:
+`Directory`, `Title`, `FloatBorder`, `FloatTitle`, `FloatFooter`, `Pmenu*`, `WinBar`, `WildMenu`, the tab line, window
+separators in every window, the diff lines, markdown's Vim syntax headings, `markdownH1` to `markdownH6`, and the
+command line's expression groups `NvimFigureBrace`, `NvimInternalError`, `NvimInvalidSingleQuotedUnknownEscape` and
+`NvimSingleQuotedUnknownEscape`. A plugin whose default links to one of those core groups follows it, and gets a family
+when the result needs a role.
+
+Code syntax, `Normal`, `NormalFloat`, `Comment`, diagnostics, LSP references and the active signature parameter, the
+cursor line and column, the gutter and fold column, `Visual`, `Search`, `MatchParen`, `Conceal`, the status line,
+lualine and gitsigns' signs do not differ, though gitsigns' line highlights follow the diff lines they link to. A check
+in `tests/parhelion/restraint.lua` fails when a family names one of them, a group Neogit or Diffview uses to stand in
+for one of them, or a group from a Vim syntax file. The exceptions are `markdownH1` to `markdownH6`, `LspKind*`,
+lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
+render-markdown's heading bands count as the base tables', so the refinement sets the one they lack, light's sixth
+level, by their recipe.
+
+One family paints over code, because it is a plugin's and not code's. mini.cursorword marks each other instance of the
+word under the cursor. The base tables recolor those instances teal in dark and bold magenta on pink in light, which
+spends the page's strongest color wherever the cursor happens to rest. It takes the selected step with strong text,
+which is neutral and stays legible over any word, where a background alone leaves a dark comment at Lc 28.2.
+
+Neogit's kinds of label hold hue, and two kinds can share one. A section header is violet and bold with a body count, a
+branch orange and bold, the checked out branch underlined as well, a remote green and bold, a tag yellow, its distance
+blue, and a file's path in a diff or commit view blue. A file's label says what happened to it, in bold: deleted is red,
+modified and unmerged yellow, new the added color, renamed violet, updated orange and copied magenta. A popup's titles
+are blue and bold, its keys violet, and what is switched on blue. An author is violet, which matches the commit age
+Neogit draws with `Special`. Hashes take the comment color. A hunk header is blue on the raised step, and the focused
+one is bold on selected. A bad or revoked signature is red, and an expired or unknown one is yellow.
+
+Diffview's panel does the same. Its title and folders are blue and bold, the root path violet and bold, its keys blue,
+and the status letters yellow for a modification, a rename or a copy, red for a deletion and the added color for an
+addition or an untracked file, so a renamed file differs in hue between Neogit and Diffview. Insertions and deletions
+match those letters, the file count is body and hashes stay quiet.
+
+Which-key shows a key in blue and a group in the color the base tables give constants, violet in dark and
+magenta in light. A description is a lifted cyan, `#3fb3a9` in dark and `#007a72` in light, which read at 6.17:1 and
+4.70:1 on the float where the toned cyan reads at 4.98:1 and 3.92:1. Its separators and icons are quiet. mini.clue's
+keys, descriptions and groups take the same looks.
+
+Trouble's file names and directories are blue, its messages body, and its counts, positions and icons quiet.
+
+Markdown keeps the base tables' colors, toned, so headings run through six hues, blue, violet, yellow, orange, red and
+magenta in dark and red, magenta, yellow, orange, blue and violet in light, and emphasis, inline code, links and quotes
+keep theirs. render-markdown's headings, markview's and headlines' follow the same order, and render-markdown's bullets
+and quote bars are quiet. Plain text is the body step, `#93a1a1` in dark and `#586e75` in light, where the base tables
+have `#839496` and `#657b83`.
+
+Diff lines are washes and not colored text. The base tables paint added lines in the added color, changed lines yellow,
+changed words solid teal and the filler solid red, which hides the code's syntax and makes a diff the loudest screen in
+the editor. `DiffAdd` and `DiffChange` tint the row and set no text color, so code keeps its syntax. `DiffText`,
+Neogit's inline groups, gitsigns' and mini.diff's put a changed word on a word wash with strong text. Each word wash
+differs from its row by a color difference of 12.2 to 14.1, and strong text reads at 4.52:1 to 6.19:1 on it. That costs
+a changed word its syntax colors. On a word wash the accents reach 2.20:1 to 3.64:1 in dark and 2.54:1 to 3.14:1 in
+light, body text 2.75:1 to 3.76:1 and the keyword monotone at most 4.54:1. Neogit's inline words are bold and `DiffText`
+is not. `DiffDelete` draws only the filler rows of a diff window, as quiet dashes on its wash. `DiffChange` needs its
+own wash and not the raised step, which is the cursor line's, because a changed line does not always hold a changed
+word: undotree, gitsigns' line highlights and `diffopt` `inline:none` draw the row alone. Neogit's hunks, gitsigns'
+previews and deleted lines, mini.diff's deleted overlay and Snacks' diffs use the same washes with no text color, so a
+change looks the same in each, and a row's tint matches the gutter sign beside it. Neogit's cursor brightens the text on
+a tinted row and steps up to selected on a context row.
+
+| Wash | Dark | On page | Light | On page |
+| --- | --- | --- | --- | --- |
+| Added | `#023751` | 1.19:1 | `#eceecc` | 1.10:1 |
+| Changed | `#173833` | 1.18:1 | `#fbeec8` | 1.07:1 |
+| Removed | `#422d33` | 1.18:1 | `#fce8da` | 1.10:1 |
+| Added word | `#135b84` | 2.04:1 | `#c7cc7d` | 1.57:1 |
+| Changed word | `#364726` | 1.49:1 | `#ddc57d` | 1.58:1 |
+| Removed word | `#6e2f33` | 1.51:1 | `#f3bbad` | 1.55:1 |
+
+Each word wash is a blend of the published color over the page: 50% blue, 30% yellow and 50% red in dark, and 45% green,
+45% yellow and 30% red in light. Row washes were tuned to the measures below and are not blends of those colors, so a
+word's hue can sit away from its row's. Dark's changed word is olive on a teal row, 51.6 degrees of perceptual hue
+apart, the removed words sit 18.0 and 22.9 apart, and the others sit under 3.
+
+Four measures place the three row washes. A comment clears the floor on each, at Lc 30.4 or more in dark, where the base
+tables' dark `#0b4764`, which their `NeogitDiffAddHighlight` uses, leaves it at Lc 25.9. Body text reaches 4.5:1 on
+each, which the base tables' light `#f9e2d1`, from `NeogitDiffDeleteHighlight`, misses at 4.31:1. Each sits at a color
+difference of at least 6 from the raised step, so a tinted row does not read as the cursor line, which the base tables'
+light `#f1eccc`, from `NeogitDiffAddHighlight`, misses at 4.6. And each stays under the chroma the color checks read as
+color, so the tint is felt more than seen. The distances from the page sit together, so no kind of line outweighs
+another.
+
+Every plugin group takes a role in a family or follows a link. A group named for a color, such as `OctoGreen`, takes that
+accent, toned, and rainbow delimiters and git graph branches keep their hues.
+
+## Where parhelion agrees with the specification, and where it does not
+
+Agrees:
+
+- The pages, the hue relationships within about one degree apart from orange, and the idea that the
+  body color is one tone on a ladder of monotones.
+- Reduced brightness contrast. Dark body text sits at 5.61:1.
+- Selective contrast, meaning comments recede and hue carries syntax.
+- Symmetric L\* steps. Dark body is `base1` and light body is `base01`, which are published values. The
+  comment and emphasis tones are not published values, and they still sit within 2.4 L\* of each other's
+  distance from the page, against 2.3 in the specification.
+
+Departs:
+
+- Each mode has its own accents. The specification's shared accents are its elegant idea, and also why
+  half of them are weak in each mode.
+- Comments and the other quiet monotones leave the published ladder. The published comment tones fall under
+  3:1 in both modes, and the next published step up is the body color. Both modes moved by about the same
+  L\*, so symmetric L\* steps stay, and with them the gap in readability between the modes.
+- "Each mode is equally readable" is not a goal. Light mode stays more readable by Lc, 71.6 against
+  46.4. Closing the gap takes dark body to about the strong step, `#c9ccc3`, at Lc 71.5 and a difference of 18.1 from
+  `#839496`, and titles and selected text would have nothing left to stand out with. Going part of the way, `#a9bbbd`
+  reaches Lc 60.3 at a difference of 11.6, just past the limit, which is a judgment, so this is a choice to keep body
+  on the published ladder and not something the numbers force. Darkening the page would also close it, and that stops
+  being Solarized.
+
+## What this does not do
+
+- Plenty of text stays under 4.5:1. Light mode's yellow, green, cyan and blue sit at about 4.0:1, and
+  reaching 4.5:1 costs a difference of about 12 and turns yellow to brown. They match the level the
+  specification's L\* 50 accents reach on the same page. Light red and magenta sit at 4.29 and 4.21, comments
+  at 4.02 in dark and 3.50 in light, and inlay hints at 3.69 in dark.
+- The chrome scale has pairs under 4.5:1 as well, in dark and then light: body on raised at 4.86 and 4.39, body on
+  selected at 4.17 and 3.89, the accent on selected at 3.94 and 3.12, quiet on raised at 3.48 and 3.27, and quiet on
+  float at 4.21 and 3.61. Quiet text is counts, paths and kinds that the row around it already explains. Raising these
+  pairs means less separation between the steps, which is what the hierarchy is made of.
+- On the washes, in dark and then light, quiet text reads at 3.37 to 3.41 and 3.37 to 3.47, comments at 3.37 to 3.41
+  and 3.17 to 3.26, and the accent and signals at 3.78 to 4.60 and 3.63 to 4.00. Dark inlay hints fall under the
+  floor there, at Lc 27.7 to 28.1, as they do on the cursor line at Lc 28.4, and no tested view draws that case.
+- Red-green colorblind vision is worse served in one respect. Simulated at full severity,
+  the accent pairs closer than a difference of 5 go from 3 in the specification to 6 in each mode under
+  deuteranopia, and from 1 to 2 in dark and 1 in light under protanopia. Green and orange go from 5.8 to
+  2.6 in dark and 2.2 in light. Diffs still carry `+` and `-` signs.
+- "Easy on the eyes" is not measured. Everything here measures contrast, and nothing here measures
+  comfort over a long session.
+- Some plugin colors are out of the theme's reach:
+  - File icons keep nvim-web-devicons' own colors, which it sets again after every `ColorScheme`, so a few are dim on
+    a dark page: css at 1.87:1 and tsx at 2.28:1 on a float. `color_icons = false` in its setup draws them all in
+    `#6d8086`.
+  - `cmp.config.window.bordered()` maps a selected row to `Visual`, so it is gray in dark and pink in light. On Neovim
+    0.11 and later it also draws no border unless `winborder` is set or a border is passed, and with `Normal:Normal`
+    that leaves the menu's text directly over the code. The stock menu, which has neither problem, is what the
+    `cmp` view shows, and the `cmp-bordered` view passes `border = "rounded"`.
+  - Lualine's default layout puts the diff and diagnostic counts in section b, which this theme inverts, so they
+    read at Lc 7.5 to 14. In section c they read clearly, and the suite tests that layout.
+  - Bufferline computes its tab backgrounds from `Normal`. With `diagnostics` turned on it dims its counts to Lc 19
+    to 27 in dark, and with `show_buffer_icons` on it draws each inactive icon on a shade the scale does not hold,
+    `#ded8c7` in light and `#002028` in dark. Turning both off avoids this.
+  - alpha's stock dashboard paints its header with `Type`, and lspsaga's hover paints its rule with `Type`
+    (`lspsaga/hover.lua:146`), so both come out orange in dark and yellow in light. Changing `Type` would change
+    code syntax. alpha's `dashboard.section.header.opts.hl` takes another group.
+  - neo-tree colors a changed file's name with the same group as its change symbol, and gives the stage symbol its
+    own. Parhelion leaves those names colored, since a changed file is what a tree is there to show. `name = {
+    use_git_status_colors = false }` in its config keeps the names neutral, as nvim-tree's are.
+  - nvim-notify's default renderer draws the title rule with the border's group in a heavy glyph, and it maps
+    its inactive window to `NormalNC:NONE`, so its cards have no surface of their own.
+  - fidget draws its finished mark with `Constant`, so it is violet in dark and magenta in light.
+  - Neogit draws a commit's age with `Special` and a commit view's file count with `Number`. Both are code groups, so
+    the age is violet in both modes.
+  - Diffview derives `DiffviewDiffAddAsDelete` from `DiffDelete` when `enhanced_diff_hl` is on, so the old side of an
+    added block draws in quiet gray at Lc 30.9 with its syntax gone.
+  - `LineNr`, `SignColumn` and `DiagnosticSign*` keep the base tables' raised gutter, so a float that turns on line
+    numbers or draws a sign shows a short raised strip.
+  - `Search`, `IncSearch` and `Visual` keep the base tables' colors, which differ in hue between modes. Selection in
+    a buffer is bold magenta on pink in light and gray in dark.
+  - dashboard-nvim's README sets shortcut colors with `@property` and `Label`, which are code syntax groups, so a
+    config that copies it shows them in syntax colors.
+  - mini.notify blends its window by default, so code shows faintly through it. The view turns blending off, because
+    the legibility check reads that faint code as text.
+  - Feline's and reactive's theme files read the scale, the accents and the constant hue directly, with no roles. The
+    constant hue is the base tables' `Constant` color, toned.
+- Staying inside the theme's colors is not looking good. That check finds strangers. A neutral gray or a
+  tint of orange on a page passes it, whether or not it looks right, so the plugin sheets are there to be looked
+  at.
+- Ratio and Lc predict legibility and are not legibility. Nobody has run a reading study on this palette.
+  They also describe sRGB values, and take no account of the display or the terminal's font rendering.
+
+## How the suite holds this
+
+The suite renders the base tables with `refinement.lua` applied on top, renders parhelion, and compares every cell and
+every group. Only the groups `chrome.lua` names may differ. On the base side it applies eight chrome families and no
+others: bufferline, the tab line, window separators, markdown text, mini.cursorword, the diff lines, Neogit and
+Diffview, because they frame or fill the buffers the views compare. So any other chrome group that reaches a code,
+Neogit or Diffview screen by accident shows up as a difference. A change to `refinement.lua`, the base tables or the
+extra queries applies to both sides and that comparison stays green, so these tests judge those files and `chrome.lua`
+themselves:
+
+- `tests/parhelion/approved_files.lua` holds a checksum of the base tables and the extra queries, and
+  `tests/parhelion/approved_presets.lua` pins the lualine theme's colors, so changing one means changing its pin on
+  purpose. A new query file fails until it has a pin.
+- `tests/parhelion/approved.lua` lists one group for each tone, every repaired group and at least one group for each
+  role in each family of `chrome.lua` with their exact look, per mode, and each row is a test on the two load paths that
+  end in that mode. A test fails when a tone or a role has no pinned group, or when a name has none in the diff lines,
+  Diffview, gitsigns, headlines, markdown text, markview, mini.clue, mini.diff, Neogit, render-markdown or which-key,
+  since those are the families whose hues and washes the other checks accept. Changing a tone, a repair, a step or a
+  role means changing this table on purpose.
+- On each wash a comment clears Lc 30, body text reaches 4.5:1, and the raised step sits at least 5 away. `DiffChange`
+  holds its wash, and Neogit's cursor rows and focused header differ from the rows around them.
+- A changed word in a diff window, in Neogit, in gitsigns or in mini.diff differs from its row by a color difference of
+  at least 10, and its text holds 4.5:1 on it. Neogit's status and commit views draw the added and removed word washes,
+  and Diffview the changed one, in cells on the screen, on every load path.
+- A which-key or mini.clue description holds 4.5:1 on the float in both modes.
+- With Neogit or Diffview open, on every load path, none of their groups holds a color with perceptual chroma over 0.07
+  unless it is a step of the chrome scale or a label hue.
+- No family names a group that holds code, a Vim syntax file's group, a diagnostic, an LSP reference, the gutter, the
+  fold column, the status line or lualine, or a Neogit or Diffview group that stands in for the page, cursor line,
+  gutter or status line, apart from markdown's Vim syntax headings, completion kinds, lspsaga's `DiagnosticText`,
+  nvim-ts-rainbow's columns and telekasten's syntax groups. render-markdown's heading bands
+  count as the base tables' too.
+- Each new tone stays within the difference limit, and each saturated tone within a degree of its source
+  hue, with orange named as the exception. Its source color is one the base tables really use.
+- The page colors stay fixed.
+- Accent pairs stay at least 13 apart.
+- The groups in the floors table clear them on all four load paths, and comments stay Lc 10 below body.
+- Every group that sets a foreground clears Lc 30, unless its name marks it as line art, such as a border, separator
+  or guide, or it is on the list of decorations. Both lists are in `tests/parhelion/legibility.lua`.
+- Every text cell in Neogit status, the commit view, the commit popup, diffview and 15 sample files clears Lc 30. Only
+  the tabline's `▎`, window separators and lualine's two section arrows are exempt.
+- Every text cell in the views of `tests/parhelion/popular` clears Lc 30 in both modes. Box drawing, block
+  elements and icon glyphs are exempt there, since plugins draw lines with them and pick icon colors
+  themselves.
+- Every color those views draw, and every group each view leaves defined, sits within 4 units of straight line CIELAB
+  distance of a mix of two theme colors, because plugins derive shades by mixing and a color a
+  plugin hard codes lands further out. It is a straight line distance because each color is compared against every mix.
+  The 4 is fitted just above the furthest color the views draw today, bufferline's computed `#002028` at 3.62.
+  Bufferline's near black `#00171d` fill counts as one more color and does not mix, since mixing it with orange reaches
+  every dark gray. Some strangers pass, such as `#888888` at 1.71, and the next check is what catches a hue among them.
+  `tests/parhelion/theme_colors.lua` names the groups the theme cannot reach: barbar's fallback target groups, which are
+  never drawn because the theme sets the groups they fall back from, the groups lspsaga sets whatever the theme says,
+  file icons, gitsigns' derived staged signs, Neovim's own debug groups and `Diagnostic*Reverse` groups, and backdrops,
+  which are shades under a blended window.
+- In those views, no plugin group holds a color with perceptual chroma over 0.07 unless the color is a step of the
+  chrome scale, or a label hue on a group of Neogit, Diffview, which-key, mini.clue, headlines, markview,
+  render-markdown or markdown's headings, or on a sign render-markdown combines from one of those. A label hue on any
+  other plugin fails, and so does one that is on neither table. No border, separator, guide, icon or similar structural
+  group outside those label families holds one at all unless its name carries a meaning `tests/parhelion/restraint.lua`
+  lists, such as a severity, a git state or the place the interface is waiting on. A plugin group is any group a bare
+  Neovim does not define, apart from those on that file's lists, so a plugin added later is checked without anyone
+  naming it. The check reads colors and not meaning, so red on a group that is not an error passes, which is why roles
+  are pinned and the sheets are looked at. `tests/parhelion/restraint.lua` holds both checks, and names what keeps its
+  color: groups named for a hue, hue features such as rainbow delimiters and git graph branches, mini.statusline's mode
+  fills, which match lualine's, and groups the plugin sets whatever the theme says, such as file icons and backdrops.
+- A view marked as drawing no code, which four are, shows at most 10% of its text in color. Neogit's status, commit and
+  popup views show at most 40%. The other views are not bounded. alpha is left out, for the reason given under What this
+  does not do, which also means its header is about half of that screen's text.
+- Neogit's status, commit and popup views show at least 10% of their text in color, and so does which-key's window, so
+  a change that flattens their labels fails. Markdown has no such floor, since a page's color is mostly its syntax. The
+  boundary check and the pins on its families hold it.
+- No plugin group is assigned two roles in any letter case, which would otherwise leave its color to table order.
+- fzf-lua's, lazy.nvim's and mason's backdrops dim the page by under 1.5:1 at those plugins' stock 40%, in both modes.
+- An error, warning or info toast's title holds the strong step, in nvim-notify and in snacks, so severity stays on the
+  icon.
+- Every `g:fzf_colors` key paints the step it means, and still resolves under another colorscheme.
+- The metrics reproduce known values.

@@ -1,0 +1,18 @@
+return {
+	"bash",
+	"css",
+	"go",
+	"html",
+	"javascript",
+	"json",
+	"lua",
+	"markdown",
+	"markdown_inline",
+	"python",
+	"rust",
+	"scss",
+	"toml",
+	"tsx",
+	"typescript",
+	"yaml",
+}

@@ -1,0 +1,18 @@
+return {
+	{ group = "NotificationError", attribute = "fg", equivalent = "DiagnosticError" },
+	{ group = "NeotestFailed", attribute = "fg", equivalent = "DiagnosticError" },
+	{ group = "DapUIWatchesError", attribute = "fg", equivalent = "DiagnosticError" },
+	{ group = "SignifySignDelete", attribute = "fg", equivalent = "GitGutterDelete" },
+	{ group = "NotificationWarning", attribute = "fg", equivalent = "DiagnosticWarn" },
+	{ group = "NotificationInfo", attribute = "fg", equivalent = "DiagnosticInfo" },
+	{ group = "NeotestPassed", attribute = "fg", equivalent = "DiagnosticOk" },
+	{ group = "SignifySignAdd", attribute = "fg", equivalent = "GitGutterAdd" },
+	{ group = "OctoPullAdditions", attribute = "fg", equivalent = "Added" },
+	{ group = "OctoPullModifications", attribute = "fg", equivalent = "Changed" },
+	{ group = "NeoTreeModified", attribute = "fg", equivalent = "Changed" },
+	{ group = "DapUIModifiedValue", attribute = "fg", equivalent = "Changed" },
+	{ group = "ActionPreviewTitle", attribute = "bg", equivalent = "Normal" },
+	{ group = "NotificationError", attribute = "bg", equivalent = "NormalFloat" },
+	{ group = "AvanteInlineHint", attribute = "fg", equivalent = "Comment" },
+	{ group = "CocInlayHint", attribute = "fg", equivalent = "Comment" },
+}

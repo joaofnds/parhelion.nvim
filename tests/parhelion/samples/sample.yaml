@@ -1,0 +1,10 @@
+# sample
+name: sample
+count: 3
+ok: true
+tags: [a, "b"]
+anchor: &base { x: 1 }
+merged:
+  <<: *base
+  text: |
+    block

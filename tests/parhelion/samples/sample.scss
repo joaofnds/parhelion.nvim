@@ -1,0 +1,26 @@
+// sample stylesheet
+@use "sass:math";
+$gap: 4px !default;
+$tones: (info: blue, warn: yellow);
+
+@mixin rounded($radius: 2px) {
+  border-radius: $radius;
+}
+
+.card {
+  display: flex;
+  margin: math.div($gap, 2) auto;
+  &:hover { color: darken(#268bd2, 10%); }
+  &--open { @include rounded(4px); }
+  .title & { font-weight: bold; }
+
+  @each $name, $tone in $tones {
+    .#{$name} { background: $tone; }
+  }
+}
+
+@function double($n) {
+  @return $n * 2;
+}
+
+@if $gap > 2px { body { padding: double($gap); } } @else { body { padding: 0; } }

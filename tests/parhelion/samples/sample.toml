@@ -1,0 +1,8 @@
+# sample
+title = "sample"
+[owner]
+count = 3
+ratio = 1.5
+ok = true
+when = 2024-01-02T03:04:05Z
+tags = ["a", 'b']

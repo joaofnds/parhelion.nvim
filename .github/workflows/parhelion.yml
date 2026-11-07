@@ -1,0 +1,54 @@
+---
+name: Parhelion
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: JohnnyMorganz/stylua-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: 2.6.0
+          args: --check --config-path=stylua.toml .
+
+  suite:
+    name: Test suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - run: tests/parhelion/ci-install.sh
+      - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: tests/parhelion/run.sh
+
+  parser-drift:
+    name: Extra queries survive the newest parsers
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PARHELION_TREESITTER_REF: main
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - run: tests/parhelion/ci-install.sh
+      - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: tests/parhelion/run.sh
