@@ -93,10 +93,12 @@ How far that reaches differs by plugin:
   mini.starter, nvim-navic, neo-tree, noice, nvim-notify, nvim-tree, oil, overseer, render-markdown, Snacks' dashboard,
   notifier and picker, telescope, trouble, undotree, vim-sneak and which-key. Neogit and Diffview are compared cell by
   cell in the test suite.
-- **A family and no view**: Octo, Avante, lazy.nvim, Beacon, neotest, headlines, lir, git-graph, buffon,
+- **A family and no view**: Octo, Avante, Beacon, neotest, headlines, lir, git-graph, buffon,
   operator-sandwich, colorful-winsep, symbols-outline, todo-comments, yanky, artio, nvim-ufo, treesitter-context,
   lightspeed, pounce, window-picker, blink.indent, blink.pairs, coc.nvim, copilot.vim, dadbod-ui, fern, notifier,
   signify, telekasten, vimwiki and nvim-ts-rainbow. Their roles are checked as groups only.
+- **Links and no view**: lazy.nvim. `chrome.links` points the groups the base tables set for it at the core groups
+  lazy.nvim links them to by default, and lazy.nvim's own links color the rest. The links are checked as groups only.
 - **The base tables' own groups**: gitgutter, whose groups the base tables set.
 - **Loaded and nothing else**: `tests/parhelion/plugins.lua` also loads yazi.nvim and nvim-surround, so the group
   comparison runs with them present. Neither has a family or a view.

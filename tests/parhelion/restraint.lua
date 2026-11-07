@@ -60,6 +60,7 @@ local families_with_label_hues = {
 	"headlines",
 	"markdown_text",
 	"markview",
+	"mason",
 	"mini_clue",
 	"neogit",
 	"render_markdown",
@@ -82,6 +83,10 @@ local holds_label_hues = names_with_label_hues()
 local derived_from_labels = {
 	"^Neogit",
 	"^RenderMarkdown_",
+}
+
+local linked_to_code = {
+	"^Lazy",
 }
 
 local has_meaning = {
@@ -229,7 +234,9 @@ local function set_of(steps)
 	return set
 end
 
-local function may_hold_a_label_hue(name) return holds_label_hues[name] or matches_any(name, derived_from_labels) end
+local function may_hold_a_label_hue(name)
+	return holds_label_hues[name] or matches_any(name, derived_from_labels) or matches_any(name, linked_to_code)
+end
 
 function M.hues_off_the_scale(background, colors_by_group)
 	local on_the_scale = set_of(chrome.scale[background])

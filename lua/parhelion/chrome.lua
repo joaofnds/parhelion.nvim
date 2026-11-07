@@ -180,6 +180,7 @@ local function looks(background)
 		page_warn = { fg = scale.warn, bg = scale.page },
 		plain = {},
 		quiet = { fg = scale.quiet },
+		quiet_bubble = { fg = scale.page, bg = scale.quiet },
 		quiet_italic = { fg = scale.quiet, italic = true },
 		quiet_struck = { fg = scale.quiet, strikethrough = true },
 		raised_fill = { bg = scale.raised },
@@ -215,6 +216,7 @@ local function looks(background)
 		look[name] = { fg = hue }
 		look[name .. "_underline"] = { sp = hue, underline = true }
 		look[name .. "_bubble"] = { fg = scale.page, bg = hue }
+		look[name .. "_bubble_bold"] = { fg = scale.page, bg = hue, bold = true }
 		look["page_" .. name] = { fg = hue, bg = scale.page }
 	end
 
@@ -694,16 +696,17 @@ M.families = {
 		float_title = "HarpoonTitle",
 	},
 	mason = {
-		accent = "MasonHighlight MasonLink",
+		blue_bubble = "MasonHighlightBlockSecondary",
+		blue_bubble_bold = "MasonHeaderSecondary MasonHighlightBlockBold",
 		error = "MasonError",
-		float_body = "MasonNormal",
-		quiet = "MasonHighlightSecondary MasonMuted",
-		raised_body = "MasonHighlightBlockSecondary MasonMutedBlock",
-		raised_quiet_bold = "MasonMutedBlockBold",
-		selected_strong = "MasonHighlightBlock",
-		selected_title = "MasonHighlightBlockBold MasonHighlightBlockBoldSecondary",
-		title = "MasonHeader MasonHeaderSecondary MasonHeading",
-		warn = "MasonWarning",
+		green = "MasonHighlight",
+		green_bubble = "MasonHighlightBlock",
+		magenta = "MasonHighlightSecondary",
+		quiet = "MasonMuted",
+		quiet_bubble = "MasonMutedBlock",
+		violet_bold = "MasonHeading",
+		violet_bubble_bold = "MasonHeader MasonHighlightBlockBoldSecondary",
+		yellow_bubble_bold = "MasonMutedBlockBold",
 	},
 	grug_far = {
 		accent_bold = "GrugFarResultsMatch",
@@ -1072,20 +1075,6 @@ M.families = {
 		ghost = "VimwikiHeaderChar",
 		title = "VimwikiHeader1 VimwikiHeader2 VimwikiHeader3 VimwikiHeader4 VimwikiHeader5 VimwikiHeader6",
 	},
-	lazy = {
-		accent = "LazyProgressDone LazyUrl",
-		body = "LazyTaskOutput LazyValue",
-		error = "LazyError",
-		float_body = "LazyNormal",
-		hairline = "LazyProgressTodo",
-		quiet = "LazyComment LazyCommit LazyCommitIssue LazyCommitScope LazyCommitType LazyDimmed LazyDir LazyLocal LazyProp "
-			.. "LazyReasonCmd LazyReasonEvent LazyReasonFt LazyReasonImport LazyReasonKeys LazyReasonPlugin LazyReasonRequire "
-			.. "LazyReasonRuntime LazyReasonSource LazyReasonStart LazySpecial",
-		raised_quiet = "LazyButton",
-		selected_title = "LazyButtonActive LazyH1",
-		title = "LazyH2",
-		warn = "LazyNoCond LazyWarning",
-	},
 	mini_diff = {
 		changed_inline = "MiniDiffOverChange MiniDiffOverChangeBuf",
 		removed_line = "MiniDiffOverDelete",
@@ -1101,10 +1090,17 @@ M.links = {
 	AvanteSidebarWinSeparator = "WinSeparator",
 	BlinkPairsMatchParen = "MatchParen",
 	CocMenuSel = "PmenuSel",
+	LazyButton = "CursorLine",
+	LazyButtonActive = "Visual",
+	LazyH1 = "IncSearch",
+	LazyNormal = "NormalFloat",
+	LazyReasonEvent = "Constant",
+	LazyReasonStart = "@variable.member",
 	LightspeedCursor = "Cursor",
 	LightspeedGreyWash = "Comment",
 	LightspeedUniqueChar = "LightspeedUnlabeledMatch",
 	LirFloatCursorLine = "CursorLine",
+	MasonNormal = "NormalFloat",
 	NvimSeparator = "ColorfulWinSep",
 	OctoCommentLine = "TabLineSel",
 	OctoDiffHunkPosition = "NormalFloat",
