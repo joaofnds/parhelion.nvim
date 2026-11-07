@@ -205,8 +205,8 @@ Every comparison runs on all four load paths. The checks on query files run once
   group given the wrong role. The list is a sample, so a role it leaves out goes unchecked.
 - A load sets no Lua global. It raises and keeps the active colorscheme when a family names a role `chrome.lua` lacks,
   and `chrome.groups` raises when a link names a group a family sets.
-- Flash, mason and which-key set no group outside `chrome.lua`. They stand for the plugins that draw only from core
-  groups, and others of that shape, such as grug-far, oil, trouble and undotree, are held by their views.
+- Parhelion sets no flash, mason or which-key group outside `chrome.lua`. Plugins that draw only from core groups,
+  such as grug-far, oil, trouble and undotree, are held by their views.
 - Neogit status, Neogit commit view, Neogit commit popup, diffview, and 15 sample files render the same text, fg, bg, sp
   and flags in every cell of a 130 by 50 grid, lualine and the restyled tabline included, once the families that restyle
   those screens are applied to the base side too, as [COLOR.md](COLOR.md) lists. Neogit builds its hint row in a random
