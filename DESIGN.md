@@ -100,10 +100,10 @@ start in light.
 `setup` stores the options for every later load and reloads parhelion when it is the active colorscheme. A load applies
 them to the built groups in this order: it drops the groups of each plugin turned off, then applies `transparent`,
 `dim_inactive`, `bold` and `italic`, and then the overrides, so an override can set what an earlier option removed.
-Each option that changes a group makes new tables and leaves the built table as it was, so a load with the defaults
+A load collects only the groups the options change, each mapped to a new table, or to `false` for a group it leaves
+unset, and writes the built groups around them. So it leaves the built table as it was, and a load with the defaults
 copies nothing. The `setup with no options undoes the <option> option` tests fail when an option writes into the built
-table, and the `a reload with the default options copies no groups` tests fail when a load with the defaults allocates
-more than 32 KB of Lua memory, which a copy of the groups takes three times over.
+table.
 Each override is first set in a namespace no window draws with, so one Neovim refuses raises before step 3 clears the
 active colorscheme, and a `setup` whose reload raises puts the earlier options back.
 `:help parhelion-options` says what each one means to a user. The option tests at the end of `tests/parhelion/run.lua`
@@ -135,7 +135,11 @@ are the same on every machine:
 - `a load with the default options requires no module but parhelion` and `a load with the <option> option requires
   nothing that builds the groups` fail when a load builds the groups again, which takes 2.6 to 2.8 times the floor.
 - `a reload with the default options copies no groups` fails when a reload through `:colorscheme parhelion`, the path
-  a user takes, allocates more than 32 KB of Lua memory. It allocates about 6 KB.
+  a user takes, allocates more than 32 KB of Lua memory. It allocates about 6 KB, and a table that only holds every
+  group takes about 100 KB.
+- `a reload with the <option> option copies only the groups it changes` fails when a reload with that option allocates
+  more than 32 KB past a copy of the groups it changes. A reload with `bold = false`, which changes about 180 groups,
+  allocates about 39 KB, where a copy of every group takes about 500 KB.
 - `a reload with the default options runs little more Lua than writing its groups` counts the Lua VM instructions of a
   reload through `:colorscheme parhelion` with the JIT off, and fails at 1.25 times those of a loop that only writes
   the groups. A reload runs 1.03 times as many.

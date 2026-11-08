@@ -35,43 +35,70 @@ local gutter = { LineNr = true, LineNrAbove = true, LineNrBelow = true, SignColu
 
 local function is_a_sign(name) return name:find "Signs?%u" ~= nil or name:find "Sign$" ~= nil end
 
-local function is_turned_off(name, plugins)
+-- A group as the options applied so far leave it: its attributes, false when the load sets none, or nil when parhelion
+-- does not draw it.
+local function drawn(built, changed, name)
+	local hl = changed[name]
+	if hl == nil then return built.groups[name] end
+
+	return hl
+end
+
+local function each_drawn_group(built, changed, visit)
+	for name in pairs(built.groups) do
+		local hl = drawn(built, changed, name)
+		if hl then visit(name, hl) end
+	end
+end
+
+local function with(hl, attribute, value)
+	local copy = {}
+	for key, held in pairs(hl) do
+		copy[key] = held
+	end
+	copy[attribute] = value
+
+	return copy
+end
+
+local function patterns_turned_off()
+	local plugins, patterns = require "parhelion.plugins", {}
 	for plugin, on in pairs(options.plugins) do
-		if not on then
-			for _, pattern in ipairs(plugins[plugin]) do
-				if name:find(pattern) then return true end
-			end
-		end
+		if not on then vim.list_extend(patterns, plugins[plugin]) end
+	end
+
+	return patterns
+end
+
+local function matches_any(name, patterns)
+	for _, pattern in ipairs(patterns) do
+		if name:find(pattern) then return true end
 	end
 
 	return false
 end
 
-local function without_plugins_turned_off(groups)
-	local plugins, kept = require "parhelion.plugins", {}
-	for name, hl in pairs(groups) do
-		if not is_turned_off(name, plugins) then kept[name] = hl end
-	end
-
-	return kept
+local function turn_off_plugins(built, changed)
+	local patterns = patterns_turned_off()
+	each_drawn_group(built, changed, function(name)
+		if matches_any(name, patterns) then changed[name] = false end
+	end)
 end
 
-local function without_backgrounds(built, groups)
-	local page, gutter_fill = built.colors.page, groups.LineNr.bg:lower()
-	local cleared = {}
-	for name, hl in pairs(groups) do
+local function clear_backgrounds(built, changed)
+	local page, gutter_fill = built.colors.page, built.groups.LineNr.bg:lower()
+	each_drawn_group(built, changed, function(name, hl)
 		local fill = hl.bg and hl.bg:lower()
 		if fill and (fill == page or gutter[name] or (fill == gutter_fill and is_a_sign(name))) then
-			hl = vim.tbl_extend("force", hl, { bg = "NONE" })
+			changed[name] = with(hl, "bg", "NONE")
 		end
-		cleared[name] = hl
-	end
-
-	return cleared
+	end)
 end
 
-local function without_style(style, groups)
-	return vim.tbl_map(function(hl) return vim.tbl_extend("force", hl, { [style] = false }) end, groups)
+local function remove_style(style, built, changed)
+	each_drawn_group(built, changed, function(name, hl)
+		if hl[style] then changed[name] = with(hl, style, false) end
+	end)
 end
 
 local raises_on_a_missing_color = {
@@ -118,7 +145,16 @@ local function validate_overrides(overrides)
 	end
 end
 
-local function overridden(built, groups)
+local function spellings(groups)
+	local spelling = {}
+	for name in pairs(groups) do
+		spelling[name:lower()] = name
+	end
+
+	return spelling
+end
+
+local function apply_overrides(built, changed)
 	local overrides = options.overrides
 	if type(overrides) == "function" then
 		overrides = overrides(colors(built))
@@ -126,37 +162,44 @@ local function overridden(built, groups)
 	end
 	validate_overrides(overrides)
 
-	if next(overrides) == nil then return groups end
-
-	local result, spelling = {}, {}
-	for name, hl in pairs(groups) do
-		result[name], spelling[name:lower()] = hl, name
-	end
+	local spelling
 	for name, override in pairs(overrides) do
-		name = spelling[name:lower()] or name
-		local current = result[name]
-		if override.link or current == nil or current.link then
-			result[name] = override
-		else
-			result[name] = vim.tbl_extend("force", current, override)
+		if built.groups[name] == nil then
+			spelling = spelling or spellings(built.groups)
+			name = spelling[name:lower()] or name
 		end
-		refuse_what_neovim_refuses(name, result[name])
+		local current = drawn(built, changed, name)
+		if override.link or not current or current.link then
+			changed[name] = override
+		else
+			changed[name] = vim.tbl_extend("force", current, override)
+		end
+		refuse_what_neovim_refuses(name, changed[name])
 	end
-
-	return result
 end
 
 local function turns_a_plugin_off() return vim.tbl_contains(vim.tbl_values(options.plugins), false) end
 
-local function with_options(built)
-	local groups = built.groups
-	if turns_a_plugin_off() then groups = without_plugins_turned_off(groups) end
-	if options.transparent then groups = without_backgrounds(built, groups) end
-	if options.dim_inactive then groups = vim.tbl_extend("force", groups, { NormalNC = { bg = built.dimmed } }) end
-	if not options.bold then groups = without_style("bold", groups) end
-	if not options.italic then groups = without_style("italic", groups) end
+-- The groups the options change, each mapped to its new attributes or to false when the load sets none.
+local function changes(built)
+	local changed = {}
+	if turns_a_plugin_off() then turn_off_plugins(built, changed) end
+	if options.transparent then clear_backgrounds(built, changed) end
+	if options.dim_inactive then changed.NormalNC = { bg = built.dimmed } end
+	if not options.bold then remove_style("bold", built, changed) end
+	if not options.italic then remove_style("italic", built, changed) end
+	apply_overrides(built, changed)
 
-	return overridden(built, groups)
+	return changed
+end
+
+local function set_groups(groups, changed)
+	for name, hl in pairs(groups) do
+		if changed[name] == nil then vim.api.nvim_set_hl(0, name, hl) end
+	end
+	for name, hl in pairs(changed) do
+		if hl then vim.api.nvim_set_hl(0, name, hl) end
+	end
 end
 
 local function set_fzf_colors()
@@ -227,7 +270,7 @@ end
 
 function M.load()
 	local built = M.built(vim.o.background)
-	local groups = with_options(built)
+	local changed = changes(built)
 
 	if vim.g.colors_name then
 		vim.cmd "hi clear"
@@ -241,8 +284,12 @@ function M.load()
 		vim.g["terminal_color_" .. (index - 1)] = color
 	end
 
-	for name, hl in pairs(groups) do
-		vim.api.nvim_set_hl(0, name, hl)
+	if next(changed) == nil then
+		for name, hl in pairs(built.groups) do
+			vim.api.nvim_set_hl(0, name, hl)
+		end
+	else
+		set_groups(built.groups, changed)
 	end
 end
 

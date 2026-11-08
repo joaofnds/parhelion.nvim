@@ -1954,23 +1954,33 @@ for _, path in ipairs(paths) do
 	end)
 end
 
-local kilobytes_a_reload_allocates = [[
-	collectgarbage "collect"
-	collectgarbage "stop"
-	local before = collectgarbage "count"
-	vim.cmd.colorscheme "parhelion"
-	local allocated = collectgarbage "count" - before
-	collectgarbage "restart"
+local kilobytes_allocated_by = [[
+	local function kilobytes_allocated_by(work)
+		collectgarbage "collect"
+		collectgarbage "stop"
+		local before = collectgarbage "count"
+		work()
+		local allocated = collectgarbage "count" - before
+		collectgarbage "restart"
 
-	return allocated
+		return allocated
+	end
 ]]
+
+local kilobytes_a_reload_allocates = kilobytes_allocated_by
+	.. [[return kilobytes_allocated_by(function() vim.cmd.colorscheme "parhelion" end)]]
+
+local reload_kilobytes_without_copies = 32
 
 for _, path in ipairs { paths[1], paths[2] } do
 	test("a reload with the default options copies no groups, " .. path.label, function()
 		in_world("parhelion", path, function(world)
 			local allocated = world:lua(kilobytes_a_reload_allocates)
 
-			assert(allocated < 32, string.format("a reload allocates %.0f KB of Lua memory", allocated))
+			assert(
+				allocated < reload_kilobytes_without_copies,
+				string.format("a reload allocates %.0f KB of Lua memory", allocated)
+			)
 		end)
 	end)
 end
@@ -2607,6 +2617,33 @@ local modules_that_build_the_groups = [[
 	return names
 ]]
 
+-- Compares the groups drawn with the option, which must be in force, against those drawn with the defaults, which it
+-- leaves in force.
+local kilobytes_a_copy_of_the_changed_groups_takes = kilobytes_allocated_by
+	.. [[
+	local with_the_option = vim.api.nvim_get_hl(0, {})
+	require("parhelion").setup()
+	local with_the_defaults = vim.api.nvim_get_hl(0, {})
+	local groups = require("parhelion").built(vim.o.background).groups
+	local changed = vim.tbl_filter(
+		function(name) return not vim.deep_equal(with_the_option[name], with_the_defaults[name]) end,
+		vim.tbl_keys(groups)
+	)
+
+	local kilobytes = kilobytes_allocated_by(function()
+		local copy = {}
+		for _, name in ipairs(changed) do
+			local hl = {}
+			for key, value in pairs(groups[name]) do
+				hl[key] = value
+			end
+			copy[name] = hl
+		end
+	end)
+
+	return { count = #changed, kilobytes = kilobytes }
+]]
+
 local gutter_groups = { "LineNr", "SignColumn", "FoldColumn", "GitSignsAdd", "DiagnosticSignError", "CocErrorSign" }
 local dimmed = { dark = "#002029", light = "#eee8d5" }
 
@@ -2847,6 +2884,26 @@ for _, path in ipairs { paths[1], paths[2] } do
 				expect_none(kept, "groups keep the option")
 			end)
 		end)
+
+		test(
+			string.format("a reload with the %s option copies only the groups it changes, %s", option, path.label),
+			function()
+				with_options(path, setup_code, function(world)
+					local allocated = world:lua(kilobytes_a_reload_allocates)
+
+					local changes = world:lua(kilobytes_a_copy_of_the_changed_groups_takes)
+					assert(
+						allocated < reload_kilobytes_without_copies + changes.kilobytes,
+						string.format(
+							"a reload allocates %.0f KB of Lua memory, where a copy of the %d groups it changes takes %.0f KB",
+							allocated,
+							changes.count,
+							changes.kilobytes
+						)
+					)
+				end)
+			end
+		)
 	end
 
 	test("setup refuses an option it does not know, " .. path.label, function()
