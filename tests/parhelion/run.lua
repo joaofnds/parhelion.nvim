@@ -840,6 +840,44 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
+local patch_highlighted_by = {
+	treesitter = "return vim.treesitter.highlighter.active[vim.api.nvim_get_current_buf()] ~= nil",
+	["Vim syntax"] = [[
+		vim.treesitter.stop()
+		return vim.treesitter.highlighter.active[vim.api.nvim_get_current_buf()] == nil and vim.bo.syntax == "diff"
+	]],
+}
+
+for _, path in ipairs { paths[1], paths[2] } do
+	for _, highlighter in ipairs { "treesitter", "Vim syntax" } do
+		local name = string.format(
+			"a patch's hunk header stands apart from its changed lines in %s, %s",
+			highlighter,
+			path.label
+		)
+		test(name, function()
+			in_world("parhelion", path, function(world)
+				world:request("nvim_command", "edit " .. vim.fn.fnameescape(samples .. "/sample.diff"))
+				world:settle { until_lua = patch_highlighted_by.treesitter, quiet = 300 }
+				assert(world:lua(patch_highlighted_by[highlighter]), highlighter .. " is not highlighting the patch")
+				world:settle { quiet = 300 }
+
+				local shot = world:capture()
+
+				local header = cell_at(shot, "@@ -1")
+				for _, line in ipairs { 'return "hello "', 'return "hello, "' } do
+					local drawn = cell_at(shot, line)
+					local difference = color.color_difference(header.fg, drawn.fg)
+					assert(
+						difference >= legibility.smallest_accent_difference,
+						string.format("the header %s is %.1f from %s", header.fg, difference, vim.inspect(drawn))
+					)
+				end
+			end)
+		end)
+	end
+end
+
 for _, entry_point in ipairs {
 	{ name = "the reactive cursor preset", code = [[return require "reactive.presets.parhelion-cursor"]] },
 	{ name = "the feline statusline", code = feline_statusline },

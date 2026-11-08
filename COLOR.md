@@ -414,6 +414,8 @@ Agrees:
 - Symmetric L\* steps. Dark body is `base1` and light body is `base01`, which are published values. The
   comment and emphasis tones are not published values, and they still sit within 2.4 L\* of each other's
   distance from the page, against 2.3 in the specification.
+- A patch's hunk header links to `Identifier`, blue, as Solarized's own Vim scheme links it. Vim's diff syntax would
+  link it to `Statement`, the green of the added lines it heads.
 
 Departs:
 
@@ -535,12 +537,14 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   black and bright white sit at least 3 from the page, about the step between the page and the raised surface, and
   white, bright black and bright white sit at least 3 from each other.
 - Accent pairs stay at least 13 apart.
+- In a patch, the hunk header sits at least 13 from its added and removed lines in both modes, under Vim syntax and
+  under treesitter.
 - In the gitsigns view, each staged sign reads at 2:1 or more on the gutter, below the unstaged sign of the same change
   and at least 6 from it, and in the nvim-tree view the folder arrows read at 3:1 or more on the tree, in both modes.
 - The groups in the floors table clear them on all four load paths, and comments stay Lc 10 below body.
 - Every group that sets a foreground clears Lc 30, unless its name marks it as line art, such as a border, separator
   or guide, or it is on the list of decorations. Both lists are in `tests/parhelion/legibility.lua`.
-- Every text cell in Neogit status, the commit view, the commit popup, diffview and 15 sample files clears Lc 30. Only
+- Every text cell in Neogit status, the commit view, the commit popup, diffview and 16 sample files clears Lc 30. Only
   the tabline's `▎`, window separators and lualine's two section arrows are exempt.
 - Every text cell in the views of `tests/parhelion/popular` clears Lc 30 in both modes. Box drawing, block
   elements and icon glyphs are exempt there, since plugins draw lines with them and pick icon colors

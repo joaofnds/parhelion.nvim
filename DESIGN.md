@@ -212,7 +212,7 @@ Every comparison runs on all four load paths. The checks on query files run once
   and `chrome.groups` raises when a link names a group a family sets.
 - Parhelion sets no flash, mason or which-key group outside `chrome.lua`. Plugins that draw only from core groups,
   such as grug-far, oil, trouble and undotree, are held by their views.
-- Neogit status, Neogit commit view, Neogit commit popup, diffview, and 15 sample files render the same text, fg, bg, sp
+- Neogit status, Neogit commit view, Neogit commit popup, diffview, and 16 sample files render the same text, fg, bg, sp
   and flags in every cell of a 130 by 50 grid, lualine and the restyled tabline included, once the families that restyle
   those screens are applied to the base side too, as [COLOR.md](COLOR.md) lists. Neogit builds its hint row in a random
   order, so the cells of that row are sorted before they are compared. Sample files also raise the same messages, and
@@ -232,7 +232,7 @@ Every comparison runs on all four load paths. The checks on query files run once
 - The popular plugin views and the plugin side theme files, as described under Plugin support.
 
 Set `PARHELION_TEST_FILTER=<substring>` to run the tests whose name contains it. A filter that matches nothing exits
-non-zero. The whole suite takes about six and a half minutes.
+non-zero. The whole suite takes about seven minutes.
 
 `.github/workflows/parhelion.yml` runs the suite and a StyLua check on a pull request and on a push to `main`, which
 needs the repository hosted on GitHub. In a clone with no such remote they only run by hand, the check as `stylua

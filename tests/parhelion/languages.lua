@@ -1,6 +1,7 @@
 return {
 	"bash",
 	"css",
+	"diff",
 	"go",
 	"html",
 	"javascript",

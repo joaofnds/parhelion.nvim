@@ -532,6 +532,7 @@ return {
 		["WinSeparator"] = { bg = "#002731", fg = "#586E75" },
 		["YankyPut"] = { link = "Search" },
 		["YankyYanked"] = { link = "IncSearch" },
+		["diffLine"] = { link = "Identifier" },
 		["lCursor"] = { link = "Cursor" },
 		["warningMsg"] = { bg = "NONE", fg = "#B58900" },
 	},
