@@ -2785,19 +2785,25 @@ for _, path in ipairs { paths[1], paths[2] } do
 	} do
 		test(string.format("%s keeps the colors and options as they were, %s", case.name, path.label), function()
 			in_world("parhelion", path, function(world)
-				local before = world:lua [[return vim.api.nvim_get_hl(0, {})]]
+				local before = world:lua [[
+					require("parhelion").setup { transparent = true }
 
-				local accepted, message, after, reloaded = unpack(world:lua([[
+					return vim.api.nvim_get_hl(0, {})
+				]]
+
+				local accepted, message, after, reloaded, reloaded_look = unpack(world:lua([[
 					local accepted, message = pcall(require("parhelion").setup, { overrides = ]] .. case.overrides .. [[ })
 					local after = vim.api.nvim_get_hl(0, {})
+					local reloaded = pcall(vim.cmd.colorscheme, "parhelion")
 
-					return { accepted, message, after, pcall(vim.cmd.colorscheme, "parhelion") }
+					return { accepted, message, after, reloaded, vim.api.nvim_get_hl(0, {}) }
 				]]))
 
 				assert(not accepted, "it took the override")
 				assert(tostring(message):find(case.names, 1, true), tostring(message))
 				assert(vim.deep_equal(before, after), "the colors changed")
 				assert(reloaded, "the next load fails too")
+				assert(vim.deep_equal(before, reloaded_look), "the next load drops the options")
 			end)
 		end)
 	end
