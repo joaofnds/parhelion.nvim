@@ -74,6 +74,18 @@ test("converts freezing to fahrenheit", () => {
 });
 EOF
 
+cat >src/retry.ts <<'EOF'
+export async function retry<T>(attempt: () => Promise<T>, times: number): Promise<T> {
+  for (let left = times; ; left--) {
+    try {
+      return await attempt();
+    } catch (error) {
+      if (left <= 1) throw error;
+    }
+  }
+}
+EOF
+
 cat >src/forecast.ts <<'EOF'
 import { Cache } from "./cache";
 import { convert, type Unit } from "./units";
@@ -108,7 +120,8 @@ async function fetchReading(city: string): Promise<Reading> {
 }
 EOF
 
-committed=(package.json README.md tsconfig.json src/units.ts src/cache.ts src/index.ts src/forecast.ts test/forecast.test.ts)
+committed=(package.json README.md tsconfig.json src/units.ts src/cache.ts src/retry.ts src/index.ts src/forecast.ts
+  test/forecast.test.ts)
 {
   printf 'commit refs/heads/main\n'
   printf 'author Ada Example <ada@example.com> 1730000000 +0000\n'
@@ -162,16 +175,15 @@ async function fetchReading(city: string): Promise<Reading> {
 }
 EOF
 
-cat >src/retry.ts <<'EOF'
-export async function retry<T>(attempt: () => Promise<T>, times: number): Promise<T> {
-  for (let left = times; ; left--) {
-    try {
-      return await attempt();
-    } catch (error) {
-      if (left <= 1) throw error;
-    }
-  }
-}
+# A new file in src/, beside its edit, would color src/ differently from run to run: nvim-tree colors a folder holding
+# two kinds of change by whichever its unordered status table yields first.
+cat >test/retry.test.ts <<'EOF'
+import { expect, test } from "vitest";
+import { retry } from "../src/retry";
+
+test("gives up after the last attempt", async () => {
+  await expect(retry(() => Promise.reject(new Error("down")), 2)).rejects.toThrow("down");
+});
 EOF
 
 printf '\nInstall it with `npm install forecast`.\n' >>README.md
