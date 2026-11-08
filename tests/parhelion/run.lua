@@ -1395,7 +1395,9 @@ for _, background in ipairs { "dark", "light" } do
 	end)
 
 	test("a search match stands apart from the cursor line in " .. background, function()
-		local difference = color.color_difference(scale.match_wash, scale.raised)
+		local match = require("parhelion.chrome").groups(background).Search
+
+		local difference = color.color_difference(match.bg, scale.raised)
 
 		assert(
 			difference >= legibility.smallest_wash_difference_from_the_cursor_line,
