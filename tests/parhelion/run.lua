@@ -515,34 +515,43 @@ for _, language in ipairs(query_languages) do
 	end)
 end
 
-for _, language in ipairs(query_languages) do
-	test("every capture the extra " .. language .. " query names draws a color under parhelion", function()
-		in_world("parhelion", paths[1], function(parhelion)
-			local uncolored = parhelion:lua(
-				[[
-				local language, query_path = ...
-				local query = vim.treesitter.query.parse(language, table.concat(vim.fn.readfile(query_path), "\n"))
-
-				local function drawn_fg(name)
-					while name do
-						local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
-						if next(hl) then return hl.fg end
-						name = name:match "^(.*)%.[^.]*$"
-					end
-				end
-
-				return vim.tbl_filter(
-					function(capture) return drawn_fg("@" .. capture .. "." .. language) == nil end,
-					query.captures
-				)
-			]],
+for _, path in ipairs { paths[1], paths[2] } do
+	for _, language in ipairs(query_languages) do
+		test(
+			string.format(
+				"every capture the extra %s query names draws a color under parhelion, %s",
 				language,
-				root .. "/after/queries/" .. language .. "/highlights.scm"
-			)
+				path.label
+			),
+			function()
+				in_world("parhelion", path, function(parhelion)
+					local uncolored = parhelion:lua(
+						[[
+					local language, query_path = ...
+					local query = vim.treesitter.query.parse(language, table.concat(vim.fn.readfile(query_path), "\n"))
 
-			expect_none(uncolored, "captures draw no color")
-		end)
-	end)
+					local function drawn_fg(name)
+						while name do
+							local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
+							if next(hl) then return hl.fg end
+							name = name:match "^(.*)%.[^.]*$"
+						end
+					end
+
+					return vim.tbl_filter(
+						function(capture) return drawn_fg("@" .. capture .. "." .. language) == nil end,
+						query.captures
+					)
+				]],
+						language,
+						root .. "/after/queries/" .. language .. "/highlights.scm"
+					)
+
+					expect_none(uncolored, "captures draw no color")
+				end)
+			end
+		)
+	end
 end
 
 for _, path in ipairs { paths[1], paths[2] } do
