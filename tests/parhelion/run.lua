@@ -3165,7 +3165,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
-	test("turning fzf off keeps the user's fzf colors that equal parhelion's, " .. path.label, function()
+	test("turning fzf off keeps a copy of parhelion's fzf colors set before it loads, " .. path.label, function()
 		local parhelions
 		in_world("parhelion", path, function(world) parhelions = world:lua "return vim.g.fzf_colors" end)
 
