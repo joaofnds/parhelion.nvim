@@ -999,7 +999,7 @@ local function drawn_hue(background, groups, name)
 	return hue_family(background, hl.fg or groups.Normal.fg)
 end
 
-test("every capture and syntax group draws the same hue in dark and light", function()
+test("every capture, syntax group and inlay hint draws the same hue in dark and light", function()
 	local drawn = {}
 	for _, path in ipairs { paths[1], paths[2] } do
 		in_world("parhelion", path, function(world) drawn[path.background] = snapshot(world).groups end)
@@ -1014,7 +1014,7 @@ test("every capture and syntax group draws the same hue in dark and light", func
 
 	local changed = {}
 	for name in pairs(names) do
-		if vim.startswith(name, "@") or vim.list_contains(syntax_groups, name) then
+		if vim.startswith(name, "@") or vim.list_contains(syntax_groups, name) or name == "LspInlayHint" then
 			local in_dark, in_light = drawn_hue("dark", drawn.dark, name), drawn_hue("light", drawn.light, name)
 			if in_dark ~= in_light then
 				table.insert(changed, string.format("%s is %s in dark and %s in light", name, in_dark, in_light))

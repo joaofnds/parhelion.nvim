@@ -15,6 +15,8 @@ The changes a user can see, newest release first. A change not yet released goes
   has them, such as VISUAL LINE and VREPLACE, and shows the git branch, the file name, the diagnostic counts and the
   cursor position. It needs no icon font. A narrow window drops the file's folders, then the branch, the position and
   the counts, so the mode and the file name stay.
+- Inlay hints take the comment color in dark mode, as they already did in light, instead of a dim cyan. They read at
+  4.02:1 on the page instead of 3.69:1, and stay readable on the cursor line and on diff lines.
 - The reactive cursor takes the mode's hue in insert, visual, select, replace and command modes, and keeps parhelion's
   cursor in the others. The reactive cursorline takes the added-line fill in insert mode and the removed-line fill in
   replace mode, and leaves the line as parhelion draws it in the others.

@@ -5,7 +5,6 @@ M.color_attributes = { "fg", "bg", "sp" }
 M.tones = {
 	dark = {
 		["#0c4e53"] = "#0b474c",
-		["#1d706a"] = "#3c8a84",
 		["#268bd2"] = "#40a0e8",
 		["#586e75"] = "#71888f",
 		["#6c71c4"] = "#8188dd",
@@ -34,6 +33,7 @@ local bold = { bold = true }
 
 local foregrounds_taken_from_a_group = {
 	BuffonUnloadedBuffer = { source = "Comment" },
+	LspInlayHint = { source = "Comment" },
 	NeogitGraphBoldGray = { source = "Comment", style = bold },
 	NeogitGraphBoldWhite = { source = "Normal", style = bold },
 	NeogitGraphGray = { source = "Comment" },

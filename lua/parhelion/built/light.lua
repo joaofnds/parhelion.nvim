@@ -1316,7 +1316,7 @@ return {
 		["LirFloatCursorLine"] = looks[135],
 		["LirFloatNormal"] = looks[42],
 		["LirSymLink"] = looks[44],
-		["LspInlayHint"] = looks[26],
+		["LspInlayHint"] = looks[51],
 		["LspKindArray"] = looks[44],
 		["LspKindBoolean"] = looks[44],
 		["LspKindClass"] = looks[44],

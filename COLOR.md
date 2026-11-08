@@ -158,7 +158,6 @@ Dark:
 | `#dc322f` | `#f95148` | 9.1 | +9.4 | +0.1 | 27.7 / 3.25 | 38.7 / 4.50 | Errors, deletions |
 | `#d33682` | `#ef5299` | 8.7 | +9.1 | +0.2 | 28.0 / 3.30 | 38.7 / 4.53 | Regexes, markup emphasis |
 | `#b58900` | `#c1951e` | 3.9 | +4.5 | +0.3 | 39.2 / 4.68 | 45.2 / 5.42 | Warnings, modified |
-| `#1d706a` | `#3c8a84` | 10.0 | +10.1 | +0.6 | 19.3 / 2.56 | 30.5 / 3.69 | Inlay hints |
 | `#0c4e53` | `#0b474c` | 2.3 | -2.8 | +0.7 | | | Cursor line number background |
 
 Light:
@@ -187,6 +186,7 @@ otherwise:
 | Groups | Before | After |
 | --- | --- | --- |
 | Neogit graph grey, Buffon unloaded buffers | As low as Lc 8.3 in dark and 22 in light | The comment color |
+| `LspInlayHint` | A dim cyan in dark and the comment color in light, so its hue changed with the mode | The comment color |
 | `LineNr`, `NonText`, `Whitespace`, light only | Darker than body text, so the gutter read louder than the code | Lighter than body text, `#6c7c80` on the gutter and `#728284` on the page |
 | `OkMsg`, Neogit's white graph rows, fzf.vim's status line | Fixed colors from Neovim or the plugin, such as `#b3f6c0` and white on black | The theme's success and body colors, and the status line |
 
@@ -465,15 +465,14 @@ Departs:
 
 - Plenty of text stays under 4.5:1. Light mode's yellow, green, cyan and blue sit at about 4.0:1, and
   reaching 4.5:1 costs a difference of about 12 and turns yellow to brown. They match the level the
-  specification's L\* 50 accents reach on the same page. Light red and magenta sit at 4.29 and 4.21, comments
-  at 4.02 in dark and 3.50 in light, and inlay hints at 3.69 in dark.
+  specification's L\* 50 accents reach on the same page. Light red and magenta sit at 4.29 and 4.21, and comments
+  and inlay hints at 4.02 in dark and 3.50 in light.
 - The chrome scale has pairs under 4.5:1 as well, in dark and then light: body on raised at 4.86 and 4.39, body on
   selected at 4.17 and 3.89, the accent on selected at 3.94 and 3.12, quiet on raised at 3.48 and 3.27, and quiet on
   float at 4.21 and 3.61. Quiet text is counts, paths and kinds that the row around it already explains. Raising these
   pairs means less separation between the steps, which is what the hierarchy is made of.
 - On the washes, in dark and then light, quiet text reads at 3.29 to 3.44 and 3.35 to 3.37, comments at 3.29 to 3.44 and
-  3.16 to 3.17, and the accent and signals at 3.69 to 4.65 and 3.61 to 3.89. Dark inlay hints fall under the floor
-  there, at Lc 27.4 to 28.3, as they do on the cursor line at Lc 28.4, and no tested view draws that case.
+  3.16 to 3.17, and the accent and signals at 3.69 to 4.65 and 3.61 to 3.89.
 - Red-green colorblind vision is worse served in one respect. Simulated at full severity, the accent pairs closer than a
   difference of 5 go from 3 in the specification to 6 in each mode under deuteranopia, and from 1 to 2 in dark and 1 in
   light under protanopia. Green and orange go from 5.8 to 2.6 in dark and 2.2 in light. Diffs pair green with red, the

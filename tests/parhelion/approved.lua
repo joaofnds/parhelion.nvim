@@ -370,7 +370,7 @@ return {
 		LirFloatCursorLine = { bg = "#073642" },
 		LirFloatNormal = { fg = "#93a1a1" },
 		LirSymLink = { fg = "#71888f" },
-		LspInlayHint = { fg = "#3c8a84" },
+		LspInlayHint = { fg = "#71888f" },
 		LspKindArray = { fg = "#71888f" },
 		LspKindKeyword = { fg = "#71888f" },
 		LspReferenceRead = { bg = "#0d414e" },
