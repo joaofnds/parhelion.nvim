@@ -32,7 +32,10 @@ vim.opt.shortmess:append "I"
 vim.o.background = vim.env.SHOOT_MODE
 vim.cmd.colorscheme "parhelion"
 
-vim.api.nvim_create_autocmd("FileType", { callback = function(args) pcall(vim.treesitter.start, args.buf) end })
+vim.api.nvim_create_autocmd(
+	"FileType",
+	{ pattern = "typescript", callback = function(args) vim.treesitter.start(args.buf) end }
+)
 
 require("nvim-tree").setup {
 	view = { width = 28 },

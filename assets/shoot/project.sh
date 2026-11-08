@@ -175,8 +175,6 @@ async function fetchReading(city: string): Promise<Reading> {
 }
 EOF
 
-# A new file in src/, beside its edit, would color src/ differently from run to run: nvim-tree colors a folder holding
-# two kinds of change by whichever its unordered status table yields first.
 cat >test/retry.test.ts <<'EOF'
 import { expect, test } from "vitest";
 import { retry } from "../src/retry";
@@ -188,3 +186,18 @@ EOF
 
 printf '\nInstall it with `npm install forecast`.\n' >>README.md
 git add README.md
+
+git status --porcelain --untracked-files=all | awk '
+  {
+    status = substr($0, 1, 2)
+    path = substr($0, 4)
+    while (sub(/\/[^\/]*$/, "", path)) {
+      if (path in seen && seen[path] != status) {
+        print "project.sh: " path "/ holds two kinds of change, which nvim-tree colors differently from run to run" >"/dev/stderr"
+        failed = 1
+      }
+      seen[path] = status
+    }
+  }
+  END { exit failed }
+'

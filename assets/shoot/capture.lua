@@ -15,7 +15,12 @@ local function editor(nvim)
 	command(nvim, "edit src/forecast.ts | badd src/units.ts | badd src/cache.ts")
 	command(nvim, "NvimTreeFindFile | wincmd p")
 	wait_for(nvim, "(vim.b.gitsigns_status_dict or {}).added ~= nil")
-	wait_for(nvim, [[#vim.api.nvim_buf_get_extmarks(vim.fn.bufnr "NvimTree_1", -1, 0, -1, { details = true }) > 0]])
+	wait_for(
+		nvim,
+		[[vim.iter(vim.api.nvim_buf_get_extmarks(vim.fn.bufnr "NvimTree_1", -1, 0, -1, { details = true })):any(
+			function(mark) return tostring(mark[4].hl_group):find "^NvimTreeGit" ~= nil end
+		)]]
+	)
 
 	nvim:lua [[
 		local namespace = vim.api.nvim_create_namespace "shoot"
