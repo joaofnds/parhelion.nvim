@@ -24,6 +24,12 @@ runs on Neovim 0.12, and nothing older is tested.
 ==============================================================================
 2. INSTALLATION                                       *parhelion-installation*
 
+With |vim.pack|, Neovim's own plugin manager, in your |init.lua|: >lua
+
+    vim.pack.add { "https://github.com/joaofnds/parhelion.nvim" }
+    vim.o.background = "dark" -- or "light"
+    vim.cmd.colorscheme "parhelion"
+<
 With lazy.nvim: >lua
 
     {

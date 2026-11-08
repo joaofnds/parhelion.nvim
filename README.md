@@ -7,6 +7,14 @@ light, and gives plugin interfaces a quiet, consistent look of their own.
 
 ## Install
 
+Parhelion needs Neovim 0.12 or later, whose own plugin manager installs it from `init.lua`:
+
+```lua
+vim.pack.add { "https://github.com/joaofnds/parhelion.nvim" }
+vim.o.background = "dark" -- or "light"
+vim.cmd.colorscheme "parhelion"
+```
+
 With lazy.nvim:
 
 ```lua
@@ -21,7 +29,7 @@ With lazy.nvim:
 }
 ```
 
-Setting `background` and loading the colorscheme again switches modes. It needs Neovim 0.12 or later.
+Setting `background` later switches modes.
 
 ## Options
 
