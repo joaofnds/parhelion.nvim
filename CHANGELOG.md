@@ -13,6 +13,11 @@ The changes a user can see. Parhelion has no releases yet, so they all sit under
 - ALE, indentmini.nvim, nvim-surround and fzf's own Vim plugin are listed among the supported plugins, so the
   `plugins` option can turn them off. They already drew in parhelion's colors.
 
+### Changed
+
+- Loading parhelion takes about 1.5 to 1.9 ms instead of 3.9 to 4.4 ms, and loading it again in the same mode about
+  0.7 ms instead of 1.6 ms.
+
 ### Fixed
 
 - A selection, a reference to the symbol under the cursor and an underlined diagnostic keep the code's colors instead of

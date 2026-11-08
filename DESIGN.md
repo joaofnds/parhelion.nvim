@@ -104,8 +104,26 @@ active colorscheme, and a `setup` whose reload raises puts the earlier options b
 `:help parhelion-options` says what each one means to a user. The option tests at the end of `tests/parhelion/run.lua`
 check each one when started in dark and in light, and that they hold across a toggle and a reload.
 
-A load takes about 25 ms and leaves about 2440 groups defined, 384 of them Neovim's own, timed around
-`vim.cmd.colorscheme` under `nvim --clean --headless -l`.
+### Load time
+
+A load leaves about 2450 groups defined, 384 of them Neovim's own. `tests/parhelion/bench.sh` times it against its floor,
+a colorscheme that only reads the same built table and writes its groups, as the median of 40 fresh `nvim --clean`
+starts for each mode, with `vim.loader` off and on:
+
+```sh
+bash tests/parhelion/bench.sh
+```
+
+On an Apple M5 Pro with Neovim 0.12.6, a first load takes about 1.9 ms with `vim.loader` off and 1.5 ms with it on,
+1.25 and 1.15 times its floor, and loading again in the same mode takes about 0.67 ms. Reading the built table takes
+about 0.7 ms, or 0.37 ms with `vim.loader`, and writing the groups another 0.7 ms, which the floor pays too. The rest is
+the `require` that finds and compiles `init.lua`, 0.2 to 0.3 ms, and `syntax reset`, 0.07 ms.
+
+The script fails when a first load takes more than 1.5 times its floor, which leaves room for a busy machine, so it
+catches a load that builds the groups again, 2.6 to 2.8 times its floor, and little else. The guards against slower loads are the
+`a load requires nothing that builds the groups` and `a reload with the default options copies no groups` tests,
+whose results do not depend on the machine. Time a load under `-c luafile`, never `-l`, since `-l` turns on 'verbose',
+which makes every `nvim_set_hl` many times slower.
 
 ## Plugin support
 
