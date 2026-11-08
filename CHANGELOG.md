@@ -10,13 +10,18 @@ The changes a user can see. Parhelion has no releases yet, so they all sit under
   italic off, overriding any group, and turning off parhelion's groups for one plugin. Options hold across a
   `background` toggle and a reload.
 - `:help parhelion`, covering installation, the options, the supported plugins and their theme files.
-- nvim-surround's highlight follows the selection.
-- ALE, indentmini.nvim and fzf's own Vim plugin are listed among the supported plugins. Parhelion already set their
-  groups.
+- ALE, indentmini.nvim, nvim-surround and fzf's own Vim plugin are listed among the supported plugins, so the
+  `plugins` option can turn them off. They already drew in parhelion's colors.
 
 ### Fixed
 
-- A selection, a search match and the other overlays keep the code's colors instead of painting over them.
+- A selection, a reference to the symbol under the cursor, an underlined diagnostic and mini.cursorword's highlight keep
+  the code's colors instead of painting over them.
+- A misspelling has a red undercurl instead of a strikethrough, and the other spelling marks have violet, yellow and
+  cyan undercurls.
+- The current quickfix entry stands out from the others.
+- A TODO in a comment is Solarized's bold magenta instead of the color of a variable, and todo-comments and
+  mini.hipatterns draw their TODO and NOTE markers in the same magenta.
 - Search matches look different from the selection.
 - The terminal's colors sit in their ANSI slots.
 - The extra queries no longer recolor code under other colorschemes.
