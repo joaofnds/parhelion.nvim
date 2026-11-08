@@ -994,6 +994,36 @@ for _, preset in ipairs { "cursor", "cursorline" } do
 end
 
 for _, path in ipairs { paths[1], paths[2] } do
+	test("the reactive cursorline preset keeps code readable on every line it fills, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local fills = world:lua(colors_by_slot, "reactive.presets.parhelion-cursorline")
+			local chrome = require "parhelion.chrome"
+			local scale = chrome.scale[path.background]
+			local texts = vim.tbl_extend("error", chrome.hues[path.background], {
+				body = scale.body,
+				quiet = scale.quiet,
+				strong = scale.strong,
+			})
+
+			local unreadable = {}
+			for slot, fill in pairs(fills) do
+				local floor = slot:find(".Visual.", 1, true) and legibility.floor_over_a_selection
+					or legibility.text_floor
+				for name, text in pairs(texts) do
+					local lightness = math.abs(color.lightness_contrast(text, fill))
+					if lightness < floor then
+						table.insert(unreadable, string.format("%s on %s %s at Lc %.1f", name, slot, fill, lightness))
+					end
+				end
+			end
+			table.sort(unreadable)
+
+			expect_none(unreadable, "texts fall under their floor")
+		end)
+	end)
+end
+
+for _, path in ipairs { paths[1], paths[2] } do
 	test("the lualine theme has its approved colors, " .. path.label, function()
 		in_world("parhelion", path, function(world)
 			local colors = world:lua(colors_by_slot, "lualine.themes.parhelion")

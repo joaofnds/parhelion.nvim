@@ -87,8 +87,9 @@ A load takes about 25 ms and leaves about 2440 groups defined, 384 of them Neovi
   [COLOR.md](COLOR.md) gives the measures under How the suite holds this. The fix is the group's name under a role or
   as a link in `lua/parhelion/chrome.lua`, or a new family.
 - The theme files barbecue, feline and reactive load draw only from `chrome.lua`, and the lualine theme tones colors of
-  its own. Reactive's cursorline preset also darkens its colors. `tests/parhelion/approved_presets.lua` pins the colors
-  of the lualine theme, of the feline statusline in normal mode and of both reactive presets.
+  its own. Reactive's cursorline preset also mixes its colors toward black in dark mode and toward white in light.
+  `tests/parhelion/approved_presets.lua` pins the colors of the lualine theme, of the feline statusline in normal mode
+  and of both reactive presets.
 
 How far that reaches differs by plugin:
 

@@ -542,6 +542,8 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   under treesitter.
 - In the gitsigns view, each staged sign reads at 2:1 or more on the gutter, below the unstaged sign of the same change
   and at least 6 from it, and in the nvim-tree view the folder arrows read at 3:1 or more on the tree, in both modes.
+- Code, comments and strong text clear Lc 30 on every line reactive's cursorline preset fills, and Lc 20 on its
+  selection fills, in both modes.
 - The groups in the floors table clear them on all four load paths, and comments stay Lc 10 below body.
 - Every group that sets a foreground clears Lc 30, unless its name marks it as line art, such as a border, separator
   or guide, or it is on the list of decorations. Both lists are in `tests/parhelion/legibility.lua`.
