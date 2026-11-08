@@ -252,7 +252,8 @@ Lualine, barbecue, bufferline, feline and reactive load a theme file of their ow
 says how to point each at parhelion's. Lualine runs its theme file again on every `ColorScheme` event, so it follows a
 toggle. Barbecue's, feline's and reactive's files read the mode when first required, so after a toggle they keep the
 earlier mode's colors until Neovim restarts. Bufferline's returns no highlights, because `chrome.lua` sets every
-`BufferLine` group.
+group bufferline's `highlights` option names. Bufferline still builds the groups for its icons and for the items of its
+`groups` option from the backgrounds it computes.
 
 The lualine, barbecue, feline and reactive files read their colors from the built table for the mode, through
 `require("parhelion").built`, which hands out the table a load uses. Nothing stops a caller changing that table, and a
