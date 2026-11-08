@@ -1489,7 +1489,13 @@ for _, case in ipairs {
 		groups = { Visual = { bg = "#2c4e56" } },
 		found = 0,
 	},
-	{ name = "reports a quiet word on a fill that is not the selection", fg = "#71888f", groups = {}, found = 1 },
+	{ name = "reports a quiet word when nothing is selected", fg = "#71888f", groups = {}, found = 1 },
+	{
+		name = "reports a quiet word on a fill that is not the selection",
+		fg = "#71888f",
+		groups = { Visual = { bg = "#0d414e" } },
+		found = 1,
+	},
 	{
 		name = "reports a word that vanishes into a selection",
 		fg = "#3a5c64",
