@@ -1785,6 +1785,7 @@ local modules_a_theme_file_requires = [[
 for _, path in ipairs { paths[1], paths[2] } do
 	for _, theme_file in ipairs {
 		"barbecue.theme.parhelion",
+		"lualine.themes.parhelion",
 		"parhelion.feline",
 		"reactive.presets.parhelion-cursor",
 		"reactive.presets.parhelion-cursorline",
