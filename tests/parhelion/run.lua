@@ -3179,6 +3179,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 end
 
 vim.fn.delete(fixture, "rf")
+vim.fn.delete(homes, "rf")
 report(string.format("\n%d passed, %d failed", passes, #failures))
 if passes == 0 and #failures == 0 then report "no test matched PARHELION_TEST_FILTER" end
 os.exit((#failures == 0 and passes > 0) and 0 or 1)
