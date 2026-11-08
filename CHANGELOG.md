@@ -46,7 +46,7 @@ The first release.
   faint. In dark mode every accent reaches a 4.5:1 contrast ratio on the page, where Solarized's sit between 3.25 and
   4.75:1, and comments reach 4:1, up from 2.8:1, while staying quieter than code.
 - Added and removed lines in a clear green and red, in diff windows and in the git plugins, in both modes.
-- Highlight groups for 81 plugins in the same quiet palette, and theme files for lualine, barbecue, bufferline, feline
+- Highlight groups for 78 plugins in the same quiet palette, and theme files for lualine, barbecue, bufferline, feline
   and reactive.nvim.
 - `require("parhelion").setup()`, with options for a transparent background, dimmer inactive windows, turning bold and
   italic off, overriding any group, and leaving a plugin's groups to the plugin. The options hold across a
