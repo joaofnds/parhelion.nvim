@@ -2863,16 +2863,52 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
-	test("setup refuses an override keyed by a number, " .. path.label, function()
-		in_world("parhelion", path, function(world)
-			local accepted, message = unpack(world:lua [[
-				vim.cmd.colorscheme "default"
+	for _, case in ipairs {
+		{ name = "an override keyed by a number", overrides = [[{ { fg = "#ff0000" } }]], names = "overrides[1]" },
+		{
+			name = "an override Neovim refuses",
+			overrides = [[{ Normal = { fg = "notacolor" } }]],
+			names = "overrides.Normal",
+		},
+		{
+			name = "an override with an attribute Neovim lacks",
+			overrides = [[{ Normal = { nope = true } }]],
+			names = "overrides.Normal",
+		},
+		{
+			name = "a group name Neovim refuses",
+			overrides = [[{ ["Bad Name"] = { fg = "#ff0000" } }]],
+			names = 'overrides["Bad Name"]',
+		},
+	} do
+		test(
+			string.format("setup refuses %s while another colorscheme is loaded, %s", case.name, path.label),
+			function()
+				in_world("parhelion", path, function(world)
+					local accepted, message = unpack(world:lua([[
+					vim.cmd.colorscheme "default"
 
-				return { pcall(require("parhelion").setup, { overrides = { { fg = "#ff0000" } } }) }
+					return { pcall(require("parhelion").setup, { overrides = ]] .. case.overrides .. [[ }) }
+				]]))
+
+					assert(not accepted, "it took the override")
+					assert(tostring(message):find("parhelion cannot set " .. case.names, 1, true), tostring(message))
+				end)
+			end
+		)
+	end
+
+	test("a load refuses an override function that returns a list, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local loaded, message = unpack(world:lua [[
+				vim.cmd.colorscheme "default"
+				require("parhelion").setup { overrides = function() return { { fg = "#ff0000" } } end }
+
+				return { pcall(vim.cmd.colorscheme, "parhelion") }
 			]])
 
-			assert(not accepted, "it took the override")
-			assert(tostring(message):find("overrides[1]", 1, true), tostring(message))
+			assert(not loaded, "it took the override")
+			assert(tostring(message):find("parhelion cannot set overrides[1]", 1, true), tostring(message))
 		end)
 	end)
 

@@ -89,11 +89,33 @@ local function refuse_what_neovim_refuses(name, hl)
 	if not accepted then error(string.format("parhelion cannot set overrides.%s: %s", name, message), 0) end
 end
 
-local function validate_override(name, override)
-	if type(name) ~= "string" then
-		error(string.format("overrides[%s]: expected a group name, got %s", vim.inspect(name), type(name)), 0)
+local function validate_overrides(overrides)
+	for name, override in pairs(overrides) do
+		if type(name) ~= "string" then
+			error(
+				string.format(
+					"parhelion cannot set overrides[%s]: a group name is a string, not a %s",
+					vim.inspect(name),
+					type(name)
+				),
+				0
+			)
+		end
+
+		if name:find "[^A-Za-z0-9_.@-]" then
+			error(
+				string.format(
+					"parhelion cannot set overrides[%s]: a group name holds only letters, digits, _, ., @ and -",
+					vim.inspect(name)
+				),
+				0
+			)
+		end
+
+		if type(override) ~= "table" then
+			error(string.format("parhelion cannot set overrides.%s: expected a table, got %s", name, type(override)), 0)
+		end
 	end
-	vim.validate("overrides." .. name, override, "table")
 end
 
 local function overridden(built, groups)
@@ -102,6 +124,7 @@ local function overridden(built, groups)
 		overrides = overrides(colors(built))
 		vim.validate("the result of overrides", overrides, "table")
 	end
+	validate_overrides(overrides)
 
 	if next(overrides) == nil then return groups end
 
@@ -110,7 +133,6 @@ local function overridden(built, groups)
 		result[name], spelling[name:lower()] = hl, name
 	end
 	for name, override in pairs(overrides) do
-		validate_override(name, override)
 		name = spelling[name:lower()] or name
 		local current = result[name]
 		if override.link or current == nil or current.link then
@@ -162,8 +184,9 @@ function M.setup(user_options)
 
 	vim.validate("overrides", user_options.overrides, { "table", "function" }, true)
 	if type(user_options.overrides) == "table" then
+		validate_overrides(user_options.overrides)
 		for name, override in pairs(user_options.overrides) do
-			validate_override(name, override)
+			refuse_what_neovim_refuses(name, override)
 		end
 	end
 
