@@ -23,9 +23,9 @@ Plugin support below for how they are checked.
   value for that mode.
 - A **repaired group** is one `refinement.repaired_groups` sets directly, because no tone can reach it.
 - A **plugin-only group** is one parhelion sets and the base tables do not.
-- The **built tables** are `lua/parhelion/built/{dark,light}.lua`: every group, terminal color and color an override
-  function gets, written ahead of time from the base tables, `refinement.lua` and `chrome.lua`. A load reads one and
-  builds nothing.
+- The **built tables** are `lua/parhelion/built/{dark,light}.lua`: every group and terminal color, the named colors an
+  override function and the theme files read, the constant hue and the fill `dim_inactive` gives, written ahead of time
+  from the base tables, `refinement.lua` and `chrome.lua`. A load reads one and builds nothing.
 
 ## Layout
 
@@ -39,9 +39,9 @@ Plugin support below for how they are checked.
 | `lua/parhelion/refinement.lua` | The tones parhelion changes from the base tables, and the repaired groups |
 | `lua/parhelion/chrome.lua` | How plugin interfaces use color: the scale of steps, the toned accents, the roles, each plugin's family, and the links |
 | `lua/parhelion/base/{dark,light}.lua` | The base tables |
-| `lua/lualine/themes/parhelion.lua` | The lualine theme, toned |
-| `lua/barbecue/theme/parhelion.lua`, `lua/parhelion/bufferline.lua` | The theme files those plugins load. Barbecue's draws from the scale in the built tables, and bufferline's leaves the tab bar to `chrome.lua`'s groups |
-| `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the scale, the accents and the constant hue in the built tables |
+| `lua/lualine/themes/parhelion.lua` | The lualine theme, from the colors in the built tables and their `StatusLine` text |
+| `lua/barbecue/theme/parhelion.lua`, `lua/parhelion/bufferline.lua` | The theme files those plugins load. Barbecue's draws from the colors in the built tables, and bufferline's leaves the tab bar to `chrome.lua`'s groups |
+| `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the colors and the constant hue in the built tables |
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries |
 | `tests/parhelion/` | The test suite |
 | `.github/workflows/parhelion.yml` | Runs the suite and the format check in CI |
@@ -84,7 +84,8 @@ root:
 nvim --headless --clean --cmd "set rtp^=." -c "lua require('parhelion.build').write()" -c "qa!"
 ```
 
-The `the built tables are what the sources build` tests fail, naming each stale group, until they are written.
+The `the built tables are what the sources build` tests fail, naming each stale group, until they are written. A
+running Neovim keeps the table it read first, so restart it to see the new one.
 
 A load depends on its path. `hi clear` leaves previously linked groups listed but empty, so after toggling from dark to
 light `@keyword.type` exists and has no attributes. This is why a dark to light toggle reports more groups than a fresh
@@ -106,27 +107,35 @@ check each one when started in dark and in light, and that they hold across a to
 
 ### Load time
 
-A load leaves about 2450 groups defined, 384 of them Neovim's own. `tests/parhelion/bench.sh` times it against its floor,
-a colorscheme that only reads the same built table and writes its groups, as the median of 40 fresh `nvim --clean`
-starts for each mode, with `vim.loader` off and on:
+A load leaves about 2450 groups defined, 384 of them Neovim's own. `tests/parhelion/bench.sh` times it against its
+floor, a colorscheme that only reads the same built table and writes its groups, as the median of 40 fresh
+`nvim --clean` starts for each mode, with `vim.loader` off and on:
 
 ```sh
 bash tests/parhelion/bench.sh
 ```
 
 On an Apple M5 Pro with Neovim 0.12.6, a first load takes about 1.65 ms with `vim.loader` off and 1.3 ms with it on,
-1.15 and 1.1 times its floor, and loading again in the same mode takes about 0.65 ms. Reading the built table takes
-about 0.7 ms, or 0.37 ms with `vim.loader`, and writing the groups another 0.7 ms, which the floor pays too. The rest is
-mostly reading `init.lua` and `syntax reset`, 0.07 ms. `colors/parhelion.lua` reads `init.lua` by its path when nothing
-has required it yet, since a `require` searches the runtimepath first, about 0.05 to 0.1 ms here, and it stores the
-module where a later `require("parhelion")` finds it.
+1.08 to 1.15 times its floor, and loading again in the same mode takes about 0.65 ms. Timing each step in a copy of
+the code puts reading the built table at about 0.75 ms, or 0.4 ms with `vim.loader`, and writing the groups at another
+0.73 ms, both of which the floor pays too. What the floor does not pay is reading `init.lua`, about 0.13 ms or 0.08 ms
+with `vim.loader`, `syntax reset`, 0.07 ms, and the terminal and fzf colors, 0.02 ms. Taking those timings costs a
+little, so they add up to slightly more than the script's. `colors/parhelion.lua` reads `init.lua` by its path when
+nothing has required it yet, since a `require` would search the runtimepath first, about 0.05 to 0.1 ms here, and it
+stores the module where a later `require("parhelion")` finds it.
 
-The script fails when a first load takes more than 1.5 times its floor, which leaves room for a busy machine, so it
-catches a load that builds the groups again, 2.6 to 2.8 times its floor, and little else. The guards against slower loads are the
-`a load with the default options requires no module but parhelion`, `a load with the <option> option requires
-nothing that builds the groups` and `a reload with the default options copies no groups` tests,
-whose results do not depend on the machine. Time a load under `-c luafile`, never `-l`, since `-l` turns on 'verbose',
-which makes every `nvim_set_hl` many times slower.
+The script fails when a load fails or when a first load takes more than 1.25 times its floor. CI does not run it, so
+run it after a change to the load or to the built tables. The suite's guards count rather than time, so their results
+are the same on every machine:
+
+- `a load with the default options requires no module but parhelion` and `a load with the <option> option requires
+  nothing that builds the groups` fail when a load builds the groups again, which takes 2.6 to 2.8 times the floor.
+- `a reload with the default options copies no groups` fails when a reload allocates more than 32 KB of Lua memory.
+- `a reload with the default options runs little more Lua than writing its groups` counts Lua VM instructions with the
+  JIT off, and fails at 1.25 times those of a loop that only writes the groups. A reload runs 1.03 times as many.
+
+None of them sees work Neovim does in C, such as a second `hi clear`, which only the script catches. Time a load under
+`-c luafile`, never `-l`, since `-l` turns on 'verbose', which makes every `nvim_set_hl` many times slower.
 
 ## Plugin support
 
@@ -144,9 +153,9 @@ which makes every `nvim_set_hl` many times slower.
   `outside_the_theme_reach` in `tests/parhelion/restraint.lua`, such as `OctoPurple` or `rainbowcol1`.
   [COLOR.md](COLOR.md) gives the measures under How the suite holds this. The fix is the group's name under a role or
   as a link in `lua/parhelion/chrome.lua`, or a new family.
-- The theme files barbecue, feline and reactive load draw only from the colors of `chrome.lua`, and the lualine theme
-  tones colors of its own. Reactive's cursorline preset also mixes its colors toward black in dark mode and toward white in light, so
-  each fill stays on its page's side and the code drawn over it keeps its contrast.
+- The theme files lualine, barbecue, feline and reactive load draw only from the colors of the built tables, and
+  lualine's bar text from their `StatusLine`. Reactive's cursorline preset also mixes its colors toward black in dark
+  mode and toward white in light, so each fill stays on its page's side and the code drawn over it keeps its contrast.
   `tests/parhelion/approved_presets.lua` pins the colors of the lualine theme, of the feline statusline in normal mode
   and of both reactive presets.
 
@@ -200,6 +209,9 @@ The roles are the looks `chrome.lua` builds in `looks`, and a new one goes there
 the label hues. The accent roles, such as `violet`, `orange`, `cyan` and `magenta`, are off the scale, so a group under
 one fails the off-scale check unless its family uses label hues or its name is in `outside_the_theme_reach`.
 
+A load reads the built tables, not `chrome.lua`, so write them again after each of these changes, as How a load works
+says, before running the views or rendering the sheets.
+
 A family naming a role that does not exist raises with the family's name when the built tables are written, and so do
 a link naming a group a family sets and a read of a scale step or hue `chrome.lua` lacks. The
 `every plugin group holds one role` test fails when a group sits under two roles. The
@@ -229,15 +241,18 @@ and the fix is the group's name under a role in the `neogit` family, with its pi
 ### Theme files
 
 Lualine, barbecue, bufferline, feline and reactive load a theme file of their own, and `:help parhelion-theme-files`
-says how to point each at parhelion's. Barbecue's, feline's and reactive's files read the mode when first required, so
-after a toggle they keep the earlier mode's colors until they are reloaded or Neovim restarts. Bufferline's returns no
-highlights, because `chrome.lua` sets every `BufferLine` group.
+says how to point each at parhelion's. Lualine runs its theme file again on every `ColorScheme` event, so it follows a
+toggle. Barbecue's, feline's and reactive's files read the mode when first required, so after a toggle they keep the
+earlier mode's colors until Neovim restarts. Bufferline's returns no highlights, because `chrome.lua` sets every
+`BufferLine` group.
 
-Barbecue's, feline's and reactive's files read their colors from the built table for the mode, through
-`require("parhelion").built`, which hands out the table a load uses, so they must not change it. Reading a color the
-table lacks raises, as reading one the scale or the accents lack in `chrome.lua` does. Each loads in about
-0.1 ms, and the `<theme file> requires no other parhelion module` tests fail when one requires `chrome.lua`, the
-refinement or the base tables, which take 1 to 1.5 ms to load.
+The lualine, barbecue, feline and reactive files read their colors from the built table for the mode, through
+`require("parhelion").built`, which hands out the table a load uses. Nothing stops a caller changing that table, and a
+change to one group's look reaches every group that shares it, so they must not change it. Reading a name the table's
+`colors` lack raises, as reading one the scale or the accents lack in `chrome.lua` does. A theme file required after a
+load takes about 0.16 to 0.27 ms. One required before any load reads the built table itself, about 1.1 ms or 0.7 ms
+with `vim.loader`, and the load then reuses it. The `<theme file> requires no other parhelion module` tests fail when
+one requires `chrome.lua`, the refinement or the base tables, which take 1 to 1.7 ms to load.
 
 ## The test suite
 
@@ -271,8 +286,9 @@ Every comparison runs on all four load paths. The checks on query files run once
   treesitter capture, which would break capture fallback.
 - Plugin-only groups listed in `tests/parhelion/roles.lua` take the color of their nearest equivalent, which catches a
   group given the wrong role. The list is a sample, so a role it leaves out goes unchecked.
-- A load sets no Lua global and requires nothing that builds the groups, and the built tables are what the sources
-  build. `chrome.groups` raises when a family names a role `chrome.lua` lacks or a link names a group a family sets.
+- A load sets no Lua global and, with the defaults or any one option, requires nothing that builds the groups. A reload
+  copies no groups and runs little more Lua than writing them, and the built tables are what the sources build.
+  `chrome.groups` raises when a family names a role `chrome.lua` lacks or a link names a group a family sets.
 - Parhelion sets no flash, mason or which-key group outside `chrome.lua`. Plugins that draw only from core groups,
   such as grug-far, oil, trouble and undotree, are held by their views.
 - Neogit status, Neogit commit view, Neogit commit popup, diffview, and 16 sample files render the same text, fg, bg, sp

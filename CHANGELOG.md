@@ -15,9 +15,10 @@ The changes a user can see. Parhelion has no releases yet, so they all sit under
 
 ### Changed
 
-- Loading parhelion takes about 1.3 to 1.65 ms instead of 3.9 to 4.4 ms, and loading it again in the same mode about
-  0.65 ms instead of 1.6 ms.
-- The barbecue, feline and reactive theme files load in about 0.1 ms instead of 1 to 1.5 ms.
+- Loading parhelion takes about a third of the time it did, and loading it again in the same mode about two fifths. On
+  an Apple M5 Pro a first load takes about 1.65 ms instead of 4.4 ms, or 1.3 ms instead of 3.9 ms with `vim.loader`.
+- The lualine, barbecue, feline and reactive theme files take about half the time they did when a plugin requires one
+  before parhelion loads.
 
 ### Fixed
 
