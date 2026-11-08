@@ -227,9 +227,11 @@ The rules, in both modes:
    expects a diff in green and red. So `Added`, `@diff.plus`, the gutter's added sign and every plugin's added mark are
    green in both modes. A diff's changed rows and words are tinted blue, the one place the accent's hue marks a change,
    while the gutter's changed sign stays yellow. Neovim's `PreInsert` and fzf-lua's `FzfLuaCmdBuf` link to `Added`
-   without showing a diff, so they keep the base tables' color. Hints share the accent, as the base tables' diagnostics
-   do. A label may reuse these hues without the meaning, which is how a Neogit tag is yellow, a remote green, and
-   markdown's headings run through the base tables' colors.
+   without showing a diff, so they keep the base tables' color. For the same reason oil's pending create takes the
+   accent as its copy and restore do, and operator-sandwich draws every highlight on the selected step, so neither turns
+   green or red. Hints share the accent, as the base tables' diagnostics do. A label may reuse these hues without the
+   meaning, which is how a Neogit tag is yellow, a remote green, and markdown's headings run through the base tables'
+   colors.
 5. A changed word sits on a word wash, a stronger blend of Solarized's published color over the page, and takes strong
    text. Solid fills are for jump labels, which are a character wide, and window picker labels, which fill a status
    line. Severity sits on an icon or a bar and the text stays neutral.

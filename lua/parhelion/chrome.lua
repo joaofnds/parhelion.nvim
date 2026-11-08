@@ -510,8 +510,7 @@ M.families = {
 		warn = "NeoTreeGitModified NeoTreeGitRenamed NeoTreeGitUnstaged NeoTreeModified",
 	},
 	oil = {
-		accent = "OilCopy OilRestore",
-		added = "OilCreate",
+		accent = "OilCopy OilCreate OilRestore",
 		error = "OilDelete OilOrphanLinkTarget OilPurge OilTrash",
 		quiet = "OilDirIcon OilEmpty OilHidden OilLinkTarget OilTrashSourcePath",
 		strong = "OilDir",
@@ -1007,9 +1006,7 @@ M.families = {
 		warn = "BuffonUnsavedIndicator",
 	},
 	operator_sandwich = {
-		added_line = "OperatorSandwichAdd",
-		removed_line = "OperatorSandwichDelete",
-		selected_strong = "OperatorSandwichBuns OperatorSandwichChange",
+		selected_strong = "OperatorSandwichAdd OperatorSandwichBuns OperatorSandwichChange OperatorSandwichDelete",
 	},
 	colorful_winsep = {
 		accent = "ColorfulWinSep",
