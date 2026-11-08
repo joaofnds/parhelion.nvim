@@ -106,7 +106,7 @@ How far that reaches differs by plugin:
 - **The base tables' own groups**: gitgutter, whose groups the base tables set, apart from the added sign and number,
   which the diff marks set.
 - **Loaded and nothing else**: `tests/parhelion/plugins.lua` also loads yazi.nvim and nvim-surround, so the group
-  comparison runs with them present. Neither has a family or a view.
+  comparison runs with them present. Neither has a family or a view, and nvim-surround's one group links to `Visual`.
 
 Passing says the text can be read, and says nothing about how it looks, so the views are also there to be looked at:
 

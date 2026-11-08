@@ -1160,6 +1160,7 @@ M.links = {
 	LirFloatCursorLine = "CursorLine",
 	MasonNormal = "NormalFloat",
 	NvimSeparator = "ColorfulWinSep",
+	NvimSurroundHighlight = "Visual",
 	OctoCommentLine = "TabLineSel",
 	OctoDiffHunkPosition = "NormalFloat",
 	OctoFloat = "NormalNC",

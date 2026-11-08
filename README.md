@@ -83,6 +83,7 @@ Highlight groups ship for these plugins:
 - [vigoux/notifier.nvim](https://github.com/vigoux/notifier.nvim)
 - [hrsh7th/nvim-cmp](https://github.com/hrsh7th/nvim-cmp)
 - [rcarriga/nvim-notify](https://github.com/rcarriga/nvim-notify)
+- [kylechui/nvim-surround](https://github.com/kylechui/nvim-surround)
 - [nvim-tree/nvim-tree.lua](https://github.com/nvim-tree/nvim-tree.lua)
 - [dchinmay2/nvim-ts-rainbow](https://github.com/dchinmay2/nvim-ts-rainbow) and [HiPhish/nvim-ts-rainbow2](https://github.com/HiPhish/nvim-ts-rainbow2)
 - [kevinhwang91/nvim-ufo](https://github.com/kevinhwang91/nvim-ufo)
