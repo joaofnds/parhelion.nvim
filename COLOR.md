@@ -489,9 +489,8 @@ Departs:
     `cmp` view shows, and the `cmp-bordered` view passes `border = "rounded"`.
   - Lualine's default layout puts the diff and diagnostic counts in section b, which this theme inverts, so they
     read at Lc 7.5 to 14. In section c they read clearly, and the suite tests that layout.
-  - Bufferline computes its tab backgrounds from `Normal`. With `diagnostics` turned on it dims its counts to Lc 19
-    to 27 in dark, and with `show_buffer_icons` on it draws each inactive icon on a shade the scale does not hold,
-    `#ded8c7` in light and `#002028` in dark. Turning both off avoids this.
+  - Bufferline computes its tab backgrounds from `Normal`. With `show_buffer_icons` on it draws each inactive icon on
+    a shade the scale does not hold, `#ded8c7` in light and `#002028` in dark. Turning it off avoids this.
   - alpha's stock dashboard paints its header with `Type`, and lspsaga's hover paints its rule with `Type`
     (`lspsaga/hover.lua:146`), so both come out orange. Changing `Type` would change code syntax. alpha's
     `dashboard.section.header.opts.hl` takes another group.
@@ -582,9 +581,8 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   distance of a mix of two theme colors, because plugins derive shades by mixing and a color a
   plugin hard codes lands further out. It is a straight line distance because each color is compared against every mix.
   The 4 sits just above the furthest colors the views hold: light's removed wash `#fee6e4` at 3.95, its added and
-  removed word washes at 3.84 and 3.81, and bufferline's computed `#002028` at 3.62.
-  Bufferline's near black `#00171d` fill counts as one more color and does not mix, since mixing it with orange reaches
-  every dark gray. Some strangers pass, such as `#888888` at 1.71, and the next check is what catches a hue among them.
+  removed word washes at 3.84 and 3.81, and bufferline's computed `#002028` at 3.62. Some strangers pass, such as
+  `#888888` at 1.71, and the next check is what catches a hue among them.
   `tests/parhelion/theme_colors.lua` names the groups the theme cannot reach: barbar's fallback target groups, which are
   never drawn because the theme sets the groups they fall back from, the groups lspsaga sets whatever the theme says,
   file icons, Neovim's own debug groups and `Diagnostic*Reverse` groups, and backdrops,

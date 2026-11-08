@@ -3066,6 +3066,23 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
+	test("parhelion sets every group bufferline defines, " .. path.label, function()
+		closing(start_world("parhelion", path, true), function(world)
+			local unset = world:lua [[
+				local groups = require("parhelion").built(vim.o.background).groups
+				local unset = {}
+				for _, highlight in pairs(require("bufferline.config").highlights) do
+					if groups[highlight.hl_group] == nil then table.insert(unset, highlight.hl_group) end
+				end
+				table.sort(unset)
+
+				return unset
+			]]
+
+			expect_none(unset, "groups are left to bufferline")
+		end)
+	end)
+
 	test("turning a plugin off leaves its groups to the plugin, " .. path.label, function()
 		with_options(path, turned_off, function(world)
 			local names = world:lua(names_set)

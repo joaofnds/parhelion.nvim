@@ -6,7 +6,6 @@ local M = {}
 
 M.largest_distance = 4
 
-local bufferline_dark_fill = "#00171d"
 local mix_steps = 20
 
 local groups_out_of_the_theme_reach = {
@@ -40,7 +39,7 @@ local colors_inside
 local function every_color_inside_the_theme()
 	if colors_inside then return colors_inside end
 
-	colors_inside = { color.lab(bufferline_dark_fill) }
+	colors_inside = {}
 	local colors = theme_colors()
 	for first = 1, #colors do
 		for second = first, #colors do

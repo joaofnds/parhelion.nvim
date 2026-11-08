@@ -193,9 +193,8 @@ look with it:
 - nvim-cmp: `cmp.config.window.bordered()` draws a selected row with the
   selection's fill, and on Neovim 0.11 and later it draws no border unless
   'winborder' is set or `border = "rounded"` is passed.
-- bufferline.nvim: `diagnostics` dims its counts in dark, and
-  `show_buffer_icons` draws inactive icons on a shade parhelion does not
-  use. Turning both off avoids this.
+- bufferline.nvim: `show_buffer_icons` draws inactive icons on a shade
+  parhelion does not use. Turning it off avoids this.
 - alpha-nvim: the stock dashboard draws its header with `Type`, so it is
   orange. `dashboard.section.header.opts.hl` takes another group.
 - neo-tree.nvim: `name = { use_git_status_colors = false }` keeps a changed

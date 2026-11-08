@@ -199,6 +199,7 @@ local function looks(background)
 		orange_bold = { fg = hues.orange, bold = true },
 		orange_bold_underlined = { fg = hues.orange, bold = true, underline = true },
 		page_body = { fg = scale.body, bg = scale.page },
+		page_hairline = { fg = scale.hairline, bg = scale.page },
 		page_ink = { fg = scale.page },
 		page_title = { fg = scale.strong, bg = scale.page, bold = true },
 		page_accent = { fg = scale.accent, bg = scale.page },
@@ -595,18 +596,24 @@ M.families = {
 
 	bufferline = {
 		accent = "BufferLineIndicatorSelected",
-		body = "BufferLineBufferVisible BufferLineCloseButtonVisible BufferLineDuplicateVisible BufferLineIndicatorVisible "
-			.. "BufferLineNumbersVisible",
+		body = "BufferLineBufferVisible BufferLineCloseButtonVisible BufferLineDiagnosticVisible BufferLineDuplicateVisible "
+			.. "BufferLineErrorDiagnosticVisible BufferLineErrorVisible BufferLineHintDiagnosticVisible BufferLineHintVisible "
+			.. "BufferLineIndicatorVisible BufferLineInfoDiagnosticVisible BufferLineInfoVisible BufferLineNumbersVisible "
+			.. "BufferLineWarningDiagnosticVisible BufferLineWarningVisible",
 		error = "BufferLineErrorDiagnosticSelected BufferLineErrorSelected",
-		float_quiet = "BufferLineBackground BufferLineBuffer BufferLineCloseButton BufferLineDuplicate BufferLineError "
-			.. "BufferLineErrorDiagnostic BufferLineGroupLabel BufferLineHint BufferLineHintDiagnostic BufferLineInfo "
-			.. "BufferLineInfoDiagnostic BufferLineNumbers BufferLineTab BufferLineTabClose BufferLineTruncMarker "
-			.. "BufferLineWarning BufferLineWarningDiagnostic",
+		float_quiet = "BufferLineBackground BufferLineBuffer BufferLineCloseButton BufferLineDiagnostic BufferLineDuplicate "
+			.. "BufferLineError BufferLineErrorDiagnostic BufferLineGroupLabel BufferLineHint BufferLineHintDiagnostic "
+			.. "BufferLineInfo BufferLineInfoDiagnostic BufferLineNumbers BufferLineTab BufferLineTabClose "
+			.. "BufferLineTruncMarker BufferLineWarning BufferLineWarningDiagnostic",
 		float_body = "BufferLineFill",
-		float_hairline = "BufferLineOffsetSeparator BufferLineSeparator BufferLineTabSeparator",
+		float_hairline = "BufferLineGroupSeparator BufferLineOffsetSeparator BufferLineSeparator BufferLineTabSeparator",
+		hairline = "BufferLineSeparatorVisible",
+		label = "BufferLinePick BufferLinePickSelected BufferLinePickVisible",
 		page_accent = "BufferLineHintDiagnosticSelected BufferLineHintSelected BufferLineInfoDiagnosticSelected "
 			.. "BufferLineInfoSelected",
-		page_quiet = "BufferLineCloseButtonSelected BufferLineDuplicateSelected BufferLineNumbersSelected",
+		page_hairline = "BufferLineSeparatorSelected BufferLineTabSeparatorSelected",
+		page_quiet = "BufferLineCloseButtonSelected BufferLineDiagnosticSelected BufferLineDuplicateSelected "
+			.. "BufferLineNumbersSelected",
 		page_title = "BufferLineBufferSelected BufferLineTabSelected",
 		page_warn = "BufferLineModifiedSelected BufferLineWarningDiagnosticSelected BufferLineWarningSelected",
 		float_warn = "BufferLineModified BufferLineModifiedVisible",

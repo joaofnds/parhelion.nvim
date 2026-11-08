@@ -461,6 +461,51 @@ view("bufferline", {
 	end,
 })
 
+view("bufferline-slant", {
+	plugins = { "bufferline.nvim" },
+	setup = function() require("bufferline").setup { options = { separator_style = "slant" } } end,
+	run = function(nvim)
+		edit(nvim, "notes.md")
+		edit(nvim, "src/view.tsx")
+		nvim:request("nvim_command", "vsplit")
+		edit(nvim, "src/app.lua")
+		nvim:settle { quiet = 600 }
+	end,
+})
+
+view("bufferline-diagnostics", {
+	plugins = { "bufferline.nvim" },
+	setup = function()
+		require("bufferline").setup {
+			options = {
+				diagnostics = "nvim_lsp",
+				diagnostics_indicator = function(count) return " (" .. count .. ")" end,
+				show_buffer_icons = false,
+			},
+		}
+	end,
+	run = function(nvim)
+		local function edit_with_one_diagnostic_of_each_severity(path)
+			edit(nvim, path)
+			nvim:lua [[
+				local severities = vim.diagnostic.severity
+				vim.diagnostic.set(vim.api.nvim_create_namespace "view", 0, {
+					{ lnum = 0, col = 0, severity = severities.ERROR, message = "error" },
+					{ lnum = 0, col = 0, severity = severities.WARN, message = "warning" },
+					{ lnum = 0, col = 0, severity = severities.INFO, message = "info" },
+					{ lnum = 0, col = 0, severity = severities.HINT, message = "hint" },
+				})
+			]]
+		end
+
+		edit_with_one_diagnostic_of_each_severity "notes.md"
+		edit_with_one_diagnostic_of_each_severity "src/view.tsx"
+		nvim:request("nvim_command", "vsplit")
+		edit_with_one_diagnostic_of_each_severity "src/app.lua"
+		nvim:settle { quiet = 800 }
+	end,
+})
+
 view("flash", {
 	plugins = { "flash.nvim" },
 	setup = function()
