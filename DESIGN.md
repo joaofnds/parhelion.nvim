@@ -29,7 +29,8 @@ Plugin support below for how they are checked.
 | Path | Purpose |
 | --- | --- |
 | `colors/parhelion.lua` | Colorscheme entry point |
-| `lua/parhelion/init.lua` | The load sequence below |
+| `lua/parhelion/init.lua` | The load sequence below, and `setup` |
+| `lua/parhelion/plugins.lua` | Each supported plugin's name and the patterns its group names match, for the `plugins` option |
 | `lua/parhelion/refinement.lua` | The tones parhelion changes from the base tables, and the repaired groups |
 | `lua/parhelion/chrome.lua` | How plugin interfaces use color: the scale of steps, the toned accents, the roles, each plugin's family, and the links |
 | `lua/parhelion/base/{dark,light}.lua` | The base tables |
@@ -39,6 +40,8 @@ Plugin support below for how they are checked.
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries |
 | `tests/parhelion/` | The test suite |
 | `.github/workflows/parhelion.yml` | Runs the suite and the format check in CI |
+| `doc/parhelion.txt` | The `:help` page |
+| `CHANGELOG.md` | The changes a user can see |
 | `LICENSE.md` | The license |
 | `assets/screenshot.png` | The README screenshot |
 
@@ -51,21 +54,30 @@ to the capture it stands for, here `@function`. Neovim falls a capture back alon
 
 `require("parhelion").load()` runs these steps:
 
-1. Computes the repaired groups and `chrome.groups`. A failure here, such as a family naming a role `chrome.lua` lacks,
-   raises its error and leaves the active colorscheme untouched.
-2. `hi clear` when a colorscheme is already active, then `syntax reset`.
-3. Sets `colors_name`, the 16 terminal colors, and `g:fzf_colors` unless the user has set it, which makes fzf-lua and
+1. Builds the groups in three layers: the base tables' groups, toned, then the repaired groups, then `chrome.groups`,
+   every family's groups and then the links. A later layer replaces a group an earlier one set, whatever case either
+   spells its name in, so a plugin family wins over the base tables. A test keeps a repaired group from also being
+   named in `chrome.groups`. A failure here, such as a family naming a role `chrome.lua` lacks, raises its error and
+   leaves the active colorscheme untouched.
+2. Applies the options, as Options below says.
+3. `hi clear` when a colorscheme is already active, then `syntax reset`.
+4. Sets `colors_name`, the 16 terminal colors, and `g:fzf_colors` unless the user has set it, which makes fzf-lua and
    fzf.vim draw their pickers from highlight groups. Without it, fzf uses its own dark palette, which puts a black
    selection row on a light page.
-4. Applies the base tables' groups, toned, with `nvim_set_hl`, which replaces a whole group.
-5. Applies the repaired groups.
-6. Applies `chrome.groups`, every family's groups and then the links, so a plugin family wins over the base tables. A
-   test keeps a repaired group from also being named there. Steps 5 and 6 also stop Neogit deriving its own dimmed
-   versions, because Neogit leaves a group alone once it has attributes.
+5. Sets every group with `nvim_set_hl`, which replaces a whole group. The repaired groups and the families also stop
+   Neogit deriving its own dimmed versions, because Neogit leaves a group alone once it has attributes.
 
 A load depends on its path. `hi clear` leaves previously linked groups listed but empty, so after toggling from dark to
 light `@keyword.type` exists and has no attributes. This is why a dark to light toggle reports more groups than a fresh
 start in light.
+
+### Options
+
+`setup` stores the options for every later load and reloads parhelion when it is the active colorscheme. A load applies
+them to the built groups in this order: it drops the groups of each plugin turned off, then applies `transparent`,
+`dim_inactive`, `bold` and `italic`, and then the overrides, so an override can set what an earlier option removed.
+`:help parhelion-options` says what each one means to a user. The option tests at the end of `tests/parhelion/run.lua`
+check each one when started in dark and in light, and that they hold across a toggle and a reload.
 
 A load takes about 25 ms and leaves about 2440 groups defined, 384 of them Neovim's own, timed around
 `vim.cmd.colorscheme` under `nvim --clean --headless -l`.
@@ -101,10 +113,11 @@ How far that reaches differs by plugin:
   compared cell by cell in the test suite.
 - **A family and no view**: Octo, Avante, Beacon, neotest, headlines, lir, git-graph, buffon,
   operator-sandwich, colorful-winsep, symbols-outline, todo-comments, yanky, artio, nvim-ufo, treesitter-context,
-  lightspeed, pounce, window-picker, blink.indent, blink.pairs, coc.nvim, copilot.vim, dadbod-ui, fern, notifier,
-  signify, telekasten, vimwiki and nvim-ts-rainbow. Their roles are checked as groups only.
+  lightspeed, pounce, window-picker, blink.indent, blink.pairs, indentmini, coc.nvim, copilot.vim, dadbod-ui, fern,
+  notifier, signify, telekasten, vimwiki and nvim-ts-rainbow. Their roles are checked as groups only.
 - **The base tables' own groups**: gitgutter, whose groups the base tables set, apart from the added sign and number,
-  which the diff marks set.
+  which the diff marks set, ALE, whose two signs they set, and fzf's Vim plugin, whose three statusline groups the
+  repaired groups link to `StatusLine`.
 - **Loaded and nothing else**: `tests/parhelion/plugins.lua` also loads yazi.nvim and nvim-surround, so the group
   comparison runs with them present. Neither has a family or a view, and nvim-surround's one group links to `Visual`.
 
@@ -152,6 +165,12 @@ To check it by eye, add the plugin's pinned commit to `tests/parhelion/deps.txt`
 `tests/parhelion/popular/views.lua`, whose `plugins` list names that dependency, then render the sheets above. Add the
 plugin to the list in `README.md`.
 
+Add the plugin's repository name to `lua/parhelion/plugins.lua` with the patterns its group names match, and the name to
+the list under Plugins in `doc/parhelion.txt`, so the `plugins` option can turn it off. The test
+`every group parhelion sets is Neovim's, its own or one plugin's` fails on a group no plugin claims or two claim, and
+three more fail on a pattern that matches nothing, on a README plugin with no entry, and on a help list that differs
+from the entries.
+
 Every name in a family needs a look pinned in `tests/parhelion/approved.lua` for the diff lines, the diff marks,
 Diffview, gitsigns, headlines, lazy.nvim, markdown text, markview, mason, mini.clue, mini.diff, Neogit, render-markdown
 and which-key, and every role in any family needs one, because those pins are what fail when a color changes by
@@ -162,18 +181,10 @@ and the fix is the group's name under a role in the `neogit` family, with its pi
 
 ### Theme files
 
-Some plugins load a theme file of their own:
-
-| Plugin | How to use it |
-| --- | --- |
-| lualine | `theme = "parhelion"` |
-| barbecue | `theme = "auto"` finds it through `colors_name`, or `theme = "parhelion"` |
-| bufferline | Nothing to set. `highlights = require("parhelion.bufferline").get_theme()` also works and adds nothing, because `chrome.lua` sets `BufferLine*` |
-| feline | `require "parhelion.feline"` |
-| reactive | `load = { "parhelion-cursor", "parhelion-cursorline" }` |
-
-Barbecue's, feline's and reactive's files read the mode when first required, so after a toggle they keep the earlier
-mode's colors until they are reloaded or Neovim restarts.
+Lualine, barbecue, bufferline, feline and reactive load a theme file of their own, and `:help parhelion-theme-files`
+says how to point each at parhelion's. Barbecue's, feline's and reactive's files read the mode when first required, so
+after a toggle they keep the earlier mode's colors until they are reloaded or Neovim restarts. Bufferline's returns no
+highlights, because `chrome.lua` sets every `BufferLine` group.
 
 ## The test suite
 

@@ -260,6 +260,12 @@ reads at 6.85:1 and 6.71:1, body at 4.17:1 and 3.89:1, and the accent at 3.94:1 
 row because it falls under 3:1 there in both modes, and under the legibility floor in dark.
 
 Selected, hairline, strong and the backdrop are not published or toned, and were chosen by eye against these measures.
+
+The `dim_inactive` option puts windows without focus on a dimmed surface. In dark it is `#002029`, L 22.5, 1.13:1 below
+the page. Light has no free step below its page, since raised is the only one apart from both the page and the text, so
+inactive windows take raised, and their cursor line and gutter, which are raised too, blend into it. On the dimmed
+surface quiet text reads at Lc 34.9 in dark and 53.8 in light, and the weakest accent at Lc 40.1, orange, and 55.7,
+blue.
 Selected is the step that keeps the spacing above. Hairline reads at 1.70:1 and 1.59:1 on the page, enough to see a line
 and too little to read as content, which also leaves it under 3:1. Strong sits about
 60% of the way from body to the next published monotone, `base2` in dark and `base02` in light, at 9.23:1 and 8.60:1.
@@ -544,6 +550,7 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   and at least 6 from it, and in the nvim-tree view the folder arrows read at 3:1 or more on the tree, in both modes.
 - Code, comments and strong text clear Lc 30 on every line reactive's cursorline preset fills, and Lc 20 on its
   selection fills, in both modes.
+- Code, comments and strong text clear Lc 30 on the surface `dim_inactive` gives inactive windows, in both modes.
 - The groups in the floors table clear them on all four load paths, and comments stay Lc 10 below body.
 - Every group that sets a foreground clears Lc 30, unless its name marks it as line art, such as a border, separator
   or guide, or it is on the list of decorations. Both lists are in `tests/parhelion/legibility.lua`.

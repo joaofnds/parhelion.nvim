@@ -1,0 +1,26 @@
+# Changelog
+
+The changes a user can see. Parhelion has no releases yet, so they all sit under Unreleased.
+
+## Unreleased
+
+### Added
+
+- `require("parhelion").setup()` with options for a transparent background, dimmer inactive windows, turning bold and
+  italic off, overriding any group, and turning off parhelion's groups for one plugin. Options hold across a
+  `background` toggle and a reload.
+- `:help parhelion`, covering installation, the options, the supported plugins and their theme files.
+- nvim-surround's highlight follows the selection.
+- ALE, indentmini.nvim and fzf's own Vim plugin are listed among the supported plugins. Parhelion already set their
+  groups.
+
+### Fixed
+
+- A selection, a search match and the other overlays keep the code's colors instead of painting over them.
+- Search matches look different from the selection.
+- The terminal's colors sit in their ANSI slots.
+- The extra queries no longer recolor code under other colorschemes.
+- Staged git signs and nvim-tree's folder arrows are readable.
+- A patch's hunk header looks different from its added lines.
+- Each kind of code has the same hue in light mode as in dark.
+- Code stays readable on reactive.nvim's cursorline fills in light mode.

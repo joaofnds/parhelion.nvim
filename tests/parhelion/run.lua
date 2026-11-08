@@ -2112,6 +2112,371 @@ for _, mode in ipairs { "dark", "light" } do
 	end
 end
 
+local resolved_look = [[
+	local look = vim.api.nvim_get_hl(0, { name = ..., link = false })
+	local function hex(value) return value and string.format("#%06x", value) or nil end
+
+	return { fg = hex(look.fg), bg = hex(look.bg), bold = look.bold, italic = look.italic }
+]]
+
+local styled_groups = [[
+	local style = ...
+	local names = {}
+	for name, look in pairs(vim.api.nvim_get_hl(0, {})) do
+		if look[style] then table.insert(names, name) end
+	end
+	table.sort(names)
+
+	return names
+]]
+
+local function other_background(background) return background == "dark" and "light" or "dark" end
+
+local function with_options(path, setup_code, body)
+	in_world("parhelion", path, function(world)
+		world:lua(setup_code)
+		world:request("nvim_command", "colorscheme parhelion")
+		body(world)
+	end)
+end
+
+local gutter_groups = { "LineNr", "SignColumn", "FoldColumn", "GitSignsAdd", "DiagnosticSignError", "CocErrorSign" }
+local dimmed = { dark = "#002029", light = "#eee8d5" }
+
+for _, path in ipairs { paths[1], paths[2] } do
+	local scale = require("parhelion.chrome").scale[path.background]
+	local transparent = [[require("parhelion").setup { transparent = true }]]
+
+	test("the transparent option clears the page's background, " .. path.label, function()
+		with_options(path, transparent, function(world)
+			local on_the_page = vim.tbl_filter(
+				function(name) return world:lua(resolved_look, name).bg ~= nil end,
+				{ "Normal", "TabLineSel", "BufferLineBufferSelected" }
+			)
+
+			expect_none(on_the_page, "groups keep a background")
+		end)
+	end)
+
+	test("the transparent option clears the gutter's background, " .. path.label, function()
+		with_options(path, transparent, function(world)
+			local in_the_gutter = vim.tbl_filter(
+				function(name) return world:lua(resolved_look, name).bg ~= nil end,
+				gutter_groups
+			)
+
+			expect_none(in_the_gutter, "groups keep a background")
+		end)
+	end)
+
+	test("the transparent option keeps the surfaces above the page, " .. path.label, function()
+		with_options(path, transparent, function(world)
+			local cursor_line, float = world:lua(resolved_look, "CursorLine"), world:lua(resolved_look, "NormalFloat")
+
+			assert(cursor_line.bg == scale.raised, "the cursor line is " .. tostring(cursor_line.bg))
+			assert(float.bg == scale.float, "the float is " .. tostring(float.bg))
+		end)
+	end)
+
+	test("the dim_inactive option gives inactive windows a dimmer surface, " .. path.label, function()
+		with_options(path, [[require("parhelion").setup { dim_inactive = true }]], function(world)
+			local inactive = world:lua(resolved_look, "NormalNC")
+
+			assert(inactive.bg == dimmed[path.background], "inactive windows are " .. tostring(inactive.bg))
+		end)
+	end)
+
+	test("the dimmer surface keeps code readable, " .. path.label, function()
+		local texts = vim.tbl_extend("error", require("parhelion.chrome").hues[path.background], {
+			body = scale.body,
+			quiet = scale.quiet,
+			strong = scale.strong,
+		})
+
+		local unreadable = {}
+		for name, text in pairs(texts) do
+			local lightness = math.abs(color.lightness_contrast(text, dimmed[path.background]))
+			if lightness < legibility.text_floor then
+				table.insert(unreadable, string.format("%s at Lc %.1f", name, lightness))
+			end
+		end
+
+		expect_none(unreadable, "texts fall under the floor")
+	end)
+
+	test("inactive windows keep the page without dim_inactive, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local inactive = world:lua(resolved_look, "NormalNC")
+
+			assert(inactive.bg == scale.page, "inactive windows are " .. tostring(inactive.bg))
+		end)
+	end)
+
+	for _, style in ipairs { "bold", "italic" } do
+		test(string.format("turning %s off leaves no group %s, %s", style, style, path.label), function()
+			with_options(
+				path,
+				string.format([[require("parhelion").setup { %s = false }]], style),
+				function(world) expect_none(world:lua(styled_groups, style), "groups are " .. style) end
+			)
+		end)
+	end
+
+	test("an override merges into the group parhelion sets, " .. path.label, function()
+		local overrides = [[require("parhelion").setup { overrides = { Keyword = { bold = false } } }]]
+		with_options(path, overrides, function(world)
+			local keyword = world:lua(resolved_look, "Keyword")
+
+			assert(keyword.fg == approved[path.background].Keyword.fg, "the keyword is " .. tostring(keyword.fg))
+			assert(not keyword.bold, "the keyword is still bold")
+		end)
+	end)
+
+	test("an override with a link replaces the group, " .. path.label, function()
+		local overrides = [[require("parhelion").setup { overrides = { Keyword = { link = "Comment" } } }]]
+		with_options(path, overrides, function(world)
+			local link = world:lua [[return vim.api.nvim_get_hl(0, { name = "Keyword" }).link]]
+
+			assert(link == "Comment", "the keyword links to " .. tostring(link))
+		end)
+	end)
+
+	test("an override function gets the mode's colors, " .. path.label, function()
+		local overrides = [[require("parhelion").setup {
+			overrides = function(colors) return { Keyword = { fg = colors.violet, bg = colors.raised } } end,
+		}]]
+		with_options(path, overrides, function(world)
+			local keyword = world:lua(resolved_look, "Keyword")
+
+			assert(keyword.fg == require("parhelion.chrome").hues[path.background].violet, tostring(keyword.fg))
+			assert(keyword.bg == scale.raised, tostring(keyword.bg))
+		end)
+	end)
+
+	test("setup reloads parhelion when it is the colorscheme, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			world:lua [[require("parhelion").setup { transparent = true }]]
+
+			local normal = world:lua(resolved_look, "Normal")
+
+			assert(normal.bg == nil, "Normal is " .. tostring(normal.bg))
+		end)
+	end)
+
+	test("options survive a background toggle and a reload, " .. path.label, function()
+		local options = [[require("parhelion").setup {
+			transparent = true,
+			dim_inactive = true,
+			bold = false,
+			italic = false,
+			overrides = function(colors) return { Keyword = { fg = colors.violet } } end,
+		}]]
+		with_options(path, options, function(world)
+			local other = other_background(path.background)
+			local missing = {}
+			local function check(step, background)
+				local normal, inactive = world:lua(resolved_look, "Normal"), world:lua(resolved_look, "NormalNC")
+				local keyword = world:lua(resolved_look, "Keyword")
+				if normal.bg ~= nil then table.insert(missing, step .. ": transparent") end
+				if inactive.bg ~= dimmed[background] then table.insert(missing, step .. ": dim") end
+				if #world:lua(styled_groups, "bold") > 0 then table.insert(missing, step .. ": bold off") end
+				if #world:lua(styled_groups, "italic") > 0 then table.insert(missing, step .. ": italic off") end
+				if keyword.fg ~= require("parhelion.chrome").hues[background].violet then
+					table.insert(missing, step .. ": override")
+				end
+			end
+
+			world:lua("vim.o.background = ...", other)
+			check("after the toggle", other)
+			world:request("nvim_command", "colorscheme parhelion")
+			check("after the reload", other)
+
+			expect_none(missing, "options are lost")
+		end)
+	end)
+
+	test("setup refuses an option it does not know, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local refused, message =
+				unpack(world:lua [[return { pcall(require("parhelion").setup, { transparnet = true }) }]])
+
+			assert(not refused, "it took the option")
+			assert(tostring(message):find("transparnet", 1, true), tostring(message))
+		end)
+	end)
+
+	test("setup refuses an option of the wrong type, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local refused, message =
+				unpack(world:lua [[return { pcall(require("parhelion").setup, { transparent = "yes" }) }]])
+
+			assert(not refused, "it took the option")
+			assert(tostring(message):find("transparent", 1, true), tostring(message))
+		end)
+	end)
+end
+
+local plugins = require "parhelion.plugins"
+
+local own_groups = { "^Bold$", "^Italic$", "^Parameter$", "^Property$", "^TagAttribute$", "^TagDelimiter$" }
+vim.list_extend(own_groups, { "^TermCursorNC$", "^LspKind", "^diff", "^markdownH%d$" })
+
+local plugins_with_only_a_theme_file = { "barbecue.nvim", "feline.nvim", "lualine.nvim", "reactive.nvim" }
+
+local names_set = [[
+	local names = {}
+	for name in pairs(vim.api.nvim_get_hl(0, {})) do
+		if next(vim.api.nvim_get_hl(0, { name = name })) then table.insert(names, name) end
+	end
+	table.sort(names)
+
+	return names
+]]
+
+local function matches_one_of(name, patterns)
+	for _, pattern in ipairs(patterns) do
+		if name:find(pattern) then return true end
+	end
+
+	return false
+end
+
+local function owners_of(name)
+	local owners = {}
+	for plugin, patterns in pairs(plugins) do
+		if matches_one_of(name, patterns) then table.insert(owners, plugin) end
+	end
+	table.sort(owners)
+
+	return owners
+end
+
+local function plugin_groups(names)
+	return vim.tbl_filter(function(name) return not restraint.neovim_own_groups[name] and not name:find "^@" end, names)
+end
+
+local function plugins_readme_lists()
+	local names, section = {}, nil
+	for line in io.lines(root .. "/README.md") do
+		section = line:match "^## (.+)" or section
+		if section == "Plugins" and line:find "^%- %[" then
+			for name in line:gmatch "%[[^/%]]+/([^%]]+)%]%(" do
+				table.insert(names, name)
+			end
+		end
+	end
+	table.sort(names)
+
+	return names
+end
+
+test("every plugin the README lists can be turned off or brings only a theme file", function()
+	local listed = plugins_readme_lists()
+	local known = vim.list_extend(vim.tbl_keys(plugins), plugins_with_only_a_theme_file)
+
+	expect_none(
+		vim.tbl_filter(function(name) return not vim.list_contains(known, name) end, listed),
+		"listed plugins have no entry"
+	)
+	expect_none(
+		vim.tbl_filter(function(name) return not vim.list_contains(listed, name) end, known),
+		"plugins are missing from the README"
+	)
+end)
+
+test("the help page names every plugin that can be turned off", function()
+	local named, in_the_list = {}, false
+	for line in io.lines(root .. "/doc/parhelion.txt") do
+		if line:find "%*parhelion%-plugins%*" then in_the_list = true end
+		if in_the_list and line:find "^====" then break end
+		if in_the_list and line:find "^\t" then vim.list_extend(named, vim.split(vim.trim(line), "%s+")) end
+	end
+	table.sort(named)
+
+	local names = vim.tbl_keys(plugins)
+	table.sort(names)
+
+	assert(vim.deep_equal(named, names), "the help names " .. table.concat(named, " "))
+end)
+
+local turned_off = [[require("parhelion").setup { plugins = { ["telescope.nvim"] = false } }]]
+
+for _, path in ipairs { paths[1], paths[2] } do
+	test("every group parhelion sets is Neovim's, its own or one plugin's, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local unowned, shared = {}, {}
+			for _, name in ipairs(plugin_groups(world:lua(names_set))) do
+				local owners = owners_of(name)
+				if #owners == 0 and not matches_one_of(name, own_groups) then table.insert(unowned, name) end
+				if #owners > 1 then table.insert(shared, name .. " (" .. table.concat(owners, ", ") .. ")") end
+			end
+
+			expect_none(unowned, "groups belong to no plugin")
+			expect_none(shared, "groups belong to two plugins")
+		end)
+	end)
+
+	test("every plugin's patterns match a group parhelion sets, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local names = plugin_groups(world:lua(names_set))
+			local unmatched = {}
+			for plugin, patterns in pairs(plugins) do
+				for _, pattern in ipairs(patterns) do
+					local matched = vim.tbl_filter(function(name) return name:find(pattern) end, names)
+					if #matched == 0 then table.insert(unmatched, plugin .. " " .. pattern) end
+				end
+			end
+
+			expect_none(unmatched, "patterns match nothing")
+		end)
+	end)
+
+	test("turning a plugin off leaves its groups to the plugin, " .. path.label, function()
+		with_options(path, turned_off, function(world)
+			local names = world:lua(names_set)
+
+			expect_none(vim.tbl_filter(function(name) return name:find "^Telescope" end, names), "groups are set")
+			assert(vim.list_contains(names, "GitSignsAdd"), "gitsigns lost its groups")
+		end)
+	end)
+
+	test("an override sets a group of a plugin turned off, " .. path.label, function()
+		local options = [[require("parhelion").setup {
+			plugins = { ["telescope.nvim"] = false },
+			overrides = { TelescopeNormal = { link = "NormalFloat" } },
+		}]]
+		with_options(path, options, function(world)
+			local link = world:lua [[return vim.api.nvim_get_hl(0, { name = "TelescopeNormal" }).link]]
+
+			assert(link == "NormalFloat", "TelescopeNormal links to " .. tostring(link))
+		end)
+	end)
+
+	test("a plugin turned off stays off after a background toggle and a reload, " .. path.label, function()
+		with_options(path, turned_off, function(world)
+			local telescope_normal = [[return next(vim.api.nvim_get_hl(0, { name = "TelescopeNormal" })) ~= nil]]
+			local set_again = {}
+
+			world:lua("vim.o.background = ...", other_background(path.background))
+			if world:lua(telescope_normal) then table.insert(set_again, "after the toggle") end
+			world:request("nvim_command", "colorscheme parhelion")
+			if world:lua(telescope_normal) then table.insert(set_again, "after the reload") end
+
+			expect_none(set_again, "telescope's groups are back")
+		end)
+	end)
+
+	test("setup refuses a plugin it does not know, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local refused, message =
+				unpack(world:lua [[return { pcall(require("parhelion").setup, { plugins = { telescope = false } }) }]])
+
+			assert(not refused, "it took the plugin")
+			assert(tostring(message):find("telescope", 1, true), tostring(message))
+		end)
+	end)
+end
+
 vim.fn.delete(fixture, "rf")
 report(string.format("\n%d passed, %d failed", passes, #failures))
 if passes == 0 and #failures == 0 then report "no test matched PARHELION_TEST_FILTER" end

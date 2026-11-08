@@ -15,7 +15,8 @@ With lazy.nvim:
 	name = "parhelion",
 	lazy = false,
 	priority = 1000,
-	init = function()
+	config = function()
+		require("parhelion").setup {}
 		vim.o.termguicolors = true
 		vim.o.background = "dark" -- or "light"
 		vim.cmd.colorscheme "parhelion"
@@ -23,15 +24,32 @@ With lazy.nvim:
 }
 ```
 
-Setting `background` and loading the colorscheme again switches modes. The lualine theme is `theme = "parhelion"`. Its
-stock layout puts the diff and diagnostic counts in section b, where this theme makes them hard to read, so move them to
-section c.
+Setting `background` and loading the colorscheme again switches modes. It needs Neovim 0.12 or later.
+
+## Options
+
+`setup` takes these, shown with their defaults:
+
+```lua
+require("parhelion").setup {
+	transparent = false, -- clear the page's and the gutter's background
+	dim_inactive = false, -- give windows without focus a dimmer surface
+	bold = true,
+	italic = true,
+	overrides = {}, -- groups to change, or a function from the mode's colors to them
+	plugins = {}, -- { ["telescope.nvim"] = false } leaves that plugin's groups to it
+}
+```
+
+`:help parhelion` says what each one does, and how to load the theme files lualine, barbecue, bufferline, feline and
+reactive use.
 
 ## Plugins
 
 Highlight groups ship for these plugins:
 
 - [stevearc/aerial.nvim](https://github.com/stevearc/aerial.nvim)
+- [dense-analysis/ale](https://github.com/dense-analysis/ale)
 - [goolord/alpha-nvim](https://github.com/goolord/alpha-nvim)
 - [comfysage/artio.nvim](https://github.com/comfysage/artio.nvim)
 - [avante-corp/avante.nvim](https://github.com/avante-corp/avante.nvim)
@@ -56,6 +74,7 @@ Highlight groups ship for these plugins:
 - [lambdalisue/vim-fern](https://github.com/lambdalisue/vim-fern)
 - [j-hui/fidget.nvim](https://github.com/j-hui/fidget.nvim)
 - [folke/flash.nvim](https://github.com/folke/flash.nvim)
+- [junegunn/fzf](https://github.com/junegunn/fzf)
 - [ibhagwan/fzf-lua](https://github.com/ibhagwan/fzf-lua)
 - [isakbm/gitgraph.nvim](https://github.com/isakbm/gitgraph.nvim)
 - [airblade/vim-gitgutter](https://github.com/airblade/vim-gitgutter)
@@ -66,6 +85,7 @@ Highlight groups ship for these plugins:
 - [smoka7/hop.nvim](https://github.com/smoka7/hop.nvim)
 - [RRethy/vim-illuminate](https://github.com/RRethy/vim-illuminate)
 - [lukas-reineke/indent-blankline.nvim](https://github.com/lukas-reineke/indent-blankline.nvim)
+- [nvimdev/indentmini.nvim](https://github.com/nvimdev/indentmini.nvim)
 - [folke/lazy.nvim](https://github.com/folke/lazy.nvim)
 - [ggandor/leap.nvim](https://github.com/ggandor/leap.nvim)
 - [ggandor/lightspeed.nvim](https://github.com/ggandor/lightspeed.nvim)
@@ -117,6 +137,8 @@ Highlight groups ship for these plugins:
 - [DESIGN.md](DESIGN.md): how a load works, plugin support and the test suite.
 - [COLOR.md](COLOR.md): the color theory behind the palette, and every color parhelion changes.
 - [GLOSSARY.md](GLOSSARY.md): the terms these documents use.
+- [CHANGELOG.md](CHANGELOG.md): the changes a user can see.
+- [doc/parhelion.txt](doc/parhelion.txt), or `:help parhelion` in Neovim: installation, options and plugin setup.
 
 ## Tests
 

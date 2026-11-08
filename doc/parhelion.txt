@@ -1,0 +1,196 @@
+*parhelion.txt*  A modern take on Solarized, in dark and in light
+
+==============================================================================
+CONTENTS                                                  *parhelion-contents*
+
+  1. Introduction ............................... |parhelion-introduction|
+  2. Installation ............................... |parhelion-installation|
+  3. Options .................................... |parhelion-options|
+  4. Plugins .................................... |parhelion-plugins|
+  5. Theme files ................................ |parhelion-theme-files|
+
+==============================================================================
+1. INTRODUCTION                               *parhelion* *parhelion-introduction*
+
+Parhelion is a colorscheme that draws code in a modern take on Solarized, in
+dark and in light, and gives plugin interfaces a quiet, consistent look of its
+own. It follows 'background': set it and load the colorscheme again to switch
+modes.
+
+Parhelion needs Neovim 0.12 or later with 'termguicolors' on. Its test suite
+runs on Neovim 0.12, and nothing older is tested.
+
+==============================================================================
+2. INSTALLATION                                       *parhelion-installation*
+
+With lazy.nvim: >lua
+
+    {
+        "joaofnds/parhelion.nvim",
+        name = "parhelion",
+        lazy = false,
+        priority = 1000,
+        config = function()
+            require("parhelion").setup {}
+            vim.o.termguicolors = true
+            vim.o.background = "dark" -- or "light"
+            vim.cmd.colorscheme "parhelion"
+        end,
+    }
+<
+The `setup` call is needed only to change an option.
+
+Parhelion sets |g:fzf_colors| unless it is already set, so fzf-lua and fzf's
+own Vim plugin draw their pickers from parhelion's groups.
+
+==============================================================================
+3. OPTIONS                                                 *parhelion-options*
+
+                                                           *parhelion.setup()*
+require("parhelion").setup({opts})
+    Sets the options every later load uses, and reloads parhelion when it is
+    the active colorscheme so they take effect at once. Each call starts from
+    the defaults, so an option left out goes back to its default. An option
+    parhelion does not know, or a value of the wrong type, raises an error.
+    Options hold across a 'background' toggle and a reload.
+
+    The defaults: >lua
+
+    require("parhelion").setup {
+        transparent = false,
+        dim_inactive = false,
+        bold = true,
+        italic = true,
+        overrides = {},
+        plugins = {},
+    }
+<
+                                                       *parhelion-transparent*
+transparent ~
+    `true` clears the background of the page and of the gutter, so the
+    terminal's background shows through. That covers every group drawn on the
+    page's color, the line number, sign and fold columns, and the signs and
+    line numbers drawn on the gutter's color. Floats, the cursor line, the
+    selection and the other surfaces above the page keep their backgrounds.
+
+                                                      *parhelion-dim_inactive*
+dim_inactive ~
+    `true` gives windows without focus a dimmer surface than the page. In
+    dark mode it is a step darker than the page. In light mode it is the
+    surface the cursor line and the gutter use, because no other step below
+    the light page stays apart from both the page and the text, so an
+    inactive window's cursor line and gutter blend into the rest of it. Code
+    keeps its contrast on the dimmer surface in both modes. With
+    |parhelion-transparent| on, inactive windows still take it.
+
+                                                              *parhelion-bold*
+bold ~
+    `false` removes bold from every group. An override can still set it.
+
+                                                            *parhelion-italic*
+italic ~
+    `false` removes italic from every group. An override can still set it.
+
+                                                         *parhelion-overrides*
+overrides ~
+    A table from a group name to the attributes |nvim_set_hl()| takes, or a
+    function that returns one. An override merges into the group parhelion
+    sets, so this keeps the keyword's color and only drops its bold: >lua
+
+    require("parhelion").setup {
+        overrides = { Keyword = { bold = false } },
+    }
+<
+    An override that sets `link`, or one for a group parhelion links or does
+    not set, replaces the group. Overrides apply after every other option.
+
+    A function is called on every load with the colors of the active mode,
+    so one override works in dark and in light: >lua
+
+    require("parhelion").setup {
+        overrides = function(colors)
+            return { CursorLineNr = { fg = colors.violet, bg = colors.raised } }
+        end,
+    }
+<
+    The table it gets holds:
+    - `background`: `"dark"` or `"light"`.
+    - The surfaces: `page`, `float`, `raised`, `selected` and `backdrop`.
+    - The text steps: `hairline`, `ghost`, `quiet`, `body` and `strong`.
+    - The signals: `accent`, `error`, `warn`, `ok` and `added`.
+    - The diff fills: `added_wash`, `changed_wash`, `removed_wash`,
+      `added_word_wash`, `changed_word_wash`, `removed_word_wash`,
+      `match_wash`, `staged_added`, `staged_changed` and `staged_removed`.
+    - The accents: `yellow`, `orange`, `red`, `magenta`, `violet`, `blue`,
+      `cyan` and `green`.
+
+                                                     *parhelion-plugins-option*
+plugins ~
+    A table from a plugin's name in |parhelion-plugins| to `false`, which
+    leaves that plugin's groups to the plugin: parhelion sets none of them,
+    and the plugin draws with whatever highlights it sets itself. `true`, the
+    default for every plugin, keeps parhelion's groups. >lua
+
+    require("parhelion").setup {
+        plugins = { ["telescope.nvim"] = false },
+    }
+<
+    A name not in the list raises an error. An override still sets a group of
+    a plugin that is turned off.
+
+==============================================================================
+4. PLUGINS                                                 *parhelion-plugins*
+
+Parhelion sets groups for these plugins, named as their repositories are, and
+|parhelion-plugins-option| takes the same names:
+
+	aerial.nvim  ale  alpha-nvim  artio.nvim  avante.nvim  barbar.nvim
+	beacon.nvim  blink.cmp  blink.indent  blink.pairs  bufferline.nvim
+	buffon.nvim  coc.nvim  colorful-winsep.nvim  copilot.vim  dashboard-nvim
+	diffview.nvim  dropbar.nvim  fidget.nvim  flash.nvim  fzf  fzf-lua
+	gitgraph.nvim  gitsigns.nvim  grug-far.nvim  harpoon  headlines.nvim
+	hop.nvim  indent-blankline.nvim  indentmini.nvim  lazy.nvim  leap.nvim
+	lightspeed.nvim  lir.nvim  lspsaga.nvim  markview.nvim  mason.nvim
+	mini.nvim  neo-tree.nvim  neogit  neotest  noice.nvim  notifier.nvim
+	nvim-cmp  nvim-dap  nvim-dap-ui  nvim-navic  nvim-notify  nvim-surround
+	nvim-tree.lua  nvim-treesitter-context  nvim-ts-rainbow
+	nvim-ts-rainbow2  nvim-ufo  nvim-window-picker  octo.nvim  oil.nvim
+	overseer.nvim  pounce.nvim  rainbow-delimiters.nvim
+	render-markdown.nvim  snacks.nvim  symbols-outline.nvim  telekasten.nvim
+	telescope.nvim  todo-comments.nvim  trouble.nvim  undotree
+	vim-dadbod-ui  vim-fern  vim-gitgutter  vim-illuminate  vim-sandwich
+	vim-signify  vim-sneak  vimwiki  which-key.nvim  yanky.nvim
+
+None of them needs any setup for it, apart from the theme files in
+|parhelion-theme-files|.
+
+==============================================================================
+5. THEME FILES                                         *parhelion-theme-files*
+
+Some plugins load a theme of their own, and parhelion ships one for each:
+
+lualine.nvim ~
+    `theme = "parhelion"`. The stock layout puts the diff and diagnostic
+    counts in section b, where they are hard to read with this theme, so
+    move them to section c.
+
+barbecue.nvim ~
+    `theme = "auto"` finds it through |g:colors_name|, or
+    `theme = "parhelion"`.
+
+bufferline.nvim ~
+    Nothing to set. `highlights = require("parhelion.bufferline").get_theme()`
+    also works and returns no highlights, because parhelion already sets
+    every `BufferLine` group the tab bar draws with.
+
+feline.nvim ~
+    `require "parhelion.feline"`.
+
+reactive.nvim ~
+    `load = { "parhelion-cursor", "parhelion-cursorline" }`.
+
+The barbecue, feline and reactive files read 'background' when they are
+first required, so after a toggle they keep the earlier mode's colors until
+they are loaded again or Neovim restarts.
+
+ vim:tw=78:ts=8:noet:ft=help:norl:

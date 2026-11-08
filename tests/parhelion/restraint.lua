@@ -9,6 +9,7 @@ M.largest_share_in_color_with_labels = 0.4
 M.smallest_share_in_color_with_labels = 0.1
 
 local neovim_own_groups = vim.api.nvim_get_hl(0, {})
+M.neovim_own_groups = neovim_own_groups
 
 local outside_the_theme_reach = {
 	"Aqua$",
