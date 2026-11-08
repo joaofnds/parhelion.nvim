@@ -943,18 +943,28 @@ local function hue_family(background, hex)
 	return nearest_hue(background, hex)
 end
 
+local function drawn_hue(background, groups, name)
+	local hl = groups[name] or {}
+	return hue_family(background, hl.fg or groups.Normal.fg)
+end
+
 test("every capture and syntax group draws the same hue in dark and light", function()
 	local drawn = {}
 	for _, path in ipairs { paths[1], paths[2] } do
 		in_world("parhelion", path, function(world) drawn[path.background] = snapshot(world).groups end)
 	end
 
+	local names = {}
+	for _, groups in pairs(drawn) do
+		for name in pairs(groups) do
+			names[name] = true
+		end
+	end
+
 	local changed = {}
-	for name, dark in pairs(drawn.dark) do
-		local light = drawn.light[name]
-		local is_syntax = vim.startswith(name, "@") or vim.list_contains(syntax_groups, name)
-		if is_syntax and dark.fg and light and light.fg then
-			local in_dark, in_light = hue_family("dark", dark.fg), hue_family("light", light.fg)
+	for name in pairs(names) do
+		if vim.startswith(name, "@") or vim.list_contains(syntax_groups, name) then
+			local in_dark, in_light = drawn_hue("dark", drawn.dark, name), drawn_hue("light", drawn.light, name)
 			if in_dark ~= in_light then
 				table.insert(changed, string.format("%s is %s in dark and %s in light", name, in_dark, in_light))
 			end
