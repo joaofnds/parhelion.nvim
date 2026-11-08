@@ -63,8 +63,10 @@ local families_with_label_hues = {
 	"markview",
 	"mason",
 	"mini_clue",
+	"mini_hipatterns",
 	"neogit",
 	"render_markdown",
+	"todo_comments",
 	"which_key",
 }
 

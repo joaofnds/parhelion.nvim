@@ -209,16 +209,17 @@ The rules, in both modes:
 1. Text and structure stay neutral. Surfaces, borders, separators, guides and the text between labels are steps on one
    scale. Which-key's descriptions are the exception, and mini.clue's match them: they hold a label hue.
 2. In a plugin with label families, each kind of label holds one hue within that plugin, so it can be found without
-   being read. Neogit, Diffview, which-key, mini.clue, mason, lazy.nvim and the markdown plugins have them. Mason's
-   headers and tags are filled blocks of violet, blue, green, yellow and the quiet step, and its secondary highlight is
-   magenta. lazy.nvim's load reasons and buttons follow the core groups lazy.nvim links them to, such as `Constant` for
-   an event and `Statement` for keys, so they take the code's colors. Its home heading links to `IncSearch` and takes
-   the current match's yellow fill. Its section titles and times take the core `Bold` group, which parhelion sets to
-   bold alone, and its dimmed text is quiet. The same kind of label can differ between plugins, so a key is violet in a
-   Neogit popup and blue in which-key. A title adds bold to its hue in Neogit, Diffview and mason. Elsewhere a window's
-   main title holds the strong step and bold, as `FloatTitle`, `TelescopeTitle` and `NeoTreeRootName` do, and a
-   secondary one is quiet. Hashes and kinds stay quiet. Counts stay quiet too, apart from Neogit's section headers and
-   Diffview's panel, where they are body.
+   being read. Neogit, Diffview, which-key, mini.clue, mason, lazy.nvim, todo-comments, mini.hipatterns and the markdown
+   plugins have them. A TODO or NOTE marker from todo-comments or mini.hipatterns holds the magenta the core `Todo`
+   group takes, so a marker looks the same whichever of them draws it. Mason's headers and tags are filled blocks of
+   violet, blue, green, yellow and the quiet step, and its secondary highlight is magenta. lazy.nvim's load reasons and
+   buttons follow the core groups lazy.nvim links them to, such as `Constant` for an event and `Statement` for keys, so
+   they take the code's colors. Its home heading links to `IncSearch` and takes the current match's yellow fill. Its
+   section titles and times take the core `Bold` group, which parhelion sets to bold alone, and its dimmed text is
+   quiet. The same kind of label can differ between plugins, so a key is violet in a Neogit popup and blue in which-key.
+   A title adds bold to its hue in Neogit, Diffview and mason. Elsewhere a window's main title holds the strong step and
+   bold, as `FloatTitle`, `TelescopeTitle` and `NeoTreeRootName` do, and a secondary one is quiet. Hashes and kinds stay
+   quiet. Counts stay quiet too, apart from Neogit's section headers and Diffview's panel, where they are body.
 3. One interface accent, Solarized blue, marks focus and matches. In Neogit, Diffview and Trouble it also marks paths,
    folders and popup titles. Other plugins' directories and paths stay neutral.
 4. A signal color keeps one meaning everywhere: red for errors and removals, yellow for warnings, conflicts and a change
@@ -571,17 +572,17 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   file icons, Neovim's own debug groups and `Diagnostic*Reverse` groups, and backdrops,
   which are shades under a blended window.
 - In those views, no plugin group holds a color with perceptual chroma over 0.07 unless the color is a step of the
-  chrome scale, a label hue on a group of Neogit, Diffview, which-key, mini.clue, mason, headlines, markview,
-  render-markdown or markdown's headings, or on a sign render-markdown combines from one of those, or one of the code's
-  toned accents on a group lazy.nvim's own table links to a core group. A label hue on any other plugin fails, and so
-  does one that is on neither table. No border, separator, guide, icon or similar structural group outside those label
-  families holds one at all unless its name carries a meaning `tests/parhelion/restraint.lua` lists, such as a severity,
-  a git state or the place the interface is waiting on. A plugin group is any group a bare Neovim does not define, apart
-  from those on that file's lists, so a plugin added later is checked without anyone naming it. The check reads colors
-  and not meaning, so red on a group that is not an error passes, which is why roles are pinned and the sheets are
-  looked at. `tests/parhelion/restraint.lua` holds both checks, and names what keeps its color: groups named for a hue,
-  hue features such as rainbow delimiters and git graph branches, mini.statusline's mode fills, which match lualine's,
-  and groups the plugin sets whatever the theme says, such as file icons and backdrops.
+  chrome scale, a label hue on a group of Neogit, Diffview, which-key, mini.clue, mason, todo-comments, mini.hipatterns,
+  headlines, markview, render-markdown or markdown's headings, or on a sign render-markdown combines from one of those,
+  or one of the code's toned accents on a group lazy.nvim's own table links to a core group. A label hue on any other
+  plugin fails, and so does one that is on neither table. No border, separator, guide, icon or similar structural group
+  outside those label families holds one at all unless its name carries a meaning `tests/parhelion/restraint.lua` lists,
+  such as a severity, a git state or the place the interface is waiting on. A plugin group is any group a bare Neovim
+  does not define, apart from those on that file's lists, so a plugin added later is checked without anyone naming it.
+  The check reads colors and not meaning, so red on a group that is not an error passes, which is why roles are pinned
+  and the sheets are looked at. `tests/parhelion/restraint.lua` holds both checks, and names what keeps its color:
+  groups named for a hue, hue features such as rainbow delimiters and git graph branches, mini.statusline's mode fills,
+  which match lualine's, and groups the plugin sets whatever the theme says, such as file icons and backdrops.
 - A view marked as drawing no code, which four are, shows at most 10% of its text in color. Neogit's status, commit and
   popup views show at most 40%. The other views are not bounded. alpha is left out, for the reason given under What this
   does not do, which also means its header is about half of that screen's text.

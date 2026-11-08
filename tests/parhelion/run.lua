@@ -794,7 +794,18 @@ for _, path in ipairs(paths) do
 			expect_none(close, "fills too close")
 		end)
 
-		for _, name in ipairs { "Todo", "SpellCap" } do
+		for _, name in ipairs {
+			"Todo",
+			"SpellCap",
+			"TodoFgTODO",
+			"TodoBgTODO",
+			"TodoSignTODO",
+			"TodoFgNOTE",
+			"TodoBgNOTE",
+			"TodoSignNOTE",
+			"MiniHipatternsTodo",
+			"MiniHipatternsNote",
+		} do
 			test(string.format("%s does not draw in the variable color, %s", name, path.label), function()
 				local drawn = groups[name].fg or groups[name].sp
 
