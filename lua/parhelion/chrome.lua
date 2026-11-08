@@ -140,8 +140,6 @@ M.constant_hue = {
 	light = base_look("light", "Constant").fg,
 }
 
--- The step past the page away from the text. Light mode's is the raised step, the only neutral below its page that keeps
--- the scale's smallest step from both, so an inactive window's cursor line and gutter blend into the rest of it there.
 M.dimmed = {
 	dark = "#002029",
 	light = M.scale.light.raised,
