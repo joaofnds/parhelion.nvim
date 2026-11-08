@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Times a load of parhelion against its floor, a colorscheme that only writes the same built groups, as the median of
-# PARHELION_BENCH_RUNS fresh starts. Fails when a load fails, or when a first load takes more than 1.5 times its floor.
+# PARHELION_BENCH_RUNS fresh starts. Fails when a load fails, or when a first load takes more than 1.25 times its floor.
 set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 runs=${PARHELION_BENCH_RUNS:-40}
@@ -53,12 +53,13 @@ for background in dark light; do
     reload=$(median parhelion 3 "$times") floor_reload=$(median parhelion_floor 3 "$times")
     ratio=$(awk -v a="$first" -v b="$floor_first" 'BEGIN { printf "%.2f", a / b }')
     printf "%-5s loader %-3s first load %.2f ms, floor %.2f ms, %sx | reload %.2f ms, floor %.2f ms\n" \
-      "$background" "$([ "$loader" = 1 ] && echo on || echo off)" "$first" "$floor_first" "$ratio" "$reload" "$floor_reload"
-    if awk -v r="$ratio" 'BEGIN { exit !(r > 1.5) }'; then slow=1; fi
+      "$background" "$([ "$loader" = 1 ] && echo on || echo off)" "$first" "$floor_first" "$ratio" \
+      "$reload" "$floor_reload"
+    if awk -v r="$ratio" 'BEGIN { exit !(r > 1.25) }'; then slow=1; fi
   done
 done
 
 if [ "$slow" = 1 ]; then
-  echo "a first load takes more than 1.5 times its floor"
+  echo "a first load takes more than 1.25 times its floor"
   exit 1
 fi
