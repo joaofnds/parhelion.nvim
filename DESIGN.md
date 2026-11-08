@@ -123,7 +123,8 @@ module where a later `require("parhelion")` finds it.
 
 The script fails when a first load takes more than 1.5 times its floor, which leaves room for a busy machine, so it
 catches a load that builds the groups again, 2.6 to 2.8 times its floor, and little else. The guards against slower loads are the
-`a load requires nothing that builds the groups` and `a reload with the default options copies no groups` tests,
+`a load with the default options requires no module but parhelion`, `a load with the <option> option requires
+nothing that builds the groups` and `a reload with the default options copies no groups` tests,
 whose results do not depend on the machine. Time a load under `-c luafile`, never `-l`, since `-l` turns on 'verbose',
 which makes every `nvim_set_hl` many times slower.
 
@@ -235,7 +236,7 @@ highlights, because `chrome.lua` sets every `BufferLine` group.
 Barbecue's, feline's and reactive's files read their colors from the built table for the mode, through
 `require("parhelion").built`, which hands out the table a load uses, so they must not change it. Reading a color the
 table lacks raises, as reading one the scale or the accents lack in `chrome.lua` does. Each loads in about
-0.1 ms, and the `<theme file> requires nothing that builds the groups` tests fail when one requires `chrome.lua`, the
+0.1 ms, and the `<theme file> requires no other parhelion module` tests fail when one requires `chrome.lua`, the
 refinement or the base tables, which take 1 to 1.5 ms to load.
 
 ## The test suite

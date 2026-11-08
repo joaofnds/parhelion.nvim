@@ -1731,7 +1731,7 @@ for _, path in ipairs(paths) do
 		end)
 	end)
 
-	test("a load requires nothing that builds the groups, " .. path.label, function()
+	test("a load with the default options requires no module but parhelion, " .. path.label, function()
 		in_world("parhelion", path, function(world)
 			toggle_when_path_requires_it(world, "parhelion", path)
 
@@ -1790,7 +1790,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 		"reactive.presets.parhelion-cursor",
 		"reactive.presets.parhelion-cursorline",
 	} do
-		test(string.format("%s requires nothing that builds the groups, %s", theme_file, path.label), function()
+		test(string.format("%s requires no other parhelion module, %s", theme_file, path.label), function()
 			in_world("parhelion", path, function(world)
 				local required = world:lua(modules_a_theme_file_requires, theme_file)
 
@@ -2289,6 +2289,26 @@ local function with_options(path, setup_code, body)
 	end)
 end
 
+local one_option_each = {
+	transparent = [[require("parhelion").setup { transparent = true }]],
+	dim_inactive = [[require("parhelion").setup { dim_inactive = true }]],
+	bold = [[require("parhelion").setup { bold = false }]],
+	italic = [[require("parhelion").setup { italic = false }]],
+	overrides = [[require("parhelion").setup { overrides = { Keyword = { fg = "#ff0000" } } }]],
+	plugins = [[require("parhelion").setup { plugins = { ["telescope.nvim"] = false } }]],
+}
+
+local modules_that_build_the_groups = [[
+	local building = { ["parhelion.build"] = true, ["parhelion.chrome"] = true, ["parhelion.refinement"] = true }
+	local names = vim.tbl_filter(
+		function(name) return building[name] or name:find "^parhelion%.base%." ~= nil end,
+		vim.tbl_keys(package.loaded)
+	)
+	table.sort(names)
+
+	return names
+]]
+
 local gutter_groups = { "LineNr", "SignColumn", "FoldColumn", "GitSignsAdd", "DiagnosticSignError", "CocErrorSign" }
 local dimmed = { dark = "#002029", light = "#eee8d5" }
 
@@ -2487,14 +2507,18 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
-	for option, setup_code in pairs {
-		transparent = [[require("parhelion").setup { transparent = true }]],
-		dim_inactive = [[require("parhelion").setup { dim_inactive = true }]],
-		bold = [[require("parhelion").setup { bold = false }]],
-		italic = [[require("parhelion").setup { italic = false }]],
-		overrides = [[require("parhelion").setup { overrides = { Keyword = { fg = "#ff0000" } } }]],
-		plugins = [[require("parhelion").setup { plugins = { ["telescope.nvim"] = false } }]],
-	} do
+	for option, setup_code in pairs(one_option_each) do
+		test(
+			string.format("a load with the %s option requires nothing that builds the groups, %s", option, path.label),
+			function()
+				with_options(path, setup_code, function(world)
+					local required = world:lua(modules_that_build_the_groups)
+
+					expect_none(required, "modules that build the groups are loaded")
+				end)
+			end
+		)
+
 		test(string.format("setup with no options undoes the %s option, %s", option, path.label), function()
 			in_world("parhelion", path, function(world)
 				local before = world:lua [[return vim.api.nvim_get_hl(0, {})]]
