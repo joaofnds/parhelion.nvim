@@ -264,9 +264,9 @@ one requires `chrome.lua`, the refinement or the base tables, which take 1 to 1.
 
 ## The test suite
 
-`tests/parhelion/run.sh` fetches the pinned plugins and parsers, then starts two embedded Neovim instances, one with the
-base tables and one with parhelion, and compares them. It needs `nvim` 0.12, `tree-sitter` 0.26.1 or later, `git`,
-`tar`, `curl`, `fzf`, and a C compiler.
+`tests/parhelion/run.sh` fetches the pinned plugins and parsers through `tests/parhelion/fetch.sh`, then starts two
+embedded Neovim instances, one with the base tables and one with parhelion, and compares them. It needs `nvim` 0.12,
+`tree-sitter` 0.26.1 or later, `git`, `tar`, `curl`, `fzf`, and a C compiler.
 
 The base instance loads the `base_refined` colorscheme in `tests/parhelion/base_refined`, which sets the base tables,
 applies `lua/parhelion/refinement.lua` on top, and then applies the `chrome.lua` families that frame or fill the buffers
