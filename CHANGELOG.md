@@ -24,3 +24,5 @@ The changes a user can see. Parhelion has no releases yet, so they all sit under
 - A patch's hunk header looks different from its added lines.
 - Each kind of code has the same hue in light mode as in dark.
 - Code stays readable on reactive.nvim's cursorline fills in light mode.
+- snacks.nvim's GitHub views draw their states in the theme's colors, so merged, closed and draft items are readable
+  in dark mode.

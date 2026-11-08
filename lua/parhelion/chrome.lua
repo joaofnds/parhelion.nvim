@@ -686,13 +686,17 @@ M.families = {
 		float_body = "SnacksInputNormal",
 		float_hairline = "SnacksInputBorder",
 		float_title = "SnacksInputTitle",
+		green = "SnacksGhGreen",
 		hairline = "SnacksIndent SnacksIndentBlank " .. numbered("SnacksIndent%d", 1, 8),
-		quiet = "SnacksFooter SnacksFooterDesc SnacksImageAnchor SnacksImageMath SnacksImageSpinner SnacksIndentChunk "
-			.. "SnacksIndentScope SnacksNotifierHistoryDateTime SnacksWinBar SnacksWinBarNC SnacksWinKeyDesc",
+		quiet = "SnacksFooter SnacksFooterDesc SnacksGhGray SnacksImageAnchor SnacksImageMath SnacksImageSpinner "
+			.. "SnacksIndentChunk SnacksIndentScope SnacksNotifierHistoryDateTime SnacksWinBar SnacksWinBarNC "
+			.. "SnacksWinKeyDesc",
 		raised_fill = "SnacksDiffContext",
 		raised_quiet = "SnacksDiffContextLineNr",
 		raised_warn = "SnacksDiffConflictLineNr",
+		red = "SnacksGhRed",
 		removed_line = "SnacksDiffDelete SnacksDiffDeleteLineNr",
+		violet = "SnacksGhPurple",
 	},
 	snacks_dashboard = {
 		accent_bold = "SnacksDashboardKey SnacksDashboardSpecial",
