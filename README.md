@@ -3,7 +3,19 @@
 A Neovim colorscheme that draws code in a modern take on [Solarized](https://ethanschoonover.com/solarized/), dark and
 light, and gives plugin interfaces a quiet, consistent look of their own.
 
-![Parhelion's dark and light modes on one Lua file, split on a diagonal](assets/screenshot.png)
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/editor-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/editor-light.png">
+    <img alt="A TypeScript file in parhelion, with a file tree, a tab line, a statusline, git signs, a warning and a hover window" src="assets/editor-dark.png">
+</picture>
+
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diff-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/diff-light.png">
+    <img alt="A side by side diff in parhelion, with the removed line in red, the added lines in green and the changed lines in blue" src="assets/diff-dark.png">
+</picture>
+
+The screenshots follow your light or dark GitHub theme, and use the Iosevka Term SS08 font.
 
 ## Install
 

@@ -51,7 +51,7 @@ Plugin support below for how they are checked.
 | `doc/parhelion.txt` | The `:help` page |
 | `CHANGELOG.md` | The changes a user can see |
 | `LICENSE.md` | The license |
-| `assets/screenshot.png` | The README screenshot |
+| `assets/*.png`, `assets/shoot/` | The README screenshots, and the script that shoots them: `assets/shoot/shoot.sh assets` re-shoots them after a color change. It needs the suite's dependencies, agent-browser, oxipng and the Iosevka Term SS08 font |
 
 Neovim loads the extra queries whenever parhelion's `after` directory is on the runtimepath, whatever colorscheme is
 active. So they name their captures under `@parhelion`, such as `@parhelion.function`, and the base tables link each one
