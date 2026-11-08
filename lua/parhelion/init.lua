@@ -175,6 +175,8 @@ function M.setup(user_options)
 	end
 end
 
+function M.draws_bold() return options.bold end
+
 function M.load()
 	local background = vim.o.background
 	local base = require("parhelion.base." .. background)

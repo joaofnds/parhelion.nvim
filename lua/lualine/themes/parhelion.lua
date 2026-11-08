@@ -12,7 +12,7 @@ local blue, green, magenta, red, orange = tone "#268BD2", tone "#859900", tone "
 
 return {
 	normal = {
-		a = { fg = page, bg = blue, gui = "bold" },
+		a = { fg = page, bg = blue, gui = require("parhelion").draws_bold() and "bold" or nil },
 		b = { fg = bar, bg = bar_text },
 		c = { fg = bar_text, bg = bar },
 		z = { fg = page, bg = blue },

@@ -6,7 +6,7 @@ local theme = {
 	separator = { fg = scale.quiet },
 	modified = { fg = scale.warn },
 	dirname = { fg = scale.quiet },
-	basename = { fg = scale.body, bold = true },
+	basename = { fg = scale.body, bold = require("parhelion").draws_bold() },
 	context = { fg = scale.quiet },
 }
 

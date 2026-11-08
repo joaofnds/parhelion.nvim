@@ -1,4 +1,5 @@
 local chrome = require "parhelion.chrome"
+local parhelion = require "parhelion"
 local lsp = require "feline.providers.lsp"
 
 local M = {}
@@ -172,7 +173,9 @@ local function mode_and_git()
 		},
 		{
 			provider = function() return mode_label() .. " " end,
-			hl = function() return { fg = settings.text, bg = mode_color(), style = "bold" } end,
+			hl = function()
+				return { fg = settings.text, bg = mode_color(), style = parhelion.draws_bold() and "bold" or nil }
+			end,
 		},
 		{
 			provider = assets.right_separator,

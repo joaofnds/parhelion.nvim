@@ -85,7 +85,8 @@ dim_inactive ~
 
                                                               *parhelion-bold*
 bold ~
-    `false` removes bold from every group. An override can still set it.
+    `false` removes bold from every group and from the theme files in
+    |parhelion-theme-files|. An override can still set it in a group.
 
                                                             *parhelion-italic*
 italic ~

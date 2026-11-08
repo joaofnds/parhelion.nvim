@@ -2130,6 +2130,22 @@ local styled_groups = [[
 	return names
 ]]
 
+local bold_in_theme_files = [[
+	local statusline = loadstring(...)()
+	local styles = {
+		["lualine's normal mode"] = require("lualine.themes.parhelion").normal.a.gui,
+		["barbecue's file name"] = require("barbecue.theme.parhelion").basename.bold,
+		["feline's mode label"] = statusline.active[1][2].hl().style,
+	}
+	local bold = {}
+	for slot, style in pairs(styles) do
+		if style == true or style == "bold" then table.insert(bold, slot) end
+	end
+	table.sort(bold)
+
+	return bold
+]]
+
 local function other_background(background) return background == "dark" and "light" or "dark" end
 
 local function with_options(path, setup_code, body)
@@ -2231,6 +2247,14 @@ for _, path in ipairs { paths[1], paths[2] } do
 			)
 		end)
 	end
+
+	test("turning bold off leaves the theme files without bold, " .. path.label, function()
+		with_options(path, [[require("parhelion").setup { bold = false }]], function(world)
+			local bold = world:lua(bold_in_theme_files, feline_statusline)
+
+			expect_none(bold, "theme files are bold")
+		end)
+	end)
 
 	test("an override merges into the group parhelion sets, " .. path.label, function()
 		local overrides = [[require("parhelion").setup { overrides = { Keyword = { bold = false } } }]]
