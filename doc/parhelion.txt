@@ -47,7 +47,9 @@ To change an option, call |parhelion.setup()| in `config`.
 Parhelion sets `g:fzf_colors` unless it is already set, so fzf-lua and fzf's
 own Vim plugin draw their pickers from parhelion's groups. Turning `fzf` off
 in |parhelion-plugins-option| leaves it unset, so fzf draws its own colors
-inside both pickers, and a value you set yourself stays as it is.
+inside both pickers. A value you set yourself stays as it is, unless it is a
+copy of parhelion's own that you set after parhelion did, since parhelion
+cannot tell that copy from its own value and unsets it too.
 
 ==============================================================================
 3. OPTIONS                                                 *parhelion-options*
