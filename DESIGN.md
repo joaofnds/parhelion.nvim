@@ -62,7 +62,8 @@ to the capture it stands for, here `@function`. Neovim falls a capture back alon
 1. Reads the built table for the mode, once per Neovim session, with `loadfile` and the table's path, since a
    `require` would search the runtimepath first.
 2. Applies the options, as Options below says.
-3. `hi clear` when a colorscheme is already active, then `syntax reset`.
+3. `hi clear` when a colorscheme is already active, and otherwise `syntax reset`, which only restores Neovim's default
+   groups, as `hi clear` does after clearing every group.
 4. Sets `colors_name`, the 16 terminal colors, and `g:fzf_colors` unless the user has set it, which makes fzf-lua and
    fzf.vim draw their pickers from highlight groups. Without it, fzf uses its own dark palette, which puts a black
    selection row on a light page.

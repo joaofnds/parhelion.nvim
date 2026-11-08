@@ -191,8 +191,11 @@ function M.load()
 	local built = built_table(vim.o.background)
 	local groups = with_options(built)
 
-	if vim.g.colors_name then vim.cmd "hi clear" end
-	vim.cmd "syntax reset"
+	if vim.g.colors_name then
+		vim.cmd "hi clear"
+	else
+		vim.cmd "syntax reset"
+	end
 	vim.g.colors_name = "parhelion"
 	set_fzf_colors()
 
