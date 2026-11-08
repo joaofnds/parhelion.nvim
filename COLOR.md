@@ -296,15 +296,19 @@ core groups follows it, and gets a family when the result needs a role.
 
 Code syntax, `Normal`, `NormalFloat`, `Comment`, diagnostics, the cursor line and column, the gutter and fold column,
 `MatchParen`, `Conceal`, the status line, lualine and the gutter's signs do not differ, apart from the text overlays
-below, gitsigns' and gitgutter's added sign and number, which rule 4 makes green, and lualine's count of added lines,
-which takes that sign's color. gitsigns' line highlights follow the diff lines they link to. A check in
-`tests/parhelion/restraint.lua` fails when a family names one of them, a group Neogit or Diffview uses to stand in for
-one of them, or a group from a Vim syntax file. The exceptions are `Added`, `@diff.plus`, `GitSignsAdd`, `GitGutterAdd`
-and `GitGutterAddLineNr`, which rule 4 colors, the text overlays `Visual`, `Search`, `IncSearch`, `Todo`,
-`LspReferenceRead`, `LspReferenceText`, `LspReferenceWrite` and the `DiagnosticUnderline` groups, `markdownH1` to
-`markdownH6`, `LspKind*`, lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's
-`tk` groups. render-markdown's heading bands count as the base tables', so the refinement sets the one they lack,
-light's sixth level, by their recipe.
+below, gitsigns' and gitgutter's added sign and number, which rule 4 makes green, gitsigns' staged signs, and lualine's
+count of added lines, which takes that sign's color. gitsigns' line highlights follow the diff lines they link to. A
+staged sign takes its unstaged sign's hue mixed 40% of the way toward quiet text in dark and 35% toward the gutter in
+light, so it reads at 2.16:1 or more, stays quieter than the sign of a change not yet staged and sits at least 6 from
+it. Dark mixes toward quiet text because its unstaged signs sit only Lc 36.5 to 43 over the gutter, and darkening them
+enough to set them apart would put them under the text floor. A check in `tests/parhelion/restraint.lua` fails when a
+family names one of them, a group Neogit or Diffview uses to stand in for one of them, or a group from a Vim syntax
+file. The exceptions are `Added`, `@diff.plus`, `GitSignsAdd`, `GitGutterAdd` and `GitGutterAddLineNr`, which rule 4
+colors, the `GitSignsStaged` signs, the text overlays `Visual`, `Search`, `IncSearch`, `Todo`, `LspReferenceRead`,
+`LspReferenceText`, `LspReferenceWrite` and the `DiagnosticUnderline` groups, `markdownH1` to `markdownH6`, `LspKind*`,
+lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
+render-markdown's heading bands count as the base tables', so the refinement sets the one they lack, light's sixth
+level, by their recipe.
 
 One plugin family paints over code, because it is a plugin's and not code's. mini.cursorword marks each other instance
 of the word under the cursor. The base tables recolor those instances teal in dark and bold magenta on pink in light,
@@ -521,9 +525,9 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   unless it is a step of the chrome scale or a label hue.
 - No family names a group that holds code, a Vim syntax file's group, a diagnostic, an LSP reference, the gutter, the
   fold column, the status line or lualine, or a Neogit or Diffview group that stands in for the page, cursor line,
-  gutter or status line, apart from the added syntax groups and gutter signs, markdown's Vim syntax headings, completion
-  kinds, lspsaga's `DiagnosticText`, nvim-ts-rainbow's columns and telekasten's syntax groups. render-markdown's heading
-  bands count as the base tables' too.
+  gutter or status line, apart from the added syntax groups and gutter signs, gitsigns' staged signs, markdown's Vim
+  syntax headings, completion kinds, lspsaga's `DiagnosticText`, nvim-ts-rainbow's columns and telekasten's syntax
+  groups. render-markdown's heading bands count as the base tables' too.
 - Each new tone stays within the difference limit, and each saturated tone within a degree of its source
   hue, with orange named as the exception. Its source color is one the base tables really use.
 - The page colors stay fixed.
@@ -531,6 +535,8 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   black and bright white sit at least 3 from the page, about the step between the page and the raised surface, and
   white, bright black and bright white sit at least 3 from each other.
 - Accent pairs stay at least 13 apart.
+- In the gitsigns view, each staged sign reads at 2:1 or more on the gutter, below the unstaged sign of the same change
+  and at least 6 from it, and in the nvim-tree view the folder arrows read at 3:1 or more on the tree, in both modes.
 - The groups in the floors table clear them on all four load paths, and comments stay Lc 10 below body.
 - Every group that sets a foreground clears Lc 30, unless its name marks it as line art, such as a border, separator
   or guide, or it is on the list of decorations. Both lists are in `tests/parhelion/legibility.lua`.
@@ -548,7 +554,7 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   every dark gray. Some strangers pass, such as `#888888` at 1.71, and the next check is what catches a hue among them.
   `tests/parhelion/theme_colors.lua` names the groups the theme cannot reach: barbar's fallback target groups, which are
   never drawn because the theme sets the groups they fall back from, the groups lspsaga sets whatever the theme says,
-  file icons, gitsigns' derived staged signs, Neovim's own debug groups and `Diagnostic*Reverse` groups, and backdrops,
+  file icons, Neovim's own debug groups and `Diagnostic*Reverse` groups, and backdrops,
   which are shades under a blended window.
 - In those views, no plugin group holds a color with perceptual chroma over 0.07 unless the color is a step of the
   chrome scale, a label hue on a group of Neogit, Diffview, which-key, mini.clue, mason, headlines, markview,

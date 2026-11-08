@@ -1118,6 +1118,7 @@ for _, case in ipairs {
 	{ name = "a hue off every scale on a group Neogit derives", group = "NeogitStashes", color = off_every_scale },
 	{ name = "a code hue on a group lazy.nvim does not define", group = "LazyGitFloat", color = "#2aa198" },
 	{ name = "a hue off every scale on a group lazy.nvim links", group = "LazyReasonKeys", color = off_every_scale },
+	{ name = "a hue off every scale on a staged sign", group = "GitSignsStagedAdd", color = off_every_scale },
 } do
 	test("the scale check reports " .. case.name, function()
 		local found = restraint.hues_off_the_scale("dark", { [case.group] = { fg = case.color } })
@@ -1320,8 +1321,8 @@ test("a command a plugin defines after a slow start is ready once the screen set
 	assert(ok, err)
 end)
 
-test("the scale check leaves a plugin's own derived sign alone", function()
-	local found = restraint.hues_off_the_scale("dark", { GitSignsStagedAdd = { fg = off_every_scale } })
+test("the scale check leaves a plugin's own derived line highlight alone", function()
+	local found = restraint.hues_off_the_scale("dark", { GitSignsStagedAddLn = { fg = off_every_scale } })
 
 	assert(vim.deep_equal(found, {}), vim.inspect(found))
 end)
@@ -1478,7 +1479,6 @@ for _, case in ipairs {
 	{ name = "Diffview's status line", group = "DiffviewStatusLine", found = true },
 	{ name = "Diffview's inactive status line", group = "DiffviewStatuslineNC", found = true },
 	{ name = "a gutter line", group = "GitSignsAddLn", found = true },
-	{ name = "a staged sign", group = "GitSignsStagedAdd", found = true },
 	{ name = "gitgutter's changed sign", group = "GitGutterChange", found = true },
 	{ name = "gitgutter's changed number", group = "GitGutterChangeLineNr", found = true },
 	{ name = "the fold column", group = "FoldColumn", found = true },
@@ -1508,6 +1508,8 @@ for _, case in ipairs {
 	{ name = "a diff line", group = "DiffAdd", found = false },
 	{ name = "a gutter preview", group = "GitSignsAddInline", found = false },
 	{ name = "the gutter's added sign", group = "GitSignsAdd", found = false },
+	{ name = "a staged sign", group = "GitSignsStagedAdd", found = false },
+	{ name = "a staged gutter number", group = "GitSignsStagedChangeNr", found = false },
 	{ name = "the added syntax group", group = "Added", found = false },
 	{ name = "an added line in a diff file", group = "@diff.plus", found = false },
 	{ name = "gitgutter's added sign", group = "GitGutterAdd", found = false },
@@ -1745,7 +1747,8 @@ test("every plugin group holds one role", function()
 	expect_none(restraint.groups_in_two_roles(families), "groups hold two roles")
 end)
 
-local popular_views = dofile(root .. "/tests/parhelion/popular/views.lua").list
+local popular = dofile(root .. "/tests/parhelion/popular/views.lua")
+local popular_views = popular.list
 local shots_directory = vim.env.PARHELION_SHOTS
 
 local function start_popular(view, mode)
@@ -1882,6 +1885,92 @@ for _, mode in ipairs { "dark", "light" } do
 			end
 
 			nvim:close()
+		end
+	end
+end
+
+local function groups_of_popular_view(view, mode)
+	local nvim = start_popular(view, mode)
+	local ok, groups = xpcall(function()
+		nvim:settle { quiet = 500 }
+		view.run(nvim)
+		return vim.json.decode(nvim:lua(group_colors_code))
+	end, debug.traceback)
+	nvim:close()
+	if not ok then error(groups, 0) end
+
+	return groups
+end
+
+local staged_signs = {}
+for _, kind in ipairs { "Add", "Change", "Delete", "Changedelete", "Topdelete", "Untracked" } do
+	for _, column in ipairs { "", "Cul", "Nr" } do
+		table.insert(
+			staged_signs,
+			{ staged = "GitSignsStaged" .. kind .. column, unstaged = "GitSigns" .. kind .. column }
+		)
+	end
+end
+
+for _, mode in ipairs { "dark", "light" } do
+	local names = {}
+	for _, sign in ipairs(staged_signs) do
+		table.insert(names, string.format("gitsigns' %s reads on the gutter in %s", sign.staged, mode))
+		table.insert(
+			names,
+			string.format("gitsigns' %s recedes visibly from %s in %s", sign.staged, sign.unstaged, mode)
+		)
+	end
+
+	if selected_any(names) then
+		local opened, groups = pcall(groups_of_popular_view, popular.by_name.gitsigns, mode)
+		local function contrast_on_gutter(name)
+			assert(opened, groups)
+			return color.contrast_ratio(groups[name].fg, groups[name].bg or groups.SignColumn.bg)
+		end
+
+		for _, sign in ipairs(staged_signs) do
+			test(string.format("gitsigns' %s reads on the gutter in %s", sign.staged, mode), function()
+				local ratio = contrast_on_gutter(sign.staged)
+
+				assert(ratio >= legibility.smallest_staged_sign_contrast, string.format("it reads %.2f:1", ratio))
+			end)
+
+			test(
+				string.format("gitsigns' %s recedes visibly from %s in %s", sign.staged, sign.unstaged, mode),
+				function()
+					local staged, unstaged = contrast_on_gutter(sign.staged), contrast_on_gutter(sign.unstaged)
+					local difference = color.color_difference(groups[sign.staged].fg, groups[sign.unstaged].fg)
+
+					assert(staged < unstaged, string.format("it reads %.2f:1 against %.2f:1", staged, unstaged))
+					assert(
+						difference >= legibility.smallest_staged_sign_difference,
+						string.format("it differs by %.1f", difference)
+					)
+				end
+			)
+		end
+	end
+end
+
+for _, mode in ipairs { "dark", "light" } do
+	local arrows = { "NvimTreeFolderArrowClosed", "NvimTreeFolderArrowOpen" }
+	local names = vim.tbl_map(
+		function(arrow) return string.format("nvim-tree's %s reads on the tree in %s", arrow, mode) end,
+		arrows
+	)
+
+	if selected_any(names) then
+		local opened, groups = pcall(groups_of_popular_view, popular.by_name["nvim-tree"], mode)
+
+		for index, arrow in ipairs(arrows) do
+			test(names[index], function()
+				assert(opened, groups)
+
+				local ratio = color.contrast_ratio(groups[arrow].fg, groups.NvimTreeNormal.bg)
+
+				assert(ratio >= legibility.smallest_control_contrast, string.format("it reads %.2f:1", ratio))
+			end)
 		end
 	end
 end

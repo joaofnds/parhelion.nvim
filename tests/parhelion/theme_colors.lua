@@ -13,7 +13,6 @@ local groups_out_of_the_theme_reach = {
 	"^BufferDefault%a+Target$",
 	"^Diagnostic%u+Reverse$",
 	"DevIcon",
-	"^GitSignsStaged",
 	"^RedrawDebug",
 	"^SagaActionTitle$",
 	"Backdrop",

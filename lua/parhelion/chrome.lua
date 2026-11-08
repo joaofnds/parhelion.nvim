@@ -58,6 +58,9 @@ M.scale = strict("scale", {
 		changed_word_wash = "#135b84",
 		removed_word_wash = "#6e2f33",
 		match_wash = "#67462e",
+		staged_added = "#7d9239",
+		staged_changed = "#a1904b",
+		staged_removed = "#c36764",
 		backdrop = "#000000",
 	},
 	light = {
@@ -82,6 +85,9 @@ M.scale = strict("scale", {
 		changed_word_wash = "#9ac5db",
 		removed_word_wash = "#f3bbad",
 		match_wash = "#dac994",
+		staged_added = "#9ca54b",
+		staged_changed = "#b79d4b",
+		staged_removed = "#e27269",
 		backdrop = "#a39c87",
 	},
 })
@@ -205,6 +211,9 @@ local function looks(background)
 		raised_error = { fg = scale.error, bg = scale.raised },
 		raised_quiet = { fg = scale.quiet, bg = scale.raised },
 		raised_quiet_bold = { fg = scale.quiet, bg = scale.raised, bold = true },
+		raised_staged_added = { fg = scale.staged_added, bg = scale.raised },
+		raised_staged_changed = { fg = scale.staged_changed, bg = scale.raised },
+		raised_staged_removed = { fg = scale.staged_removed, bg = scale.raised },
 		raised_title = { fg = scale.strong, bg = scale.raised, bold = true },
 		raised_warn = { fg = scale.warn, bg = scale.raised },
 		removed_filler = { fg = scale.quiet, bg = scale.removed_wash },
@@ -338,6 +347,12 @@ M.families = {
 	diff_marks = {
 		added = "@diff.plus Added GitGutterAdd GitGutterAddLineNr",
 		raised_added = "GitSignsAdd",
+		raised_staged_added = "GitSignsStagedAdd GitSignsStagedAddCul GitSignsStagedAddNr "
+			.. "GitSignsStagedUntracked GitSignsStagedUntrackedCul GitSignsStagedUntrackedNr",
+		raised_staged_changed = "GitSignsStagedChange GitSignsStagedChangeCul GitSignsStagedChangeNr "
+			.. "GitSignsStagedChangedelete GitSignsStagedChangedeleteCul GitSignsStagedChangedeleteNr",
+		raised_staged_removed = "GitSignsStagedDelete GitSignsStagedDeleteCul GitSignsStagedDeleteNr "
+			.. "GitSignsStagedTopdelete GitSignsStagedTopdeleteCul GitSignsStagedTopdeleteNr",
 	},
 	diff_lines = {
 		added_line = "DiffAdd",
@@ -510,7 +525,8 @@ M.families = {
 		added = "NvimTreeGitNew NvimTreeGitStaged",
 		selected_strong = "NvimTreeCursorLineNr",
 		selected_row = "NvimTreeCursorLine",
-		quiet = "NvimTreeFolderIcon NvimTreeHiddenIcon NvimTreeSymlink NvimTreeSymlinkIcon",
+		quiet = "NvimTreeFolderArrowClosed NvimTreeFolderArrowOpen NvimTreeFolderIcon NvimTreeHiddenIcon NvimTreeSymlink "
+			.. "NvimTreeSymlinkIcon",
 		strong = "NvimTreeEmptyFolderName NvimTreeFolderName NvimTreeOpenedFile",
 		title = "NvimTreeOpenedFolderName NvimTreeRootFolder",
 		warn = "NvimTreeGitDirty NvimTreeGitMerge NvimTreeGitRenamed NvimTreeModifiedFile",
