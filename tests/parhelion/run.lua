@@ -1189,6 +1189,33 @@ for _, background in ipairs { "dark", "light" } do
 	end
 end
 
+test("a command a plugin defines after a slow start is ready once the screen settles", function()
+	local nvim = Nvim.spawn {
+		args = {
+			"--cmd",
+			"lua vim.uv.sleep(800)",
+			"--cmd",
+			"autocmd UIEnter * ++once lua vim.schedule(function() vim.api.nvim_create_user_command('Later', '', {}) end)",
+			"-u",
+			"NONE",
+			"-i",
+			"NONE",
+			"-n",
+		},
+		cwd = fixture,
+		rows = 10,
+		cols = 40,
+	}
+
+	local ok, err = pcall(function()
+		nvim:settle { quiet = 500 }
+		nvim:request("nvim_command", "Later")
+	end)
+	nvim:close()
+
+	assert(ok, err)
+end)
+
 test("the scale check leaves a plugin's own derived sign alone", function()
 	local found = restraint.hues_off_the_scale("dark", { GitSignsStagedAdd = { fg = off_every_scale } })
 

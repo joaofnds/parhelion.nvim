@@ -43,6 +43,7 @@ function Nvim.spawn(opts)
 	end)
 
 	self:request("nvim_ui_attach", self.cols, self.rows, { rgb = true, ext_linegrid = true })
+	self:wait_for_startup()
 	return self
 end
 
@@ -165,6 +166,13 @@ function Nvim:settle(opts)
 			)
 		end
 	end
+end
+
+-- A start that draws nothing for longer than a quiet window would otherwise count as quiet, and a command sent then
+-- runs before what plugins defer to after startup, such as lazy.nvim's commands.
+function Nvim:wait_for_startup()
+	self:settle { quiet = 0, until_lua = "return vim.v.vim_did_enter == 1" }
+	self.last_change = vim.uv.now()
 end
 
 local function style_of(attr, defaults)
