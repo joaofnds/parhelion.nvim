@@ -9,10 +9,30 @@ The changes a user can see, newest release first. A change not yet released goes
 - Terminal themes for Ghostty, kitty, WezTerm, Alacritty and iTerm2 in `extras/`, in dark and light, with the page,
   text, cursor, selection and terminal colors parhelion uses in Neovim. The README says how to install each.
 
+### Changed
+
+- The feline statusline is new. It names the mode in its hue, with the words Neovim's own mode message uses where it
+  has them, such as VISUAL LINE and VREPLACE, and shows the git branch, the file name, the diagnostic counts and the
+  cursor position. It needs no icon font. A narrow window drops the file's folders, then the branch, the position and
+  the counts, so the mode and the file name stay.
+- The reactive cursor takes the mode's hue in insert, visual, select, replace and command modes, and keeps parhelion's
+  cursor in the others. The reactive cursorline takes the added-line fill in insert mode and the removed-line fill in
+  replace mode, and leaves the line as parhelion draws it in the others.
+
+### Removed
+
+- `require("parhelion.feline").setup()` and its `assets`, `settings`, `mode_colors` and `view` options. A config that
+  calls it raises an error, so remove the call.
+- The feline statusline's diff counts, language server names, folder name and scroll position, and the macro
+  recording and search count it showed when `cmdheight` is 0. Its inactive bar shows the file name instead of the
+  file type.
+- The reactive cursorline's dimmed line in inactive windows and its selection colors in visual and select modes.
+
 ### Fixed
 
-- The feline statusline says N-PENDING while an operator waits for its motion, and NORMAL again once the operator
-  ends, instead of NORMAL throughout.
+- The feline statusline names operator-pending mode while an operator waits for its motion, and normal mode again once
+  the operator ends, instead of normal mode throughout.
+- The reactive cursorline keeps the line number's color in normal mode, where it used to drop it.
 
 ## 1.0.0 - 2026-11-08
 

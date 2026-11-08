@@ -135,9 +135,12 @@ local function base_fill(background, name)
 	return { bg = tone(background, hl.bg):lower() }
 end
 
-M.constant_hue = {
-	dark = base_look("dark", "Constant").fg,
-	light = base_look("light", "Constant").fg,
+M.mode_hues = {
+	normal = "blue",
+	insert = "green",
+	visual = "magenta",
+	replace = "red",
+	command = "orange",
 }
 
 M.dimmed = {

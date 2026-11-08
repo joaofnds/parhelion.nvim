@@ -248,8 +248,14 @@ return {
 		warn = "#c1951e",
 		yellow = "#c1951e",
 	},
-	constant = "#8188dd",
 	dimmed = "#002029",
+	mode_hues = {
+		command = "#e56824",
+		insert = "#859900",
+		normal = "#40a0e8",
+		replace = "#f95148",
+		visual = "#ef5299",
+	},
 	groups = {
 		["@attribute"] = looks[1],
 		["@character"] = looks[2],

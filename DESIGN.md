@@ -25,8 +25,8 @@ Plugin support below for how they are checked.
 - A **repaired group** is one `refinement.repaired_groups` sets directly, because no tone can reach it.
 - A **plugin-only group** is one parhelion sets and the base tables do not.
 - The **built tables** are `lua/parhelion/built/{dark,light}.lua`: every group and terminal color, the named colors an
-  override function and the theme files read, the constant hue and the fill `dim_inactive` gives, written ahead of time
-  from the base tables, `refinement.lua` and `chrome.lua`. A load reads one and builds nothing.
+  override function and the theme files read, the hue the theme files give each mode and the fill `dim_inactive` gives,
+  written ahead of time from the base tables, `refinement.lua` and `chrome.lua`. A load reads one and builds nothing.
 
 ## Layout
 
@@ -44,7 +44,7 @@ Plugin support below for how they are checked.
 | `lua/parhelion/base/{dark,light}.lua` | The base tables |
 | `lua/lualine/themes/parhelion.lua` | The lualine theme, from the colors in the built tables and their `StatusLine` text. It began as solarized.nvim's |
 | `lua/barbecue/theme/parhelion.lua`, `lua/parhelion/bufferline.lua` | The theme files those plugins load. Barbecue's draws from the colors in the built tables, and bufferline's leaves the tab bar to `chrome.lua`'s groups |
-| `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the colors and the constant hue in the built tables |
+| `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the colors, mode hues and groups in the built tables |
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries, which began as solarized.nvim's |
 | `tests/parhelion/` | The test suite |
 | `.github/workflows/parhelion.yml` | Runs the suite and the format check in CI |
@@ -158,8 +158,11 @@ None of them sees work Neovim does in C, such as a second `hi clear`, which only
   [COLOR.md](COLOR.md) gives the measures under How the suite holds this. The fix is the group's name under a role or
   as a link in `lua/parhelion/chrome.lua`, or a new family.
 - The theme files lualine, barbecue, feline and reactive load draw only from the colors of the built tables, and
-  lualine's bar text from their `StatusLine`. Reactive's cursorline preset also mixes its colors toward black in dark
-  mode and toward white in light, so each fill stays on its page's side and the code drawn over it keeps its contrast.
+  from their groups only for these: lualine's and feline's bar text from `StatusLine`, feline's inactive bar from
+  `StatusLineNC` and its diagnostic counts from the `Diagnostic` groups, and reactive's resting cursor and line number
+  from `Cursor` and `CursorLineNr`. Lualine, feline and reactive's cursor give each mode the hue the built tables'
+  `mode_hues` name, so the three agree. Reactive's cursorline preset fills the line with the washes diff lines use, so
+  the code drawn over it keeps its contrast. None of these files sees an override, since they read the built tables.
   `tests/parhelion/approved_presets.lua` pins the colors of the lualine theme, of the feline statusline in normal mode
   and of both reactive presets. Feline itself draws parhelion's statusline in every mode a test can reach, which is
   all of them but the prompts, the shell and Ex mode, and the statusline must name the mode in each.

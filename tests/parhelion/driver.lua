@@ -210,10 +210,12 @@ end
 function Nvim:drawn_row(row)
 	local cells = {}
 	for col = 0, self.cols - 1 do
-		table.insert(cells, self.grid[row - 1][col][1])
+		local cell = self.grid[row - 1][col]
+		local style = style_of(self.attrs[cell[2]] or {}, self.defaults)
+		table.insert(cells, { text = cell[1], fg = style.fg, bg = style.bg })
 	end
 
-	return table.concat(cells)
+	return cells
 end
 
 function Nvim:close()

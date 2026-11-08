@@ -27,7 +27,7 @@ function M.build(background)
 			chrome.scale[background],
 			chrome.hues[background]
 		),
-		constant = chrome.constant_hue[background],
+		mode_hues = vim.tbl_map(function(hue) return chrome.hues[background][hue] end, chrome.mode_hues),
 		dimmed = chrome.dimmed[background],
 		terminal = vim.tbl_map(function(color) return refinement.color(background, color) end, base.terminal),
 		groups = layered {
@@ -95,8 +95,13 @@ local function source(built)
 	end
 	table.insert(lines, "\t},")
 
-	table.insert(lines, string.format("\tconstant = %s,", literal(built.constant)))
 	table.insert(lines, string.format("\tdimmed = %s,", literal(built.dimmed)))
+
+	table.insert(lines, "\tmode_hues = {")
+	for _, mode in ipairs(sorted_keys(built.mode_hues)) do
+		table.insert(lines, string.format("\t\t%s = %s,", mode, literal(built.mode_hues[mode])))
+	end
+	table.insert(lines, "\t},")
 
 	table.insert(lines, "\tgroups = {")
 	for _, name in ipairs(names) do

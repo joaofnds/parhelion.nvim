@@ -778,10 +778,15 @@ local colors_returned_by = [[
 	return colors_in(entry_point(), {})
 ]]
 
-local function known_colors(background)
+local statusline_colors = [[
+	local groups = require("parhelion").built(vim.o.background).groups
+	return { groups.StatusLine.fg, groups.StatusLine.bg, groups.StatusLineNC.fg, groups.StatusLineNC.bg }
+]]
+
+local function known_colors(background, extra)
 	local chrome = require "parhelion.chrome"
 	local known = {}
-	for _, colors in ipairs { chrome.scale[background], chrome.hues[background] } do
+	for _, colors in ipairs { chrome.scale[background], chrome.hues[background], extra } do
 		for _, hex in pairs(colors) do
 			known[hex:lower()] = true
 		end
@@ -790,12 +795,7 @@ local function known_colors(background)
 	return known
 end
 
-local feline_statusline = [[
-	package.preload["feline.providers.lsp"] = function() return {} end
-	local feline = require "parhelion.feline"
-	feline.setup {}
-	return feline.get_statusline()
-]]
+local feline_statusline = [[return require("parhelion.feline").get_statusline()]]
 
 for _, path in ipairs(paths) do
 	local opened, err = pcall(in_world, "parhelion", path, function(world)
@@ -1027,15 +1027,24 @@ test("every capture and syntax group draws the same hue in dark and light", func
 end)
 
 for _, entry_point in ipairs {
-	{ name = "the reactive cursor preset", code = [[return require "reactive.presets.parhelion-cursor"]] },
-	{ name = "the feline statusline", code = feline_statusline },
+	{
+		name = "the reactive cursor preset",
+		code = [[return require "reactive.presets.parhelion-cursor"]],
+		extra = "return {}",
+	},
+	{
+		name = "the reactive cursorline preset",
+		code = [[return require "reactive.presets.parhelion-cursorline"]],
+		extra = "return {}",
+	},
+	{ name = "the feline statusline", code = feline_statusline, extra = statusline_colors },
 } do
 	for _, path in ipairs { paths[1], paths[2] } do
 		test(string.format("%s uses parhelion's colors, %s", entry_point.name, path.label), function()
 			in_world("parhelion", path, function(world)
 				local colors = world:lua(colors_returned_by, entry_point.code)
 
-				local known = known_colors(path.background)
+				local known = known_colors(path.background, world:lua(entry_point.extra))
 				local foreign = vim.tbl_filter(function(found) return not known[found] end, colors)
 
 				assert(#colors > 0, "it returned no color")
@@ -1050,7 +1059,9 @@ local colors_by_slot = [[
 		if type(value) == "string" and value:match "^#%x%x%x%x%x%x$" then found[slot] = value:lower() end
 		if type(value) == "table" then
 			for key, inner in pairs(value) do
-				flatten(inner, slot .. "." .. (type(key) == "table" and key[1] or tostring(key)), found)
+				for _, name in ipairs(type(key) == "table" and key or { tostring(key) }) do
+					flatten(inner, slot .. "." .. name, found)
+				end
 			end
 		end
 		return found
@@ -1072,10 +1083,19 @@ for _, preset in ipairs { "cursor", "cursorline" } do
 	end
 end
 
+local function only_fills(colors_by_slot)
+	local fills = {}
+	for slot, hex in pairs(colors_by_slot) do
+		if vim.endswith(slot, ".bg") then fills[slot] = hex end
+	end
+
+	return fills
+end
+
 for _, path in ipairs { paths[1], paths[2] } do
 	test("the reactive cursorline preset keeps code readable on every line it fills, " .. path.label, function()
 		in_world("parhelion", path, function(world)
-			local fills = world:lua(colors_by_slot, "reactive.presets.parhelion-cursorline")
+			local fills = only_fills(world:lua(colors_by_slot, "reactive.presets.parhelion-cursorline"))
 			local chrome = require "parhelion.chrome"
 			local scale = chrome.scale[path.background]
 			local texts = vim.tbl_extend("error", chrome.hues[path.background], {
@@ -1086,11 +1106,9 @@ for _, path in ipairs { paths[1], paths[2] } do
 
 			local unreadable = {}
 			for slot, fill in pairs(fills) do
-				local floor = slot:find(".Visual.", 1, true) and legibility.floor_over_a_selection
-					or legibility.text_floor
 				for name, text in pairs(texts) do
 					local lightness = math.abs(color.lightness_contrast(text, fill))
-					if lightness < floor then
+					if lightness < legibility.text_floor then
 						table.insert(unreadable, string.format("%s on %s %s at Lc %.1f", name, slot, fill, lightness))
 					end
 				end
@@ -1139,16 +1157,13 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
-for _, case in ipairs {
-	{ path = paths[1], fg = "#002731", bg = "#40a0e8" },
-	{ path = paths[2], fg = "#fdf6e3", bg = "#117fc5" },
-} do
-	test("the feline statusline writes its mode in the page color, " .. case.path.label, function()
-		in_world("parhelion", case.path, function(world)
+for _, path in ipairs { paths[1], paths[2] } do
+	test("the feline statusline writes its mode in the page color, " .. path.label, function()
+		in_world("parhelion", path, function(world)
 			local cell =
 				world:lua("local components = loadstring(...)() return components.active[1][1].hl()", feline_statusline)
 
-			assert(cell.fg == case.fg and cell.bg == case.bg, vim.inspect(cell))
+			assert(cell.fg == require("parhelion.chrome").scale[path.background].page, vim.inspect(cell))
 		end)
 	end)
 end
@@ -1163,8 +1178,15 @@ local feline_draws_parhelions_statusline_in_every_buffer = [[
 
 local function drawn_statusline(world)
 	world:settle { quiet = 300 }
+	local cells = world:drawn_row(world.rows - 1)
+	local texts = vim.tbl_map(function(cell) return cell.text end, cells)
 
-	return world:drawn_row(world.rows - 1)
+	local mode_width = 1
+	while cells[mode_width + 1] and cells[mode_width + 1].bg == cells[1].bg do
+		mode_width = mode_width + 1
+	end
+
+	return { text = table.concat(texts), mode = table.concat(texts, "", 1, mode_width), hue = cells[1].bg }
 end
 
 for _, keys in ipairs { "d", "dv", "dV", "d<C-v>" } do
@@ -1176,41 +1198,47 @@ for _, keys in ipairs { "d", "dv", "dV", "d<C-v>" } do
 			world:request("nvim_input", keys)
 
 			local statusline = drawn_statusline(world)
-			assert(statusline:find("N-PENDING", 1, true), statusline)
+			assert(statusline.mode == " OPERATOR ", statusline.text)
 		end)
 	end)
 end
 
 for _, case in ipairs {
-	{ keys = "", mode = "n", name = "NORMAL" },
-	{ keys = "A<C-o>", mode = "niI", name = "NORMAL" },
-	{ keys = "R<C-o>", mode = "niR", name = "NORMAL" },
-	{ keys = "gR<C-o>", mode = "niV", name = "NORMAL" },
-	{ keys = "v", mode = "v", name = "VISUAL" },
-	{ keys = "V", mode = "V", name = "V-LINE" },
-	{ keys = "<C-v>", mode = "\22", name = "V-BLOCK" },
-	{ keys = "gh", mode = "s", name = "SELECT" },
-	{ keys = "gH", mode = "S", name = "S-LINE" },
-	{ keys = "g<C-h>", mode = "\19", name = "S-BLOCK" },
-	{ keys = "gh<C-o>", mode = "vs", name = "VISUAL" },
-	{ keys = "gH<C-o>", mode = "Vs", name = "V-LINE" },
-	{ keys = "g<C-h><C-o>", mode = "\22s", name = "V-BLOCK" },
-	{ keys = "A", mode = "i", name = "INSERT" },
-	{ keys = "A<C-n>", mode = "ic", name = "INSERT" },
-	{ keys = "A<C-x>", mode = "ix", name = "INSERT" },
-	{ keys = "R", mode = "R", name = "REPLACE" },
-	{ keys = "R<C-n>", mode = "Rc", name = "REPLACE" },
-	{ keys = "R<C-x>", mode = "Rx", name = "REPLACE" },
-	{ keys = "gR", mode = "Rv", name = "V-REPLACE" },
-	{ keys = "gR<C-n>", mode = "Rvc", name = "V-REPLACE" },
-	{ keys = "gR<C-x>", mode = "Rvx", name = "V-REPLACE" },
-	{ keys = ":", mode = "c", name = "COMMAND" },
-	{ keys = ":<Insert>", mode = "cr", name = "COMMAND" },
-	{ keys = ":terminal cat<CR>", mode = "nt", name = "NORMAL" },
-	{ keys = ":terminal cat<CR>i", mode = "t", name = "TERMINAL" },
-	{ keys = ":terminal cat<CR>i<C-\\><C-o>", mode = "ntT", name = "NORMAL" },
+	{ keys = "", mode = "n", name = "NORMAL", hue = "blue" },
+	{ keys = "A<C-o>", mode = "niI", name = "NORMAL", hue = "blue" },
+	{ keys = "R<C-o>", mode = "niR", name = "NORMAL", hue = "blue" },
+	{ keys = "gR<C-o>", mode = "niV", name = "NORMAL", hue = "blue" },
+	{ keys = "v", mode = "v", name = "VISUAL", hue = "magenta" },
+	{ keys = "V", mode = "V", name = "VISUAL LINE", hue = "magenta" },
+	{ keys = "<C-v>", mode = "\22", name = "VISUAL BLOCK", hue = "magenta" },
+	{ keys = "gh", mode = "s", name = "SELECT", hue = "magenta" },
+	{ keys = "gH", mode = "S", name = "SELECT LINE", hue = "magenta" },
+	{ keys = "g<C-h>", mode = "\19", name = "SELECT BLOCK", hue = "magenta" },
+	{ keys = "gh<C-o>", mode = "vs", name = "VISUAL", hue = "magenta" },
+	{ keys = "gH<C-o>", mode = "Vs", name = "VISUAL LINE", hue = "magenta" },
+	{ keys = "g<C-h><C-o>", mode = "\22s", name = "VISUAL BLOCK", hue = "magenta" },
+	{ keys = "A", mode = "i", name = "INSERT", hue = "green" },
+	{ keys = "A<C-n>", mode = "ic", name = "INSERT", hue = "green" },
+	{ keys = "A<C-x>", mode = "ix", name = "INSERT", hue = "green" },
+	{ keys = "R", mode = "R", name = "REPLACE", hue = "red" },
+	{ keys = "R<C-n>", mode = "Rc", name = "REPLACE", hue = "red" },
+	{ keys = "R<C-x>", mode = "Rx", name = "REPLACE", hue = "red" },
+	{ keys = "gR", mode = "Rv", name = "VREPLACE", hue = "red" },
+	{ keys = "gR<C-n>", mode = "Rvc", name = "VREPLACE", hue = "red" },
+	{ keys = "gR<C-x>", mode = "Rvx", name = "VREPLACE", hue = "red" },
+	{ keys = ":", mode = "c", name = "COMMAND", hue = "orange" },
+	{ keys = ":<Insert>", mode = "cr", name = "COMMAND", hue = "orange" },
+	{ keys = ":terminal cat<CR>", mode = "nt", name = "NORMAL", hue = "blue" },
+	{ keys = ":terminal cat<CR>i", mode = "t", name = "TERMINAL", hue = "green" },
+	{ keys = ":terminal cat<CR>i<C-\\><C-o>", mode = "ntT", name = "NORMAL", hue = "blue" },
 } do
-	test(string.format("the feline statusline draws %s in mode %s", case.name, vim.fn.strtrans(case.mode)), function()
+	local name = string.format(
+		"the feline statusline draws %s in %s in mode %s",
+		case.name,
+		case.hue,
+		vim.fn.strtrans(case.mode)
+	)
+	test(name, function()
 		in_world("parhelion", paths[1], function(world)
 			world:lua(feline_draws_parhelions_statusline_in_every_buffer)
 			world:lua [[
@@ -1224,7 +1252,8 @@ for _, case in ipairs {
 			world:request("nvim_command", "redrawstatus")
 
 			local statusline = drawn_statusline(world)
-			assert(statusline:find(case.name, 1, true), statusline .. "\n" .. messages(world))
+			assert(statusline.mode == " " .. case.name .. " ", statusline.text .. "\n" .. messages(world))
+			assert(statusline.hue == require("parhelion.chrome").hues.dark[case.hue]:lower(), statusline.hue)
 		end)
 	end)
 end
@@ -1238,7 +1267,42 @@ test("the feline statusline names normal mode again once an operator is cancelle
 		world:request("nvim_input", "<Esc>")
 
 		local statusline = drawn_statusline(world)
-		assert(statusline:find("NORMAL", 1, true), statusline)
+		assert(statusline.mode == " NORMAL ", statusline.text)
+	end)
+end)
+
+test("the feline statusline keeps the mode and the file name in a narrow window", function()
+	in_world("parhelion", paths[1], function(world)
+		world:lua(feline_draws_parhelions_statusline_in_every_buffer)
+		world:lua [[
+			local diagnostics = {}
+			for severity = 1, 4 do
+				table.insert(diagnostics, { lnum = 0, col = 0, severity = severity, message = "a diagnostic" })
+			end
+			vim.diagnostic.set(vim.api.nvim_create_namespace "narrow window", 0, diagnostics)
+			vim.api.nvim_buf_set_name(0, "docs/guide/notes.txt")
+			vim.b.gitsigns_head = "main"
+		]]
+
+		world:request("nvim_command", "vsplit | vertical resize 26")
+
+		local statusline = drawn_statusline(world)
+		assert(vim.startswith(statusline.text, " NORMAL  notes.txt "), statusline.text)
+	end)
+end)
+
+test("the feline statusline draws a branch name as text", function()
+	in_world("parhelion", paths[1], function(world)
+		world:lua(feline_draws_parhelions_statusline_in_every_buffer)
+		world:lua [[
+			vim.g.evaluated = "an evaluated expression"
+			vim.b.gitsigns_head = "%{g:evaluated}"
+		]]
+
+		world:request("nvim_command", "redrawstatus")
+
+		local statusline = drawn_statusline(world)
+		assert(statusline.text:find(" %{g:evaluated} ", 1, true), statusline.text)
 	end)
 end)
 
@@ -1950,7 +2014,6 @@ end
 
 local modules_a_theme_file_requires = [[
 	local theme_file = ...
-	package.preload["feline.providers.lsp"] = function() return {} end
 	require(theme_file)
 
 	local names = vim.tbl_filter(
@@ -2037,7 +2100,7 @@ for _, background in ipairs { "dark", "light" } do
 		local built = require("parhelion.build").build(background)
 
 		local stale = {}
-		for _, part in ipairs { "colors", "constant", "dimmed", "terminal" } do
+		for _, part in ipairs { "colors", "dimmed", "mode_hues", "terminal" } do
 			if not vim.deep_equal(shipped[part], built[part]) then table.insert(stale, part) end
 		end
 		for name in pairs(vim.tbl_extend("force", {}, shipped.groups, built.groups)) do
@@ -2476,7 +2539,8 @@ local bold_in_theme_files = [[
 	local styles = {
 		["lualine's normal mode"] = require("lualine.themes.parhelion").normal.a.gui,
 		["barbecue's file name"] = require("barbecue.theme.parhelion").basename.bold,
-		["feline's mode label"] = statusline.active[1][2].hl().style,
+		["feline's mode name"] = statusline.active[1][1].hl().style,
+		["reactive's cursor line number"] = require("reactive.presets.parhelion-cursorline").modes.i.winhl.CursorLineNr.bold,
 	}
 	local bold = {}
 	for slot, style in pairs(styles) do
@@ -2632,6 +2696,20 @@ for _, path in ipairs { paths[1], paths[2] } do
 			)
 		end)
 	end
+
+	test("the theme files are bold where parhelion draws bold, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local bold = world:lua(bold_in_theme_files, feline_statusline)
+
+			local every_slot = {
+				"barbecue's file name",
+				"feline's mode name",
+				"lualine's normal mode",
+				"reactive's cursor line number",
+			}
+			assert(vim.deep_equal(bold, every_slot), vim.inspect(bold))
+		end)
+	end)
 
 	test("turning bold off leaves the theme files without bold, " .. path.label, function()
 		with_options(path, [[require("parhelion").setup { bold = false }]], function(world)
