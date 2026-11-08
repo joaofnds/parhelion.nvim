@@ -3,6 +3,10 @@
 # PARHELION_TREESITTER_REF=main, nvim-treesitter comes from that branch instead of its pin.
 set -euo pipefail
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# A GIT_DIR or GIT_WORK_TREE from the caller would send every git command below into the caller's repository.
+while read -r variable; do
+  unset "$variable"
+done < <(git rev-parse --local-env-vars)
 export PARHELION_DEPS=${PARHELION_DEPS:-${XDG_CACHE_HOME:-$HOME/.cache}/parhelion-test-deps${PARHELION_TREESITTER_REF:+-$PARHELION_TREESITTER_REF}}
 mkdir -p "$PARHELION_DEPS"
 
