@@ -4,11 +4,11 @@ Parhelion starts from the look of [Solarized](https://ethanschoonover.com/solari
 changes how light its text colors are, because measured against the Solarized specification, Solarized's text is too
 faint in specific, nameable places. Pages and hues stay, apart from orange. And it gives plugin interfaces a system of
 their own, described under How plugins use color, where surfaces and text stay neutral and short labels hold the hue.
-The base tables, `lua/parhelion/base/`, began as the output of [solarized.nvim](https://github.com/maxmx03/solarized.nvim),
-which gives each highlight group one of Solarized's published colors or a shade of its own. Every color changed from
-them is listed in `lua/parhelion/refinement.lua` or `lua/parhelion/chrome.lua`. In the Neogit, Diffview and sample file
-views the suite compares parhelion against the base tables with those changes applied, and fails on any other
-difference.
+The base tables, `lua/parhelion/base/`, began as the output of
+[solarized.nvim](https://github.com/maxmx03/solarized.nvim), which gives each highlight group one of Solarized's
+published colors or a shade of its own. Every color changed from them is listed in `lua/parhelion/refinement.lua` or
+`lua/parhelion/chrome.lua`. In the Neogit, Diffview and sample file views the suite compares parhelion against the base
+tables with those changes applied, and fails on any other difference.
 
 The first file is the refinement, and it holds two kinds of change. A tone is a color that replaces one color from the
 base tables everywhere it appears, in one mode. A repaired group is a highlight group parhelion sets directly, because a
