@@ -141,6 +141,11 @@ Highlight groups ship for these plugins:
 
 `tests/parhelion/run.sh` runs the suite. [DESIGN.md](DESIGN.md) lists what it needs.
 
+## Thanks
+
+Parhelion's base tables, which give each highlight group its Solarized color before parhelion changes any, began as
+the output of Max Miliano's [solarized.nvim](https://github.com/maxmx03/solarized.nvim). Thank you, Max.
+
 ## License
 
-MIT. See [LICENSE.md](LICENSE.md).
+MIT. See [LICENSE.md](LICENSE.md), which carries solarized.nvim's copyright line beside parhelion's.

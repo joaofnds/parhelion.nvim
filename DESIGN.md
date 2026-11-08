@@ -18,7 +18,8 @@ Plugin support below for how they are checked.
 - A **load path** is one of the four sequences that can lead to the active colors: started in dark, started in light,
   toggled from dark to light, and toggled from light to dark.
 - The **base tables** are `lua/parhelion/base/{dark,light}.lua`: every highlight and terminal color of the Solarized
-  look, in Solarized's published colors and some shades of their own, before any refinement.
+  look, in Solarized's published colors and some shades of their own, before any refinement. They began as the output
+  of [solarized.nvim](https://github.com/maxmx03/solarized.nvim).
 - A **toned** color has passed through `refinement.color`, which replaces a color from the base tables with parhelion's
   value for that mode.
 - A **repaired group** is one `refinement.repaired_groups` sets directly, because no tone can reach it.
