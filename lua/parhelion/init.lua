@@ -89,6 +89,13 @@ local function refuse_what_neovim_refuses(name, hl)
 	if not accepted then error(string.format("parhelion cannot set overrides.%s: %s", name, message), 0) end
 end
 
+local function validate_override(name, override)
+	if type(name) ~= "string" then
+		error(string.format("overrides[%s]: expected a group name, got %s", vim.inspect(name), type(name)), 0)
+	end
+	vim.validate("overrides." .. name, override, "table")
+end
+
 local function overridden(built, groups)
 	local overrides = options.overrides
 	if type(overrides) == "function" then
@@ -103,7 +110,7 @@ local function overridden(built, groups)
 		result[name], spelling[name:lower()] = hl, name
 	end
 	for name, override in pairs(overrides) do
-		vim.validate("overrides." .. name, override, "table")
+		validate_override(name, override)
 		name = spelling[name:lower()] or name
 		local current = result[name]
 		if override.link or current == nil or current.link then
@@ -152,7 +159,7 @@ function M.setup(user_options)
 	vim.validate("overrides", user_options.overrides, { "table", "function" }, true)
 	if type(user_options.overrides) == "table" then
 		for name, override in pairs(user_options.overrides) do
-			vim.validate("overrides." .. name, override, "table")
+			validate_override(name, override)
 		end
 	end
 

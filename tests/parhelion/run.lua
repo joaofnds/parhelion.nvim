@@ -2774,9 +2774,27 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
+	test("setup refuses an override keyed by a number, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local accepted, message = unpack(world:lua [[
+				vim.cmd.colorscheme "default"
+
+				return { pcall(require("parhelion").setup, { overrides = { { fg = "#ff0000" } } }) }
+			]])
+
+			assert(not accepted, "it took the override")
+			assert(tostring(message):find("overrides[1]", 1, true), tostring(message))
+		end)
+	end)
+
 	for _, case in ipairs {
 		{ name = "an override function that returns no table", overrides = "function() end", names = "overrides" },
 		{ name = "an override Neovim refuses", overrides = [[{ Normal = { fg = "notacolor" } }]], names = "Normal" },
+		{
+			name = "an override function that returns a list",
+			overrides = [[function() return { { fg = "#ff0000" } } end]],
+			names = "overrides[1]",
+		},
 		{
 			name = "an override function that reads a color parhelion lacks",
 			overrides = "function(colors) return { Normal = { fg = colors.purple } } end",
