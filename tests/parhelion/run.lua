@@ -678,6 +678,18 @@ for _, path in ipairs(paths) do
 			assert(current.bg and current.bg ~= groups.Normal.bg, vim.inspect(current))
 		end)
 
+		test("a search match, the current match and a selection each draw their own fill, " .. path.label, function()
+			local close = {}
+			for _, pair in ipairs { { "Search", "CurSearch" }, { "Search", "Visual" }, { "CurSearch", "Visual" } } do
+				local difference = color.color_difference(groups[pair[1]].bg, groups[pair[2]].bg)
+				if difference < legibility.smallest_difference_between_overlays then
+					table.insert(close, string.format("%s/%s %.1f", pair[1], pair[2], difference))
+				end
+			end
+
+			expect_none(close, "fills too close")
+		end)
+
 		for _, name in ipairs { "Todo", "SpellCap" } do
 			test(string.format("%s does not draw in the variable color, %s", name, path.label), function()
 				local drawn = groups[name].fg or groups[name].sp
@@ -685,6 +697,42 @@ for _, path in ipairs(paths) do
 				assert(drawn ~= groups["@variable"].fg, vim.inspect(groups[name]))
 			end)
 		end
+	end)
+end
+
+local search_inside_a_selection = [[
+	vim.cmd.enew()
+	vim.api.nvim_buf_set_lines(0, 0, -1, false, { "plain match plain match" })
+	vim.o.hlsearch = true
+	vim.fn.setreg("/", "match")
+	vim.v.hlsearch = 1
+	vim.api.nvim_feedkeys("$V", "n", false)
+]]
+
+local function cell_at(shot, text)
+	for _, row in ipairs(shot.rows) do
+		local line = table.concat(vim.tbl_map(function(cell) return cell.text end, row))
+		local column = line:find(text, 1, true)
+		if column then return row[vim.str_utfindex(line, "utf-32", column - 1) + 1] end
+	end
+	error(text .. " is not on the screen")
+end
+
+for _, path in ipairs { paths[1], paths[2] } do
+	test("a search match inside a selection still shows, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			world:lua(search_inside_a_selection)
+
+			local shot = world:capture()
+
+			local plain, match = cell_at(shot, "plain match plain"), cell_at(shot, "match plain match")
+			assert(plain.bg == snapshot(world).groups.Visual.bg, "the line is not selected: " .. vim.inspect(plain))
+			local difference = color.color_difference(plain.fg, match.fg)
+			assert(
+				difference >= legibility.smallest_difference_between_overlays,
+				string.format("%.1f %s", difference, vim.inspect { plain = plain, match = match })
+			)
+		end)
 	end)
 end
 
@@ -1058,6 +1106,23 @@ for _, background in ipairs { "dark", "light" } do
 			)
 		end)
 	end
+
+	test("a search match stays readable in " .. background, function()
+		local match = require("parhelion.chrome").groups(background).Search
+
+		local contrast = color.contrast_ratio(match.fg, match.bg)
+
+		assert(contrast >= legibility.smallest_word_contrast, string.format("%.2f:1", contrast))
+	end)
+
+	test("a search match stands apart from the cursor line in " .. background, function()
+		local difference = color.color_difference(scale.match_wash, scale.raised)
+
+		assert(
+			difference >= legibility.smallest_wash_difference_from_the_cursor_line,
+			string.format("%.1f", difference)
+		)
+	end)
 
 	test("a changed line differs from an unchanged one in " .. background, function()
 		local changed = require("parhelion.chrome").groups(background).DiffChange

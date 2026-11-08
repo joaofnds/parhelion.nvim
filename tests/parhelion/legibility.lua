@@ -7,6 +7,7 @@ M.floor_over_a_selection = 20
 M.smallest_body_contrast_on_a_wash = 4.5
 M.smallest_wash_difference_from_the_cursor_line = 5
 M.smallest_word_difference_from_its_line = 10
+M.smallest_difference_between_overlays = 10
 M.smallest_word_contrast = 4.5
 M.smallest_description_contrast = 4.5
 M.largest_drift = 10.5

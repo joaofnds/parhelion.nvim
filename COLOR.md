@@ -212,14 +212,14 @@ The rules, in both modes:
 2. In a plugin with label families, each kind of label holds one hue within that plugin, so it can be found without
    being read. Neogit, Diffview, which-key, mini.clue, mason, lazy.nvim and the markdown plugins have them. Mason's
    headers and tags are filled blocks of violet, blue, green, yellow and the quiet step, and its secondary highlight is
-   magenta. lazy.nvim's load reasons, buttons and home heading follow the core groups lazy.nvim links them to, such as
-   `Constant` for an event, `Statement` for keys and `IncSearch` for the heading, so they take the code's colors and
-   change hue between modes as the code does. Its section titles and times take the core `Bold` group, which parhelion
-   sets to bold alone, and its dimmed text is quiet. The same kind of label can differ between plugins, so a key is
-   violet in a Neogit popup and blue in which-key. A title adds bold to its hue in Neogit, Diffview and mason. Elsewhere
-   a window's main title holds the strong step and bold, as `FloatTitle`, `TelescopeTitle` and `NeoTreeRootName` do, and
-   a secondary one is quiet. Hashes and kinds stay quiet. Counts stay quiet too, apart from Neogit's section headers and
-   Diffview's panel, where they are body.
+   magenta. lazy.nvim's load reasons and buttons follow the core groups lazy.nvim links them to, such as `Constant` for
+   an event and `Statement` for keys, so they take the code's colors and change hue between modes as the code does. Its
+   home heading links to `IncSearch` and takes the current match's yellow fill. Its section titles and times take the
+   core `Bold` group, which parhelion sets to bold alone, and its dimmed text is quiet. The same kind of label can
+   differ between plugins, so a key is violet in a Neogit popup and blue in which-key. A title adds bold to its hue in
+   Neogit, Diffview and mason. Elsewhere a window's main title holds the strong step and bold, as `FloatTitle`,
+   `TelescopeTitle` and `NeoTreeRootName` do, and a secondary one is quiet. Hashes and kinds stay quiet. Counts stay
+   quiet too, apart from Neogit's section headers and Diffview's panel, where they are body.
 3. One interface accent, Solarized blue, marks focus and matches. In Neogit, Diffview and Trouble it also marks paths,
    folders and popup titles. Other plugins' directories and paths stay neutral.
 4. A signal color keeps one meaning everywhere: red for errors and removals, yellow for warnings, conflicts and a change
@@ -234,8 +234,9 @@ The rules, in both modes:
    meaning, which is how a Neogit tag is yellow, a remote green, and markdown's headings run through the base tables'
    colors.
 5. A changed word sits on a word wash, a stronger blend of Solarized's published color over the page, and takes strong
-   text. Solid fills are for jump labels, which are a character wide, and window picker labels, which fill a status
-   line. Severity sits on an icon or a bar and the text stays neutral.
+   text. Solid fills are for jump labels, which are a character wide, window picker labels, which fill a status line,
+   and the current search match, which is one match at a time. Severity sits on an icon or a bar and the text stays
+   neutral.
 6. A selected row is a neutral step with brighter text, and a focused Neogit hunk header keeps its accent there. That
    borrows the idea of the specification's highlighted pair `base02:base1` and not its values, since dark body is
    already `base1`. The pairs are `#0d414e:#c9ccc3` and `#e2dbc7:#2a4c55`. Most pickers let the row's foreground replace
@@ -294,16 +295,16 @@ separators in every window, the diff lines, `Added`, `@diff.plus`, markdown's Vi
 core groups follows it, and gets a family when the result needs a role.
 
 Code syntax, `Normal`, `NormalFloat`, `Comment`, diagnostics, the cursor line and column, the gutter and fold column,
-`Search`, `MatchParen`, `Conceal`, the status line, lualine and the gutter's signs do not differ, apart from the text
-overlays below, gitsigns' and gitgutter's added sign and number, which rule 4 makes green, and lualine's count of added
-lines, which takes that sign's color. gitsigns' line highlights follow the diff lines they link to. A check in
+`MatchParen`, `Conceal`, the status line, lualine and the gutter's signs do not differ, apart from the text overlays
+below, gitsigns' and gitgutter's added sign and number, which rule 4 makes green, and lualine's count of added lines,
+which takes that sign's color. gitsigns' line highlights follow the diff lines they link to. A check in
 `tests/parhelion/restraint.lua` fails when a family names one of them, a group Neogit or Diffview uses to stand in for
 one of them, or a group from a Vim syntax file. The exceptions are `Added`, `@diff.plus`, `GitSignsAdd`, `GitGutterAdd`
-and `GitGutterAddLineNr`, which rule 4 colors, the text overlays `Visual`, `Todo`, `LspReferenceRead`,
-`LspReferenceText`, `LspReferenceWrite` and the `DiagnosticUnderline` groups, `markdownH1` to `markdownH6`, `LspKind*`,
-lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
-render-markdown's heading bands count as the base tables', so the refinement sets the one they lack, light's sixth
-level, by their recipe.
+and `GitGutterAddLineNr`, which rule 4 colors, the text overlays `Visual`, `Search`, `IncSearch`, `Todo`,
+`LspReferenceRead`, `LspReferenceText`, `LspReferenceWrite` and the `DiagnosticUnderline` groups, `markdownH1` to
+`markdownH6`, `LspKind*`, lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's
+`tk` groups. render-markdown's heading bands count as the base tables', so the refinement sets the one they lack,
+light's sixth level, by their recipe.
 
 One plugin family paints over code, because it is a plugin's and not code's. mini.cursorword marks each other instance
 of the word under the cursor. The base tables recolor those instances teal in dark and bold magenta on pink in light,
@@ -314,15 +315,20 @@ The text overlays are the marks Neovim draws over code, and they tint or underli
 selection or a reference never hides what kind of token it covers. A selection keeps the base tables' fill, `#2c4e56` in
 dark and the pink `#f8e2d9` in light, and sets no text color, where the base tables also set body text in dark and bold
 magenta in light. On those fills the accents read at 2.70:1 to 3.25:1 in dark and 3.47:1 to 4.23:1 in light, body at
-3.37:1 and 4.32:1, and comments at 2.41:1 and 3.22:1. A reference to the symbol under the cursor takes the selected step
-alone, as vim-illuminate's references do, since a language server marks symbols and never the inside of a comment. A
-diagnostic underlines its text in the signal color and leaves the text's own color. A misspelling has a red undercurl, a
-capitalization hint a violet one, a word from another region a yellow one and a rare word a cyan one, as Solarized
-publishes them, where the base tables strike a misspelling through and color the other three's text. The current
-quickfix entry takes the selected step with strong text, where the base tables draw it like every other entry, and
-`Todo` is magenta and bold, Solarized's own mark, where the base tables give it the blue of a variable. Neovim links the
-active signature parameter, snippet tabstops and `VisualNOS` to the selection and a reference's target to the
-reference, so those follow.
+3.37:1 and 4.32:1, and comments at 2.41:1 and 3.22:1. A search match takes strong text on a warm fill, toned yellow
+blended over the light page and toned orange over the dark page, since yellow over the dark page turns the olive of an
+added line. The text reads at 5.18:1 in dark and 5.64:1 in light, where the base tables draw a dark match as a bold
+selection. The current match is page text on solid yellow and bold, at 5.42:1 and 4.01:1, so it stands out from the
+others, and `CurSearch` and `Substitute` follow it. Inside a selection Neovim draws the selection's fill under a match
+and keeps the match's text color, so the match still shows in strong text. A reference to the symbol under the cursor
+takes the selected step alone, as vim-illuminate's references do, since a language server marks symbols and never the
+inside of a comment. A diagnostic underlines its text in the signal color and leaves the text's own color. A misspelling
+has a red undercurl, a capitalization hint a violet one, a word from another region a yellow one and a rare word a cyan
+one, as Solarized publishes them, where the base tables strike a misspelling through and color the other three's text.
+The current quickfix entry takes the selected step with strong text, where the base tables draw it like every other
+entry, and `Todo` is magenta and bold, Solarized's own mark, where the base tables give it the blue of a variable.
+Neovim links the active signature parameter, snippet tabstops and `VisualNOS` to the selection and a reference's target
+to the reference, so those follow.
 
 Neogit's kinds of label hold hue, and two kinds can share one. A section header is violet and bold with a body count, a
 branch orange and bold, the checked out branch underlined as well, a remote green and bold, a tag yellow, its distance
@@ -390,8 +396,8 @@ light `#f1eccc`, from `NeogitDiffAddHighlight`, misses at 4.6. And each stays un
 color, so the tint is felt more than seen. The distances from the page sit together, so no kind of line outweighs
 another.
 
-Every plugin group takes a role in a family or follows a link. A group named for a color, such as `OctoGreen`, takes that
-accent, toned, and rainbow delimiters and git graph branches keep their hues.
+Every plugin group takes a role in a family or follows a link. A group named for a color, such as `OctoGreen`, takes
+that accent, toned, and rainbow delimiters and git graph branches keep their hues.
 
 ## Where parhelion agrees with the specification, and where it does not
 
@@ -466,8 +472,8 @@ Departs:
     added block draws in quiet gray at Lc 30.9 with its syntax gone.
   - `LineNr`, `SignColumn` and `DiagnosticSign*` keep the base tables' raised gutter, so a float that turns on line
     numbers or draws a sign shows a short raised strip.
-  - `Search`, `IncSearch` and `Visual` keep the base tables' colors, which differ in hue between modes. Selection in
-    a buffer is bold magenta on pink in light and gray in dark.
+  - `Visual` keeps the base tables' fill, which is gray in dark and pink in light, so a selection changes hue between
+    modes.
   - dashboard-nvim's README sets shortcut colors with `@property` and `Label`, which are code syntax groups, so a
     config that copies it shows them in syntax colors.
   - mini.notify blends its window by default, so code shows faintly through it. The view turns blending off, because
