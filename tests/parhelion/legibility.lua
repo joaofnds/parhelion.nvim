@@ -3,6 +3,7 @@ local color = require "color"
 local M = {}
 
 M.text_floor = 30
+M.floor_over_a_selection = 20
 M.smallest_body_contrast_on_a_wash = 4.5
 M.smallest_wash_difference_from_the_cursor_line = 5
 M.smallest_word_difference_from_its_line = 10
@@ -82,6 +83,7 @@ local function text_and_background(cell)
 end
 
 function M.illegible_text(shot, is_exempt)
+	local selection = shot.groups and shot.groups.Visual and shot.groups.Visual.bg
 	local found, seen = {}, {}
 	for _, row in ipairs(shot.rows) do
 		for _, cell in ipairs(row) do
@@ -89,7 +91,8 @@ function M.illegible_text(shot, is_exempt)
 				local text, background = text_and_background(cell)
 				local key = text .. background
 				local lightness = math.abs(color.lightness_contrast(text, background))
-				if not seen[key] and lightness < M.text_floor then
+				local floor = background == selection and M.floor_over_a_selection or M.text_floor
+				if not seen[key] and lightness < floor then
 					seen[key] = true
 					table.insert(found, {
 						text = text,

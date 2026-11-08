@@ -121,6 +121,12 @@ local function base_look(background, name)
 	return { fg = tone(background, hl.fg):lower(), bold = hl.bold }
 end
 
+local function base_fill(background, name)
+	local hl = require("parhelion.base." .. background).groups[name]
+
+	return { bg = tone(background, hl.bg):lower() }
+end
+
 M.constant_hue = {
 	dark = base_look("dark", "Constant").fg,
 	light = base_look("light", "Constant").fg,
@@ -208,6 +214,7 @@ local function looks(background)
 		selected_body = { fg = scale.body, bg = scale.selected },
 		selected_row = { bg = scale.selected },
 		selected_title = { fg = scale.strong, bg = scale.selected, bold = true },
+		selection = base_fill(background, "Visual"),
 		strong = { fg = scale.strong },
 		thumb = { bg = scale.hairline },
 		title = { fg = scale.strong, bold = true },
@@ -219,6 +226,7 @@ local function looks(background)
 	for name, hue in pairs(accents) do
 		look[name] = { fg = hue }
 		look[name .. "_underline"] = { sp = hue, underline = true }
+		look[name .. "_undercurl"] = { sp = hue, undercurl = true }
 		look[name .. "_bubble"] = { fg = scale.page, bg = hue }
 		look[name .. "_bubble_bold"] = { fg = scale.page, bg = hue, bold = true }
 		look["page_" .. name] = { fg = hue, bg = scale.page }
@@ -304,6 +312,20 @@ M.families = {
 		strong = "Directory",
 		thumb = "PmenuThumb",
 		title = "Title",
+	},
+	text_overlays = {
+		blue_underline = "DiagnosticUnderlineHint DiagnosticUnderlineInfo",
+		cyan_undercurl = "SpellRare",
+		green_underline = "DiagnosticUnderlineOk",
+		magenta_bold = "Todo",
+		red_undercurl = "SpellBad",
+		red_underline = "DiagnosticUnderlineError",
+		selected_row = "LspReferenceRead LspReferenceText LspReferenceWrite",
+		selected_strong = "QuickFixLine",
+		selection = "Visual",
+		violet_undercurl = "SpellCap",
+		yellow_undercurl = "SpellLocal",
+		yellow_underline = "DiagnosticUnderlineWarn",
 	},
 	window_separators = {
 		hairline = "DiffviewWinSeparator NeogitWinSeparator VertSplit WinSeparator",

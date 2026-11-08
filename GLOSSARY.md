@@ -39,6 +39,9 @@ text.
 **Occurrence highlight**: a highlight on the other instances of the word under the cursor, as mini.cursorword and
 vim-illuminate draw.
 
+**Overlay**: a mark Neovim draws over code without being part of its syntax, such as a selection, a search match, a
+reference to the symbol under the cursor, a diagnostic's underline or a misspelling's.
+
 **Polarity**: whether text is lighter than its page, as in dark mode, or darker, as in light mode.
 
 **Selective contrast**: Solarized's idea that brightness contrast stays low while hue carries the

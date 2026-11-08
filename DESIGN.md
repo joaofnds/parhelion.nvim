@@ -74,7 +74,7 @@ A load takes about 25 ms and leaves about 2440 groups defined, 384 of them Neovi
   or is named in `decorations`, both in `tests/parhelion/legibility.lua`, so a new weak group fails until someone
   decides which it is.
 - `tests/parhelion/popular/views.lua` opens the popular plugins in real views, each in dark and light with a throwaway
-  language server and git repository, and every text cell has to clear the floor.
+  language server and git repository, and every text cell has to clear the floor, or a lower one over the selection.
 - In each of those views, every drawn color and every group has to stay inside the theme's colors, so a color a plugin
   hard codes fails the test, and no plugin group may spend a hue outside the chrome scale. Two kinds of group are
   exempt: those of the plugins [COLOR.md](COLOR.md) names as using label hues, and those whose names match
@@ -179,15 +179,15 @@ base tables and one with parhelion, and compares them. It needs `nvim` 0.12, `tr
 
 The base instance loads the `base_refined` colorscheme in `tests/parhelion/base_refined`, which sets the base tables,
 applies `lua/parhelion/refinement.lua` on top, and then applies the `chrome.lua` families that frame or fill the buffers
-the views compare: `bufferline`, `tab_line`, `window_separators`, `markdown_text`, `mini_cursorword`, `diff_lines`,
-`diff_marks`, `diffview` and `neogit`. On a load path that starts in that mode, this happens before any plugin derives
-colors from it. On a toggled path the plugins have already derived from the other mode, and they derive again on the
-`ColorScheme` event. So in the list below, "same" means the same as the base tables with those applied, and any other
-group `chrome.lua` names is left out of the group comparison and held by its own tests. Both sides share what the base
-side applies, so `tests/parhelion/approved.lua` pins what it produces, `tests/parhelion/approved_files.lua` holds a
-checksum of the base tables and the extra queries, and `tests/parhelion/approved_presets.lua` pins the theme files'
-colors, so changing one means changing its pin on purpose. The tests that judge `refinement.lua` and `chrome.lua` are
-listed in [COLOR.md](COLOR.md).
+the views compare, or that Neovim links its own groups to: `bufferline`, `tab_line`, `window_separators`,
+`markdown_text`, `mini_cursorword`, `diff_lines`, `diff_marks`, `text_overlays`, `diffview` and `neogit`. On a load path
+that starts in that mode, this happens before any plugin derives colors from it. On a toggled path the plugins have
+already derived from the other mode, and they derive again on the `ColorScheme` event. So in the list below, "same"
+means the same as the base tables with those applied, and any other group `chrome.lua` names is left out of the group
+comparison and held by its own tests. Both sides share what the base side applies, so `tests/parhelion/approved.lua`
+pins what it produces, `tests/parhelion/approved_files.lua` holds a checksum of the base tables and the extra queries,
+and `tests/parhelion/approved_presets.lua` pins the theme files' colors, so changing one means changing its pin on
+purpose. The tests that judge `refinement.lua` and `chrome.lua` are listed in [COLOR.md](COLOR.md).
 
 The base tables hold 509 groups in dark and 506 in light, from 25 and 24 colors. Set alone on Neovim 0.12.6 with
 `--clean`, `nvim_get_hl` lists 711 and 708 groups, from 32 and 31 colors, because it includes the groups Neovim defines

@@ -33,8 +33,9 @@ for name, hl in pairs(refinement.repaired_groups(background, base.groups)) do
 end
 
 -- The views frame the buffers they compare with a tab bar and window separators, run mini.cursorword, open Neogit and
--- Diffview with their diff lines and marks, and one of the buffers is markdown. Those are restyled on purpose, and
--- every other chrome group is left out so a leak shows up as a difference.
+-- Diffview with their diff lines and marks, and one of the buffers is markdown. Neovim links groups such as VisualNOS to
+-- the text overlays. Those are restyled on purpose, and every other chrome group is left out so a leak shows up as a
+-- difference.
 local chrome = require "parhelion.chrome"
 for _, family in ipairs {
 	"bufferline",
@@ -45,6 +46,7 @@ for _, family in ipairs {
 	"mini_cursorword",
 	"neogit",
 	"tab_line",
+	"text_overlays",
 	"window_separators",
 } do
 	for name, hl in pairs(chrome.family_groups(background, family)) do

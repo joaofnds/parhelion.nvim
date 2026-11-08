@@ -127,6 +127,7 @@ The floors, tested on every load path:
 | Code and interface accents | 4.5:1, Lc 38 | 4:1, Lc 64 |
 | Comments, line numbers, inlay hints | 3:1, Lc 30 | 3:1, Lc 55 |
 | Any text cell in a tested view, and any group's text | Lc 30 | Lc 30 |
+| A text cell over the selection in a tested view | Lc 20 | Lc 20 |
 
 These floors are not standards. Each one sits just under what the chosen tones reach, so they hold the result in place
 and do not show that the result is right. Dark accents stop at 4.5:1, and their Lc follows from that. A cell at Lc 30 is
@@ -292,21 +293,36 @@ separators in every window, the diff lines, `Added`, `@diff.plus`, markdown's Vi
 `NvimInvalidSingleQuotedUnknownEscape` and `NvimSingleQuotedUnknownEscape`. A plugin whose default links to one of those
 core groups follows it, and gets a family when the result needs a role.
 
-Code syntax, `Normal`, `NormalFloat`, `Comment`, diagnostics, LSP references and the active signature parameter, the
-cursor line and column, the gutter and fold column, `Visual`, `Search`, `MatchParen`, `Conceal`, the status line,
-lualine and the gutter's signs do not differ, apart from gitsigns' and gitgutter's added sign and number, which rule 4
-makes green, and lualine's count of added lines, which takes that sign's color. gitsigns' line highlights follow the
-diff lines they link to. A check in `tests/parhelion/restraint.lua` fails when a family names one of them, a group
-Neogit or Diffview uses to stand in for one of them, or a group from a Vim syntax file. The exceptions are `Added`,
-`@diff.plus`, `GitSignsAdd`, `GitGutterAdd` and `GitGutterAddLineNr`, which rule 4 colors, `markdownH1` to `markdownH6`,
-`LspKind*`, lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
+Code syntax, `Normal`, `NormalFloat`, `Comment`, diagnostics, the cursor line and column, the gutter and fold column,
+`Search`, `MatchParen`, `Conceal`, the status line, lualine and the gutter's signs do not differ, apart from the text
+overlays below, gitsigns' and gitgutter's added sign and number, which rule 4 makes green, and lualine's count of added
+lines, which takes that sign's color. gitsigns' line highlights follow the diff lines they link to. A check in
+`tests/parhelion/restraint.lua` fails when a family names one of them, a group Neogit or Diffview uses to stand in for
+one of them, or a group from a Vim syntax file. The exceptions are `Added`, `@diff.plus`, `GitSignsAdd`, `GitGutterAdd`
+and `GitGutterAddLineNr`, which rule 4 colors, the text overlays `Visual`, `Todo`, `LspReferenceRead`,
+`LspReferenceText`, `LspReferenceWrite` and the `DiagnosticUnderline` groups, `markdownH1` to `markdownH6`, `LspKind*`,
+lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
 render-markdown's heading bands count as the base tables', so the refinement sets the one they lack, light's sixth
 level, by their recipe.
 
-One family paints over code, because it is a plugin's and not code's. mini.cursorword marks each other instance of the
-word under the cursor. The base tables recolor those instances teal in dark and bold magenta on pink in light, which
-spends the page's strongest color wherever the cursor happens to rest. It takes the selected step with strong text,
-which is neutral and stays legible over any word, where a background alone leaves a dark comment at Lc 28.2.
+One plugin family paints over code, because it is a plugin's and not code's. mini.cursorword marks each other instance
+of the word under the cursor. The base tables recolor those instances teal in dark and bold magenta on pink in light,
+which spends the page's strongest color wherever the cursor happens to rest. It takes the selected step with strong
+text, which is neutral and stays legible over any word, where a background alone leaves a dark comment at Lc 28.2.
+
+The text overlays are the marks Neovim draws over code, and they tint or underline it and leave its colors alone, so a
+selection or a reference never hides what kind of token it covers. A selection keeps the base tables' fill, `#2c4e56` in
+dark and the pink `#f8e2d9` in light, and sets no text color, where the base tables also set body text in dark and bold
+magenta in light. On those fills the accents read at 2.70:1 to 3.25:1 in dark and 3.47:1 to 4.23:1 in light, body at
+3.37:1 and 4.32:1, and comments at 2.41:1 and 3.22:1. A reference to the symbol under the cursor takes the selected step
+alone, as vim-illuminate's references do, since a language server marks symbols and never the inside of a comment. A
+diagnostic underlines its text in the signal color and leaves the text's own color. A misspelling has a red undercurl, a
+capitalization hint a violet one, a word from another region a yellow one and a rare word a cyan one, as Solarized
+publishes them, where the base tables strike a misspelling through and color the other three's text. The current
+quickfix entry takes the selected step with strong text, where the base tables draw it like every other entry, and
+`Todo` is magenta and bold, Solarized's own mark, where the base tables give it the blue of a variable. Neovim links the
+active signature parameter, snippet tabstops and `VisualNOS` to the selection and a reference's target to the
+reference, so those follow.
 
 Neogit's kinds of label hold hue, and two kinds can share one. A section header is violet and bold with a body count, a
 branch orange and bold, the checked out branch underlined as well, a remote green and bold, a tag yellow, its distance
@@ -467,12 +483,12 @@ Departs:
 ## How the suite holds this
 
 The suite renders the base tables with `refinement.lua` applied on top, renders parhelion, and compares every cell and
-every group. Only the groups `chrome.lua` names may differ. On the base side it applies nine chrome families and no
-others: bufferline, the tab line, window separators, markdown text, mini.cursorword, the diff lines, the diff marks,
-Neogit and Diffview, because they frame or fill the buffers the views compare. So any other chrome group that reaches a
-code, Neogit or Diffview screen by accident shows up as a difference. A change to `refinement.lua`, the base tables or
-the extra queries applies to both sides and that comparison stays green, so these tests judge those files and
-`chrome.lua` themselves:
+every group. Only the groups `chrome.lua` names may differ. On the base side it applies ten chrome families and no
+others: bufferline, the tab line, window separators, markdown text, mini.cursorword, the diff lines, the diff marks, the
+text overlays, Neogit and Diffview, because they frame or fill the buffers the views compare, or Neovim links its own
+groups to them. So any other chrome group that reaches a code, Neogit or Diffview screen by accident shows up as a
+difference. A change to `refinement.lua`, the base tables or the extra queries applies to both sides and that comparison
+stays green, so these tests judge those files and `chrome.lua` themselves:
 
 - `tests/parhelion/approved_files.lua` holds a checksum of the base tables and the extra queries, and
   `tests/parhelion/approved_presets.lua` pins the lualine theme's colors, so changing one means changing its pin on
@@ -507,7 +523,8 @@ the extra queries applies to both sides and that comparison stays green, so thes
   the tabline's `▎`, window separators and lualine's two section arrows are exempt.
 - Every text cell in the views of `tests/parhelion/popular` clears Lc 30 in both modes. Box drawing, block
   elements and icon glyphs are exempt there, since plugins draw lines with them and pick icon colors
-  themselves.
+  themselves. A cell over the selection's fill clears Lc 20 instead, because the selection keeps the text's own color
+  and quiet text reads at Lc 23.9 on it in dark. nvim-cmp's bordered menu draws its selected row that way.
 - Every color those views draw, and every group each view leaves defined, sits within 4 units of straight line CIELAB
   distance of a mix of two theme colors, because plugins derive shades by mixing and a color a
   plugin hard codes lands further out. It is a straight line distance because each color is compared against every mix.

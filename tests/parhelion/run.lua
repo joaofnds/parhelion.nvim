@@ -641,6 +641,53 @@ local feline_statusline = [[
 	return feline.get_statusline()
 ]]
 
+for _, path in ipairs(paths) do
+	in_world("parhelion", path, function(world)
+		local groups = snapshot(world).groups
+
+		for _, name in ipairs {
+			"Visual",
+			"LspReferenceRead",
+			"LspReferenceText",
+			"LspReferenceWrite",
+			"DiagnosticUnderlineError",
+			"DiagnosticUnderlineWarn",
+			"DiagnosticUnderlineInfo",
+			"DiagnosticUnderlineHint",
+			"DiagnosticUnderlineOk",
+			"SpellBad",
+			"SpellCap",
+			"SpellLocal",
+			"SpellRare",
+		} do
+			test(
+				string.format("%s keeps the colors of the code under it, %s", name, path.label),
+				function() assert(groups[name].fg == nil, vim.inspect(groups[name])) end
+			)
+		end
+
+		test("a misspelled word is underlined in color and not struck through, " .. path.label, function()
+			local misspelled = groups.SpellBad
+
+			assert(misspelled.sp and misspelled.undercurl and not misspelled.strikethrough, vim.inspect(misspelled))
+		end)
+
+		test("the current quickfix entry stands apart from the other entries, " .. path.label, function()
+			local current = groups.QuickFixLine
+
+			assert(current.bg and current.bg ~= groups.Normal.bg, vim.inspect(current))
+		end)
+
+		for _, name in ipairs { "Todo", "SpellCap" } do
+			test(string.format("%s does not draw in the variable color, %s", name, path.label), function()
+				local drawn = groups[name].fg or groups[name].sp
+
+				assert(drawn ~= groups["@variable"].fg, vim.inspect(groups[name]))
+			end)
+		end
+	end)
+end
+
 for _, entry_point in ipairs {
 	{ name = "the reactive cursor preset", code = [[return require "reactive.presets.parhelion-cursor"]] },
 	{ name = "the feline statusline", code = feline_statusline },
@@ -1084,6 +1131,30 @@ test("the scale check leaves a plugin's own derived sign alone", function()
 end)
 
 for _, case in ipairs {
+	{
+		name = "accepts a quiet word over a selection",
+		fg = "#71888f",
+		groups = { Visual = { bg = "#2c4e56" } },
+		found = 0,
+	},
+	{ name = "reports a quiet word on a fill that is not the selection", fg = "#71888f", groups = {}, found = 1 },
+	{
+		name = "reports a word that vanishes into a selection",
+		fg = "#3a5c64",
+		groups = { Visual = { bg = "#2c4e56" } },
+		found = 1,
+	},
+} do
+	test("the floor check " .. case.name, function()
+		local shot = { rows = { { { text = "x", fg = case.fg, bg = "#2c4e56", flags = "" } } }, groups = case.groups }
+
+		local found = legibility.illegible_text(shot, legibility.is_line_art_or_icon)
+
+		assert(#found == case.found, vim.inspect(found))
+	end)
+end
+
+for _, case in ipairs {
 	{ name = "counts colored text", fg = "#f95148", share = 1 },
 	{ name = "ignores neutral text", fg = "#93a1a1", share = 0 },
 } do
@@ -1222,7 +1293,12 @@ for _, case in ipairs {
 	{ name = "a matching bracket", group = "MatchParen", found = true },
 	{ name = "concealed text", group = "Conceal", found = true },
 	{ name = "the cursor column", group = "CursorColumn", found = true },
-	{ name = "an LSP reference", group = "LspReferenceRead", found = true },
+	{ name = "an LSP group", group = "LspInlayHint", found = true },
+	{ name = "a diagnostic", group = "DiagnosticError", found = true },
+	{ name = "a reference to the symbol under the cursor", group = "LspReferenceRead", found = false },
+	{ name = "a diagnostic's underline", group = "DiagnosticUnderlineError", found = false },
+	{ name = "the selection", group = "Visual", found = false },
+	{ name = "a todo mark", group = "Todo", found = false },
 	{ name = "a syntax group", group = "Function", found = true },
 	{ name = "an unscoped capture", group = "@markup.heading.1", found = true },
 	{ name = "a markdown capture", group = "@markup.heading.1.markdown", found = true },
