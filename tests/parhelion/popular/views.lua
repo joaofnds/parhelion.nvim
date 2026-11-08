@@ -634,7 +634,19 @@ view("fzf-lua", {
 view("mason", {
 	draws_no_code = true,
 	plugins = { "mason.nvim" },
-	setup = function() require("mason").setup { ui = { backdrop = 100 } } end,
+	setup = function()
+		-- Mason's own registry downloads on open, and a failed download leaves an error at a hit-enter prompt that
+		-- blocks every later request to the view.
+		local index = {}
+		for _, spec in ipairs(dofile(vim.env.POPULAR_HERE .. "/mason_packages.lua")) do
+			local module = "popular.mason." .. spec.name
+			package.preload[module] = function() return spec end
+			index[spec.name] = module
+		end
+		package.preload["popular.mason"] = function() return index end
+
+		require("mason").setup { registries = { "lua:popular.mason" }, ui = { backdrop = 100 } }
+	end,
 	run = function(nvim) cmd(nvim, "Mason", 900) end,
 })
 
