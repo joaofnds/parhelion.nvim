@@ -15,7 +15,8 @@ light, and gives plugin interfaces a quiet, consistent look of their own.
     <img alt="A side by side diff in parhelion, with the removed line in red, the added lines in green and the changed lines in blue" src="assets/diff-dark.png">
 </picture>
 
-The screenshots follow your light or dark GitHub theme, and use the Iosevka Term SS08 font.
+The screenshots follow your light or dark GitHub theme. They draw Neovim's screen in the Iosevka Term SS08 font, outside
+any terminal.
 
 ## Install
 
