@@ -746,7 +746,8 @@ local feline_statusline = [[
 ]]
 
 for _, path in ipairs(paths) do
-	in_world("parhelion", path, function(world)
+	local opened, err = pcall(in_world, "parhelion", path, function(world)
+		toggle_when_path_requires_it(world, "parhelion", path)
 		local groups = snapshot(world).groups
 
 		for _, name in ipairs {
@@ -768,10 +769,11 @@ for _, path in ipairs(paths) do
 			"SpellLocal",
 			"SpellRare",
 		} do
-			test(
-				string.format("%s keeps the colors of the code under it, %s", name, path.label),
-				function() assert(groups[name].fg == nil, vim.inspect(groups[name])) end
-			)
+			test(string.format("%s keeps the colors of the code under it, %s", name, path.label), function()
+				local overlay = groups[name]
+
+				assert(overlay.fg == nil and not overlay.reverse and not overlay.standout, vim.inspect(overlay))
+			end)
 		end
 
 		test("a misspelled word is underlined in color and not struck through, " .. path.label, function()
@@ -817,6 +819,7 @@ for _, path in ipairs(paths) do
 			end)
 		end
 	end)
+	if not opened then record_failure("the overlay groups load, " .. path.label, err) end
 end
 
 local search_inside_a_selection = [[
