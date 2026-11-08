@@ -35,6 +35,16 @@ The changes a user can see, newest release first. A change not yet released goes
 - The feline statusline names operator-pending mode while an operator waits for its motion, and normal mode again once
   the operator ends, instead of normal mode throughout.
 - The reactive cursorline keeps the line number's color in normal mode, where it used to drop it.
+- Bufferline's slanted and sloped separators, its pick labels, its group separator and a visible tab's diagnostics draw
+  in parhelion's colors instead of in shades bufferline derives, such as a near black edge on the slant. The selected
+  tab draws its indicator, and the name and count of a buffer with an error, on the page instead of on the tab bar's
+  fill.
+- With `fzf` turned off, a `g:fzf_colors` the user set to a copy of parhelion's before parhelion loaded stays set, and
+  parhelion still removes its own value after a plugin manager reloads parhelion's modules.
+- `setup` refuses, with parhelion's own message, an override keyed by a number, an override with a color or attribute
+  Neovim does not know, and a group name with a character Neovim does not accept. These used to pass `setup` and raise
+  at the next `:colorscheme parhelion`. An overrides function whose table has such a key raises the same message when
+  parhelion loads.
 
 ## 1.0.0 - 2026-11-08
 
