@@ -222,9 +222,11 @@ The rules, in both modes:
 3. One interface accent, Solarized blue, marks focus and matches. In Neogit, Diffview and Trouble it also marks paths,
    folders and popup titles. Other plugins' directories and paths stay neutral.
 4. A signal color keeps one meaning everywhere: red for errors and removals, yellow for warnings, conflicts and a
-   change among unchanged things, as in the gutter or a file tree, green for success. Added things use the color the
-   base tables give added lines, so they match the gutter and Neogit, which makes them blue in dark and olive in light,
-   so in dark added and the accent are the same color.
+   change among unchanged things, as in the gutter or a file tree, and green for success and for added things. Diffs
+   are where parhelion leaves Solarized's mapping, whose dark tables paint added lines blue, the accent's color, while a
+   reader expects a diff in green and red. So `Added`, `@diff.plus`, the gutter's added sign and every plugin's added
+   mark are green in both modes. Neovim's `PreInsert` and fzf-lua's `FzfLuaCmdBuf` link to `Added` without showing a
+   diff, so they keep the base tables' color.
    Hints share the accent, as the base tables' diagnostics do. A label may reuse these hues without the meaning, which
    is how a Neogit tag is yellow, a remote green, and markdown's headings run through the base tables' colors.
 5. A changed word sits on a word wash, a stronger blend of Solarized's published color over the page, and takes strong
@@ -289,12 +291,12 @@ when the result needs a role.
 
 Code syntax, `Normal`, `NormalFloat`, `Comment`, diagnostics, LSP references and the active signature parameter, the
 cursor line and column, the gutter and fold column, `Visual`, `Search`, `MatchParen`, `Conceal`, the status line,
-lualine and gitsigns' signs do not differ, though gitsigns' line highlights follow the diff lines they link to. A check
-in `tests/parhelion/restraint.lua` fails when a family names one of them, a group Neogit or Diffview uses to stand in
-for one of them, or a group from a Vim syntax file. The exceptions are `markdownH1` to `markdownH6`, `LspKind*`,
-lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
-render-markdown's heading bands count as the base tables', so the refinement sets the one they lack, light's sixth
-level, by their recipe.
+lualine and gitsigns' signs do not differ, apart from the added sign that rule 4 makes green, and gitsigns' line
+highlights follow the diff lines they link to. A check in `tests/parhelion/restraint.lua` fails when a family names one
+of them, a group Neogit or Diffview uses to stand in for one of them, or a group from a Vim syntax file. The exceptions
+are `Added`, `@diff.plus` and `GitSignsAdd`, which rule 4 colors, `markdownH1` to `markdownH6`, `LspKind*`, lspsaga's
+`DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups. render-markdown's
+heading bands count as the base tables', so the refinement sets the one they lack, light's sixth level, by their recipe.
 
 One family paints over code, because it is a plugin's and not code's. mini.cursorword marks each other instance of the
 word under the cursor. The base tables recolor those instances teal in dark and bold magenta on pink in light, which
@@ -327,33 +329,34 @@ keep theirs. render-markdown's headings, markview's and headlines' follow the sa
 and quote bars are quiet. Plain text is the body step, `#93a1a1` in dark and `#586e75` in light, where the base tables
 have `#839496` and `#657b83`.
 
-Diff lines are washes and not colored text. The base tables paint added lines in the added color, changed lines yellow,
-changed words solid teal and the filler solid red, which hides the code's syntax and makes a diff the loudest screen in
-the editor. `DiffAdd` and `DiffChange` tint the row and set no text color, so code keeps its syntax. `DiffText`,
-Neogit's inline groups, gitsigns' and mini.diff's put a changed word on a word wash with strong text. Each word wash
-differs from its row by a color difference of 12.2 to 14.1, and strong text reads at 4.52:1 to 6.19:1 on it. That costs
-a changed word its syntax colors. On a word wash the accents reach 2.20:1 to 3.64:1 in dark and 2.54:1 to 3.14:1 in
-light, body text 2.75:1 to 3.76:1 and the keyword monotone at most 4.54:1. Neogit's inline words are bold and `DiffText`
-is not. `DiffDelete` draws only the filler rows of a diff window, as quiet dashes on its wash. `DiffChange` needs its
-own wash and not the raised step, which is the cursor line's, because a changed line does not always hold a changed
-word: undotree, gitsigns' line highlights and `diffopt` `inline:none` draw the row alone. Neogit's hunks, gitsigns'
-previews and deleted lines, mini.diff's deleted overlay and Snacks' diffs use the same washes with no text color, so a
-change looks the same in each, and a row's tint matches the gutter sign beside it. Neogit's cursor brightens the text on
-a tinted row and steps up to selected on a context row.
+Diff lines are washes and not colored text. The base tables paint added lines blue in dark and green in light, changed
+lines yellow, changed words solid teal and the filler solid red, which hides the code's syntax and makes a diff the
+loudest screen in the editor. The washes take the hues a reader expects of a diff: green for added, blue for changed and
+red for removed, while the gutter's changed sign stays yellow. `DiffAdd` and `DiffChange` tint the row and set no text
+color, so code keeps its syntax. `DiffText`, Neogit's inline groups, gitsigns' and mini.diff's put a changed word on a
+word wash with strong text. Each word wash differs from its row by a color difference of 12.2 to 14.4, and strong text
+reads at 4.52:1 to 6.10:1 on it. That costs a changed word its syntax colors. On a word wash the accents reach 2.20:1 to
+3.58:1 in dark and 2.34:1 to 3.14:1 in light, body text 2.75:1 to 3.71:1 and the keyword monotone at most 4.48:1.
+Neogit's inline words are bold and `DiffText` is not. `DiffDelete` draws only the filler rows of a diff window, as quiet
+dashes on its wash. `DiffChange` needs its own wash and not the raised step, which is the cursor line's, because a
+changed line does not always hold a changed word: undotree, gitsigns' line highlights and `diffopt` `inline:none` draw
+the row alone. Neogit's hunks, gitsigns' previews and deleted lines, mini.diff's deleted overlay and Snacks' diffs use
+the same washes with no text color, so a change looks the same in each, and an added or removed row's tint matches the
+gutter sign beside it. Neogit's cursor brightens the text on a tinted row and steps up to selected on a context row.
 
 | Wash | Dark | On page | Light | On page |
 | --- | --- | --- | --- | --- |
-| Added | `#023751` | 1.19:1 | `#eceecc` | 1.10:1 |
-| Changed | `#173833` | 1.18:1 | `#fbeec8` | 1.07:1 |
+| Added | `#23381f` | 1.18:1 | `#eceecc` | 1.10:1 |
+| Changed | `#023751` | 1.19:1 | `#e0eeef` | 1.10:1 |
 | Removed | `#422d33` | 1.18:1 | `#fce8da` | 1.10:1 |
-| Added word | `#135b84` | 2.04:1 | `#c7cc7d` | 1.57:1 |
-| Changed word | `#364726` | 1.49:1 | `#ddc57d` | 1.58:1 |
+| Added word | `#38591f` | 1.87:1 | `#c7cc7d` | 1.57:1 |
+| Changed word | `#135b84` | 2.04:1 | `#9ac5db` | 1.71:1 |
 | Removed word | `#6e2f33` | 1.51:1 | `#f3bbad` | 1.55:1 |
 
-Each word wash is a blend of the published color over the page: 50% blue, 30% yellow and 50% red in dark, and 45% green,
-45% yellow and 30% red in light. Row washes were tuned to the measures below and are not blends of those colors, so a
-word's hue can sit away from its row's. Dark's changed word is olive on a teal row, 51.6 degrees of perceptual hue
-apart, the removed words sit 18.0 and 22.9 apart, and the others sit under 3.
+Each word wash is a blend of the published color over the page: 42% green, 50% blue and 50% red in dark, and 45% green,
+46% blue and 30% red in light. Row washes were tuned to the measures below and are not blends of those colors, so a
+word's hue can sit away from its row's. Light's changed word sits 28.2 degrees of perceptual hue from its row, the
+removed words 18.0 and 22.9, dark's added word 6.7, and the others under 3.
 
 Four measures place the three row washes. A comment clears the floor on each, at Lc 30.4 or more in dark, where the base
 tables' dark `#0b4764`, which their `NeogitDiffAddHighlight` uses, leaves it at Lc 25.9. Body text reaches 4.5:1 on

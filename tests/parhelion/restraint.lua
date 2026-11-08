@@ -212,7 +212,10 @@ local core_of_the_buffer = {
 }
 
 local inside_the_boundary = {
+	"^@diff%.plus$",
+	"^Added$",
 	"^DiagnosticText$",
+	"^GitSignsAdd$",
 	"^LspKind",
 	"^markdownH%d$",
 	"^rainbowcol%d$",

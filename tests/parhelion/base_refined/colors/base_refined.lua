@@ -32,13 +32,14 @@ for name, hl in pairs(refinement.repaired_groups(background, base.groups)) do
 	vim.api.nvim_set_hl(0, name, hl)
 end
 
--- The views frame the buffers they compare with a tab bar and window separators, run mini.cursorword, open
--- Neogit and Diffview with their diff lines, and one of the buffers is markdown. Those are restyled on purpose, and every
--- other chrome group is left out so a leak shows up as a difference.
+-- The views frame the buffers they compare with a tab bar and window separators, run mini.cursorword, open Neogit and
+-- Diffview with their diff lines and marks, and one of the buffers is markdown. Those are restyled on purpose, and
+-- every other chrome group is left out so a leak shows up as a difference.
 local chrome = require "parhelion.chrome"
 for _, family in ipairs {
 	"bufferline",
 	"diff_lines",
+	"diff_marks",
 	"diffview",
 	"markdown_text",
 	"mini_cursorword",

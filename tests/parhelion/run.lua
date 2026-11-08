@@ -939,7 +939,7 @@ for _, case in ipairs {
 		group = "NvimTreeGitNew",
 		hl = { fg = "#708101" },
 	},
-	{ name = "a row wash on a preview", background = "dark", group = "GitSignsAddPreview", hl = { bg = "#023751" } },
+	{ name = "a row wash on a preview", background = "dark", group = "GitSignsAddPreview", hl = { bg = "#23381f" } },
 	{ name = "a word wash on a preview", background = "light", group = "GitSignsAddInline", hl = { bg = "#c7cc7d" } },
 	{ name = "violet on a Neogit header", background = "dark", group = "NeogitSectionHeader", hl = { fg = "#8188dd" } },
 	{ name = "orange on a Neogit branch", background = "light", group = "NeogitBranch", hl = { fg = "#b74a00" } },
@@ -1197,7 +1197,7 @@ end)
 
 for _, case in ipairs {
 	{ name = "a diagnostic", group = "DiagnosticVirtualTextError", found = true },
-	{ name = "a gutter sign", group = "GitSignsAdd", found = true },
+	{ name = "a gutter sign", group = "GitSignsChange", found = true },
 	{ name = "a gutter number", group = "GitSignsAddNr", found = true },
 	{ name = "Neogit's gutter number", group = "NeogitCursorLineNr", found = true },
 	{ name = "Neogit's cursor line", group = "NeogitCursorLine", found = true },
@@ -1232,6 +1232,9 @@ for _, case in ipairs {
 	{ name = "a Diffview group", group = "DiffviewFilePanelTitle", found = false },
 	{ name = "a diff line", group = "DiffAdd", found = false },
 	{ name = "a gutter preview", group = "GitSignsAddInline", found = false },
+	{ name = "the gutter's added sign", group = "GitSignsAdd", found = false },
+	{ name = "the added syntax group", group = "Added", found = false },
+	{ name = "an added line in a diff file", group = "@diff.plus", found = false },
 	{ name = "a picker group", group = "TelescopeNormal", found = false },
 } do
 	test(string.format("the boundary check %s %s", case.found and "reports" or "accepts", case.name), function()
