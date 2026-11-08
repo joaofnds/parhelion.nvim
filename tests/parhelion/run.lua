@@ -2242,6 +2242,16 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
+	test("an override merges into the group whatever case it spells the name in, " .. path.label, function()
+		local overrides = [[require("parhelion").setup { overrides = { keyword = { bold = false } } }]]
+		with_options(path, overrides, function(world)
+			local keyword = world:lua(resolved_look, "Keyword")
+
+			assert(keyword.fg == approved[path.background].Keyword.fg, "the keyword is " .. tostring(keyword.fg))
+			assert(not keyword.bold, "the keyword is still bold")
+		end)
+	end)
+
 	test("an override with a link replaces the group, " .. path.label, function()
 		local overrides = [[require("parhelion").setup { overrides = { Keyword = { link = "Comment" } } }]]
 		with_options(path, overrides, function(world)

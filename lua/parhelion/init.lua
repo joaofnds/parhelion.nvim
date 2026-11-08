@@ -100,8 +100,12 @@ local function overridden(background, groups)
 	local overrides = options.overrides
 	if type(overrides) == "function" then overrides = overrides(colors(background)) end
 
-	local result = vim.deepcopy(groups)
+	local result, spelling = vim.deepcopy(groups), {}
+	for name in pairs(result) do
+		spelling[name:lower()] = name
+	end
 	for name, override in pairs(overrides) do
+		name = spelling[name:lower()] or name
 		local current = result[name]
 		if override.link or current == nil or current.link then
 			result[name] = override
