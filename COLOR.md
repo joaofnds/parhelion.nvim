@@ -424,6 +424,12 @@ Departs:
   reaches Lc 60.3 at a difference of 11.6, just past the limit, which is a judgment, so this is a choice to keep body
   on the published ladder and not something the numbers force. Darkening the page would also close it, and that stops
   being Solarized.
+- The terminal keeps Solarized's published order for black and the six accents it shares with ANSI, and leaves it for
+  the rest. Solarized gives the bright slots its monotones, orange and violet, so a program's bright green prints gray,
+  and its white and bright white are the light mode's surfaces. Parhelion repeats the six accents in the bright slots,
+  so a bright color keeps its hue, and makes white `base1` and bright black `base01`, toned like every other color.
+  Black is `base02` in both modes and bright white `base3` in dark and `base2` in light, so each end sits one surface
+  step from the page it would vanish into.
 
 ## What this does not do
 
@@ -521,6 +527,9 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
 - Each new tone stays within the difference limit, and each saturated tone within a degree of its source
   hue, with orange named as the exception. Its source color is one the base tables really use.
 - The page colors stay fixed.
+- On all four load paths, terminal colors 1 to 6 and 9 to 14 are nearest the toned accent their ANSI names give them,
+  black and bright white sit at least 3 from the page, about the step between the page and the raised surface, and
+  white, bright black and bright white sit at least 3 from each other.
 - Accent pairs stay at least 13 apart.
 - The groups in the floors table clear them on all four load paths, and comments stay Lc 10 below body.
 - Every group that sets a foreground clears Lc 30, unless its name marks it as line art, such as a border, separator

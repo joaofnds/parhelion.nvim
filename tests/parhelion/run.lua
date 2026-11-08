@@ -141,6 +141,17 @@ local function expect_legible_text(parhelion)
 	)
 end
 
+local function nearest_hue(background, hex)
+	local nearest, smallest
+	for name, hue in pairs(require("parhelion.chrome").hues[background]) do
+		local difference = color.color_difference(hex, hue)
+		if smallest == nil or difference < smallest then
+			nearest, smallest = name, difference
+		end
+	end
+	return nearest
+end
+
 local function expect_close(actual, expected, tolerance, what)
 	local message = string.format("%s is %.4f, known to be %.4f", what, actual, expected)
 	assert(math.abs(actual - expected) <= tolerance, message)
@@ -343,6 +354,41 @@ for _, path in ipairs(paths) do
 			"terminal colors match, " .. path.label,
 			function() expect_none(compare.terminal_differences(base, parhelion), "terminal colors differ") end
 		)
+
+		for position, hue in ipairs { "red", "green", "yellow", "blue", "magenta", "cyan" } do
+			for _, slot in ipairs { position, position + 8 } do
+				test(string.format("terminal color %d is %s, %s", slot, hue, path.label), function()
+					local nearest = nearest_hue(path.background, parhelion.terminal[tostring(slot)])
+
+					assert(nearest == hue, "it is nearest " .. nearest)
+				end)
+			end
+		end
+
+		for slot, name in pairs { ["0"] = "black", ["15"] = "bright white" } do
+			test(string.format("terminal %s stands apart from the page, %s", name, path.label), function()
+				local difference = color.color_difference(parhelion.terminal[slot], parhelion.groups.Normal.bg)
+
+				assert(
+					difference >= legibility.smallest_neutral_step,
+					string.format("the difference is %.2f", difference)
+				)
+			end)
+		end
+
+		test("terminal white, bright black and bright white differ from each other, " .. path.label, function()
+			local terminal = parhelion.terminal
+
+			local too_close = vim.tbl_filter(
+				function(pair)
+					return color.color_difference(terminal[pair[1]], terminal[pair[2]])
+						< legibility.smallest_neutral_step
+				end,
+				{ { "7", "8" }, { "7", "15" }, { "8", "15" } }
+			)
+
+			expect_none(too_close, "pairs of terminal neutrals too close")
+		end)
 
 		test("plugin-only text uses only colors the base tables or the chrome set, " .. path.label, function()
 			local chrome = require "parhelion.chrome"

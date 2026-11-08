@@ -16,6 +16,7 @@ M.largest_orange_hue_shift = 5.4
 M.smallest_chroma_with_visible_hue = 0.05
 M.smallest_accent_difference = 13
 M.smallest_step_below_body = 10
+M.smallest_neutral_step = 3
 
 M.page_colors = { "#002b36", "#073642", "#002731", "#fdf6e3", "#eee8d5", "#fbf3db" }
 
