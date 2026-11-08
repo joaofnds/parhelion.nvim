@@ -12,12 +12,9 @@ With lazy.nvim:
 ```lua
 {
 	"joaofnds/parhelion.nvim",
-	name = "parhelion",
 	lazy = false,
 	priority = 1000,
 	config = function()
-		require("parhelion").setup {}
-		vim.o.termguicolors = true
 		vim.o.background = "dark" -- or "light"
 		vim.cmd.colorscheme "parhelion"
 	end,
@@ -28,7 +25,7 @@ Setting `background` and loading the colorscheme again switches modes. It needs 
 
 ## Options
 
-`setup` takes these, shown with their defaults:
+To change an option, call `setup` in `config`. It takes these, shown with their defaults:
 
 ```lua
 require("parhelion").setup {

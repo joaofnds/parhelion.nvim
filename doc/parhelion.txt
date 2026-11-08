@@ -16,7 +16,8 @@ Parhelion is a colorscheme that draws code in a modern take on Solarized, in
 dark and in light, and gives plugin interfaces a quiet, consistent look of its
 own. It follows 'background', so setting it switches modes.
 
-Parhelion needs Neovim 0.12 or later with 'termguicolors' on. Its test suite
+Parhelion needs Neovim 0.12 or later with 'termguicolors' on, which Neovim
+turns on by itself in a terminal that supports 24-bit color. Its test suite
 runs on Neovim 0.12, and nothing older is tested.
 
 ==============================================================================
@@ -26,18 +27,15 @@ With lazy.nvim: >lua
 
     {
         "joaofnds/parhelion.nvim",
-        name = "parhelion",
         lazy = false,
         priority = 1000,
         config = function()
-            require("parhelion").setup {}
-            vim.o.termguicolors = true
             vim.o.background = "dark" -- or "light"
             vim.cmd.colorscheme "parhelion"
         end,
     }
 <
-The `setup` call is needed only to change an option.
+To change an option, call |parhelion.setup()| in `config`.
 
 Parhelion sets `g:fzf_colors` unless it is already set, so fzf-lua and fzf's
 own Vim plugin draw their pickers from parhelion's groups. Turning `fzf` off
