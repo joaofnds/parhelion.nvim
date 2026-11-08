@@ -3016,6 +3016,25 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
+	test("turning fzf off keeps the user's fzf colors that equal parhelion's, " .. path.label, function()
+		local parhelions
+		in_world("parhelion", path, function(world) parhelions = world:lua "return vim.g.fzf_colors" end)
+
+		in_world("default", path, function(world)
+			local kept = world:lua(
+				[[
+					vim.g.fzf_colors = ...
+					require("parhelion").setup { plugins = { fzf = false } }
+					vim.cmd.colorscheme "parhelion"
+					return vim.g.fzf_colors
+				]],
+				parhelions
+			)
+
+			assert(vim.deep_equal(kept, parhelions), vim.inspect(kept))
+		end)
+	end)
+
 	test("an override sets a group of a plugin turned off, " .. path.label, function()
 		local options = [[require("parhelion").setup {
 			plugins = { ["telescope.nvim"] = false },
