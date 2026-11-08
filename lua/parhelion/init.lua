@@ -159,16 +159,19 @@ function M.setup(user_options)
 	for name in pairs(user_options) do
 		if defaults[name] == nil then error(string.format("parhelion has no option named %s", name), 2) end
 	end
+
 	vim.validate("transparent", user_options.transparent, "boolean", true)
 	vim.validate("dim_inactive", user_options.dim_inactive, "boolean", true)
 	vim.validate("bold", user_options.bold, "boolean", true)
 	vim.validate("italic", user_options.italic, "boolean", true)
+
 	vim.validate("overrides", user_options.overrides, { "table", "function" }, true)
 	if type(user_options.overrides) == "table" then
 		for name, override in pairs(user_options.overrides) do
 			vim.validate("overrides." .. name, override, "table")
 		end
 	end
+
 	vim.validate("plugins", user_options.plugins, "table", true)
 	for plugin, on in pairs(user_options.plugins or {}) do
 		if plugins[plugin] == nil then
