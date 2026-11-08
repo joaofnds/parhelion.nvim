@@ -1768,6 +1768,43 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
+-- The JIT is off while counting, because compiled code calls no hook, so a warm reload would count almost nothing.
+local lua_a_reload_runs_per_instruction_of_its_floor = [[
+	local function instructions(work)
+		local count = 0
+		if jit then
+			jit.off()
+			jit.flush()
+		end
+		debug.sethook(function() count = count + 1 end, "", 1)
+		work()
+		debug.sethook()
+		if jit then jit.on() end
+
+		return count
+	end
+
+	local groups = require("parhelion").built(vim.o.background).groups
+	local reload = instructions(function() require("parhelion").load() end)
+	local floor = instructions(function()
+		for name, hl in pairs(groups) do
+			vim.api.nvim_set_hl(0, name, hl)
+		end
+	end)
+
+	return reload / floor
+]]
+
+for _, path in ipairs { paths[1], paths[2] } do
+	test("a reload with the default options runs little more Lua than writing its groups, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local ratio = world:lua(lua_a_reload_runs_per_instruction_of_its_floor)
+
+			assert(ratio < 1.25, string.format("a reload runs %.2f times the Lua of writing its groups", ratio))
+		end)
+	end)
+end
+
 local modules_a_theme_file_requires = [[
 	local theme_file = ...
 	package.preload["feline.providers.lsp"] = function() return {} end
