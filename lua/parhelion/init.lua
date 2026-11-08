@@ -234,9 +234,8 @@ function M.setup(user_options)
 	end
 
 	vim.validate("plugins", user_options.plugins, "table", true)
-	local plugins = require "parhelion.plugins"
 	for plugin, on in pairs(user_options.plugins or {}) do
-		if plugins[plugin] == nil then
+		if require("parhelion.plugins")[plugin] == nil then
 			error(string.format("parhelion sets no groups for a plugin named %s", plugin), 2)
 		end
 		vim.validate("plugins." .. plugin, on, "boolean")

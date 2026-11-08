@@ -134,6 +134,8 @@ are the same on every machine:
 
 - `a load with the default options requires no module but parhelion` and `a load with the <option> option requires
   nothing that builds the groups` fail when a load builds the groups again, which takes 2.6 to 2.8 times the floor.
+- `setup with the defaults written out requires no module but parhelion` fails when a `setup` call that turns no plugin
+  off reads the plugin list, which takes 0.3 to 0.5 ms here the first time, against about 2.4 ms for a load.
 - `a reload with the default options copies no groups` fails when a reload through `:colorscheme parhelion`, the path
   a user takes, allocates more than 32 KB of Lua memory. It allocates about 6 KB, and a table that only holds every
   group takes about 100 KB.

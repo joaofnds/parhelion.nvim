@@ -1923,6 +1923,13 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
+local modules_of_parhelion_loaded = [[
+	local names = vim.tbl_filter(function(name) return name:find "^parhelion" end, vim.tbl_keys(package.loaded))
+	table.sort(names)
+
+	return names
+]]
+
 for _, path in ipairs(paths) do
 	test("a load sets no global, " .. path.label, function()
 		in_world("parhelion", path, function(world)
@@ -1942,13 +1949,27 @@ for _, path in ipairs(paths) do
 		in_world("parhelion", path, function(world)
 			toggle_when_path_requires_it(world, "parhelion", path)
 
-			local required = world:lua [[
-				local names = vim.tbl_filter(function(name) return name:find "^parhelion" end, vim.tbl_keys(package.loaded))
-				table.sort(names)
+			local required = world:lua(modules_of_parhelion_loaded)
+			assert(vim.deep_equal(required, { "parhelion" }), vim.inspect(required))
+		end)
+	end)
 
-				return names
+	test("setup with the defaults written out requires no module but parhelion, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			toggle_when_path_requires_it(world, "parhelion", path)
+
+			world:lua [[
+				require("parhelion").setup {
+					transparent = false,
+					dim_inactive = false,
+					bold = true,
+					italic = true,
+					overrides = {},
+					plugins = {},
+				}
 			]]
 
+			local required = world:lua(modules_of_parhelion_loaded)
 			assert(vim.deep_equal(required, { "parhelion" }), vim.inspect(required))
 		end)
 	end)
