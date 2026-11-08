@@ -35,10 +35,10 @@ local gutter = { LineNr = true, LineNrAbove = true, LineNrBelow = true, SignColu
 
 local function is_a_sign(name) return name:find "Signs?%u" ~= nil or name:find "Sign$" ~= nil end
 
-local function is_turned_off(name)
+local function is_turned_off(name, plugins)
 	for plugin, on in pairs(options.plugins) do
 		if not on then
-			for _, pattern in ipairs(require("parhelion.plugins")[plugin]) do
+			for _, pattern in ipairs(plugins[plugin]) do
 				if name:find(pattern) then return true end
 			end
 		end
@@ -48,9 +48,9 @@ local function is_turned_off(name)
 end
 
 local function without_plugins_turned_off(groups)
-	local kept = {}
+	local plugins, kept = require "parhelion.plugins", {}
 	for name, hl in pairs(groups) do
-		if not is_turned_off(name) then kept[name] = hl end
+		if not is_turned_off(name, plugins) then kept[name] = hl end
 	end
 
 	return kept
