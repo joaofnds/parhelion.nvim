@@ -42,10 +42,10 @@ Plugin support below for how they are checked.
 | `lua/parhelion/refinement.lua` | The tones parhelion changes from the base tables, and the repaired groups |
 | `lua/parhelion/chrome.lua` | How plugin interfaces use color: the scale of steps, the toned accents, the roles, each plugin's family, and the links |
 | `lua/parhelion/base/{dark,light}.lua` | The base tables |
-| `lua/lualine/themes/parhelion.lua` | The lualine theme, from the colors in the built tables and their `StatusLine` text |
+| `lua/lualine/themes/parhelion.lua` | The lualine theme, from the colors in the built tables and their `StatusLine` text. It began as solarized.nvim's |
 | `lua/barbecue/theme/parhelion.lua`, `lua/parhelion/bufferline.lua` | The theme files those plugins load. Barbecue's draws from the colors in the built tables, and bufferline's leaves the tab bar to `chrome.lua`'s groups |
 | `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the colors and the constant hue in the built tables |
-| `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries |
+| `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries, which began as solarized.nvim's |
 | `tests/parhelion/` | The test suite |
 | `.github/workflows/parhelion.yml` | Runs the suite and the format check in CI |
 | `doc/parhelion.txt` | The `:help` page |

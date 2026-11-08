@@ -159,7 +159,8 @@ Highlight groups ship for these plugins:
 ## Thanks
 
 Parhelion's base tables, which give each highlight group its Solarized color before parhelion changes any, began as
-the output of Max Miliano's [solarized.nvim](https://github.com/maxmx03/solarized.nvim). Thank you, Max.
+the output of Max Miliano's [solarized.nvim](https://github.com/maxmx03/solarized.nvim), and its extra queries and
+its lualine theme began as solarized.nvim's own. Thank you, Max.
 
 ## License
 
