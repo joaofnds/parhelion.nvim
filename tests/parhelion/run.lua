@@ -2161,6 +2161,15 @@ local bold_in_theme_files = [[
 	return bold
 ]]
 
+local resolved_fills = [[
+	local fills = {}
+	for name in pairs(vim.api.nvim_get_hl(0, {})) do
+		fills[name] = vim.api.nvim_get_hl(0, { name = name, link = false }).bg or "none"
+	end
+
+	return fills
+]]
+
 local function other_background(background) return background == "dark" and "light" or "dark" end
 
 local function with_options(path, setup_code, body)
@@ -2224,6 +2233,21 @@ for _, path in ipairs { paths[1], paths[2] } do
 			local inactive = world:lua(resolved_look, "NormalNC")
 
 			assert(inactive.bg == dimmed[path.background], "inactive windows are " .. tostring(inactive.bg))
+		end)
+	end)
+
+	test("the dim_inactive option changes the surface of inactive windows only, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local before = world:lua(resolved_fills)
+
+			world:lua [[require("parhelion").setup { dim_inactive = true }]]
+
+			local changed = {}
+			for name, fill in pairs(world:lua(resolved_fills)) do
+				if fill ~= before[name] then table.insert(changed, name) end
+			end
+			table.sort(changed)
+			assert(vim.deep_equal(changed, { "NormalNC" }), "the option changes " .. table.concat(changed, " "))
 		end)
 	end)
 
