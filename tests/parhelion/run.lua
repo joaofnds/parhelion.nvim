@@ -2203,6 +2203,16 @@ for _, background in ipairs { "dark", "light" } do
 
 		expect_none(unpinned, "roles without a pin")
 	end)
+
+	test("every selected bufferline group sets its own background in " .. background, function()
+		local on_the_fill = {}
+		for name, hl in pairs(require("parhelion.chrome").family_groups(background, "bufferline")) do
+			if name:find "Selected$" and hl.bg == nil then table.insert(on_the_fill, name) end
+		end
+		table.sort(on_the_fill)
+
+		expect_none(on_the_fill, "selected groups draw on the fill")
+	end)
 end
 
 test("no plugin family restyles what the buffer owns", function()
