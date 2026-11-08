@@ -103,6 +103,9 @@ overrides ~
 <
     An override that sets `link`, or one for a group parhelion links or does
     not set, replaces the group. Overrides apply after every other option.
+    An override Neovim refuses, such as a color it cannot read, raises an
+    error when parhelion loads, and the colors on screen stay as they were.
+    When `setup` raises that error, the earlier options stay in force.
 
     A function is called on every load with the colors of the active mode,
     so one override works in dark and in light: >lua

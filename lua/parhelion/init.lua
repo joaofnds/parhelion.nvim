@@ -96,15 +96,28 @@ local function colors(background)
 	return vim.tbl_extend("error", { background = background }, chrome.scale[background], chrome.hues[background])
 end
 
+local scratch = vim.api.nvim_create_namespace "parhelion.overrides"
+
+-- Neovim refuses a bad attribute only when a group is set, so each override is set first in a namespace no window
+-- draws with, before the load clears the active colorscheme.
+local function refuse_what_neovim_refuses(name, hl)
+	local accepted, message = pcall(vim.api.nvim_set_hl, scratch, name, hl)
+	if not accepted then error(string.format("parhelion cannot set overrides.%s: %s", name, message), 0) end
+end
+
 local function overridden(background, groups)
 	local overrides = options.overrides
-	if type(overrides) == "function" then overrides = overrides(colors(background)) end
+	if type(overrides) == "function" then
+		overrides = overrides(colors(background))
+		vim.validate("the result of overrides", overrides, "table")
+	end
 
 	local result, spelling = vim.deepcopy(groups), {}
 	for name in pairs(result) do
 		spelling[name:lower()] = name
 	end
 	for name, override in pairs(overrides) do
+		vim.validate("overrides." .. name, override, "table")
 		name = spelling[name:lower()] or name
 		local current = result[name]
 		if override.link or current == nil or current.link then
@@ -112,6 +125,7 @@ local function overridden(background, groups)
 		else
 			result[name] = vim.tbl_extend("force", current, override)
 		end
+		refuse_what_neovim_refuses(name, result[name])
 	end
 
 	return result
@@ -137,6 +151,11 @@ function M.setup(user_options)
 	vim.validate("bold", user_options.bold, "boolean", true)
 	vim.validate("italic", user_options.italic, "boolean", true)
 	vim.validate("overrides", user_options.overrides, { "table", "function" }, true)
+	if type(user_options.overrides) == "table" then
+		for name, override in pairs(user_options.overrides) do
+			vim.validate("overrides." .. name, override, "table")
+		end
+	end
 	vim.validate("plugins", user_options.plugins, "table", true)
 	for plugin, on in pairs(user_options.plugins or {}) do
 		if plugins[plugin] == nil then
@@ -145,8 +164,15 @@ function M.setup(user_options)
 		vim.validate("plugins." .. plugin, on, "boolean")
 	end
 
+	local previous = options
 	options = vim.tbl_extend("force", defaults, user_options)
-	if vim.g.colors_name == "parhelion" then vim.cmd.colorscheme "parhelion" end
+	if vim.g.colors_name ~= "parhelion" then return end
+
+	local reloaded, message = pcall(vim.cmd.colorscheme, "parhelion")
+	if not reloaded then
+		options = previous
+		error(message, 2)
+	end
 end
 
 function M.load()

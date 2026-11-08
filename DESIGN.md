@@ -76,6 +76,8 @@ start in light.
 `setup` stores the options for every later load and reloads parhelion when it is the active colorscheme. A load applies
 them to the built groups in this order: it drops the groups of each plugin turned off, then applies `transparent`,
 `dim_inactive`, `bold` and `italic`, and then the overrides, so an override can set what an earlier option removed.
+Each override is first set in a namespace no window draws with, so one Neovim refuses raises before step 3 clears the
+active colorscheme, and a `setup` whose reload raises puts the earlier options back.
 `:help parhelion-options` says what each one means to a user. The option tests at the end of `tests/parhelion/run.lua`
 check each one when started in dark and in light, and that they hold across a toggle and a reload.
 

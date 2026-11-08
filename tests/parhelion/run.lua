@@ -2325,6 +2325,40 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
+	test("setup refuses an override that is not a table of attributes, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local refused, message = unpack(world:lua [[
+				return { pcall(require("parhelion").setup, { overrides = { Keyword = "Comment" } }) }
+			]])
+
+			assert(not refused, "it took the override")
+			assert(tostring(message):find("overrides.Keyword", 1, true), tostring(message))
+		end)
+	end)
+
+	for _, case in ipairs {
+		{ name = "an override function that returns no table", overrides = "function() end", names = "overrides" },
+		{ name = "an override Neovim refuses", overrides = [[{ Normal = { fg = "notacolor" } }]], names = "Normal" },
+	} do
+		test(string.format("%s keeps the colors and options as they were, %s", case.name, path.label), function()
+			in_world("parhelion", path, function(world)
+				local before = world:lua [[return vim.api.nvim_get_hl(0, {})]]
+
+				local refused, message, after, reloaded = unpack(world:lua([[
+					local refused, message = pcall(require("parhelion").setup, { overrides = ]] .. case.overrides .. [[ })
+					local after = vim.api.nvim_get_hl(0, {})
+
+					return { refused, message, after, pcall(vim.cmd.colorscheme, "parhelion") }
+				]]))
+
+				assert(not refused, "it took the override")
+				assert(tostring(message):find(case.names, 1, true), tostring(message))
+				assert(vim.deep_equal(before, after), "the colors changed")
+				assert(reloaded, "the next load fails too")
+			end)
+		end)
+	end
+
 	test("setup refuses an option of the wrong type, " .. path.label, function()
 		in_world("parhelion", path, function(world)
 			local refused, message =
