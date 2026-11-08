@@ -1,7 +1,3 @@
-local chrome = require "parhelion.chrome"
-local plugins = require "parhelion.plugins"
-local refinement = require "parhelion.refinement"
-
 local M = {}
 
 local defaults = {
@@ -39,24 +35,10 @@ local gutter = { LineNr = true, LineNrAbove = true, LineNrBelow = true, SignColu
 
 local function is_a_sign(name) return name:find "Signs?%u" ~= nil or name:find "Sign$" ~= nil end
 
--- Neovim's group names ignore case, so a later layer replaces an earlier group whatever case either spells it in.
-local function layered(layers)
-	local groups, spelling = {}, {}
-	for _, layer in ipairs(layers) do
-		for name, hl in pairs(layer) do
-			local key = name:lower()
-			if spelling[key] then groups[spelling[key]] = nil end
-			groups[name], spelling[key] = hl, name
-		end
-	end
-
-	return groups
-end
-
 local function is_turned_off(name)
 	for plugin, on in pairs(options.plugins) do
 		if not on then
-			for _, pattern in ipairs(plugins[plugin]) do
+			for _, pattern in ipairs(require("parhelion.plugins")[plugin]) do
 				if name:find(pattern) then return true end
 			end
 		end
@@ -74,8 +56,8 @@ local function without_plugins_turned_off(groups)
 	return kept
 end
 
-local function without_backgrounds(background, groups)
-	local page, gutter_fill = chrome.scale[background].page, groups.LineNr.bg:lower()
+local function without_backgrounds(built, groups)
+	local page, gutter_fill = built.colors.page, groups.LineNr.bg:lower()
 	local cleared = {}
 	for name, hl in pairs(groups) do
 		local fill = hl.bg and hl.bg:lower()
@@ -92,11 +74,8 @@ local function without_style(style, groups)
 	return vim.tbl_map(function(hl) return vim.tbl_extend("force", hl, { [style] = false }) end, groups)
 end
 
-local function colors(background)
-	local named =
-		vim.tbl_extend("error", { background = background }, chrome.scale[background], chrome.hues[background])
-
-	return setmetatable(named, {
+local function colors(built)
+	return setmetatable(vim.deepcopy(built.colors), {
 		__index = function(_, name) error(string.format("parhelion has no color named %s", name), 2) end,
 	})
 end
@@ -110,10 +89,10 @@ local function refuse_what_neovim_refuses(name, hl)
 	if not accepted then error(string.format("parhelion cannot set overrides.%s: %s", name, message), 0) end
 end
 
-local function overridden(background, groups)
+local function overridden(built, groups)
 	local overrides = options.overrides
 	if type(overrides) == "function" then
-		overrides = overrides(colors(background))
+		overrides = overrides(colors(built))
 		vim.validate("the result of overrides", overrides, "table")
 	end
 
@@ -136,14 +115,14 @@ local function overridden(background, groups)
 	return result
 end
 
-local function with_options(background, groups)
-	groups = without_plugins_turned_off(groups)
-	if options.transparent then groups = without_backgrounds(background, groups) end
-	if options.dim_inactive then groups.NormalNC = { bg = chrome.dimmed[background] } end
+local function with_options(built)
+	local groups = without_plugins_turned_off(built.groups)
+	if options.transparent then groups = without_backgrounds(built, groups) end
+	if options.dim_inactive then groups.NormalNC = { bg = built.dimmed } end
 	if not options.bold then groups = without_style("bold", groups) end
 	if not options.italic then groups = without_style("italic", groups) end
 
-	return overridden(background, groups)
+	return overridden(built, groups)
 end
 
 local function set_fzf_colors()
@@ -173,6 +152,7 @@ function M.setup(user_options)
 	end
 
 	vim.validate("plugins", user_options.plugins, "table", true)
+	local plugins = require "parhelion.plugins"
 	for plugin, on in pairs(user_options.plugins or {}) do
 		if plugins[plugin] == nil then
 			error(string.format("parhelion sets no groups for a plugin named %s", plugin), 2)
@@ -193,25 +173,26 @@ end
 
 function M.draws_bold() return options.bold end
 
+local built_directory = debug.getinfo(1, "S").source:match "^@(.*[/\\])" .. "built/"
+local built_tables = {}
+
+local function built_table(background)
+	built_tables[background] = built_tables[background] or assert(loadfile(built_directory .. background .. ".lua"))()
+
+	return built_tables[background]
+end
+
 function M.load()
-	local background = vim.o.background
-	local base = require("parhelion.base." .. background)
-	local groups = with_options(
-		background,
-		layered {
-			vim.tbl_map(function(hl) return refinement.highlight(background, hl) end, base.groups),
-			refinement.repaired_groups(background, base.groups),
-			chrome.groups(background),
-		}
-	)
+	local built = built_table(vim.o.background)
+	local groups = with_options(built)
 
 	if vim.g.colors_name then vim.cmd "hi clear" end
 	vim.cmd "syntax reset"
 	vim.g.colors_name = "parhelion"
 	set_fzf_colors()
 
-	for index, color in ipairs(base.terminal) do
-		vim.g["terminal_color_" .. (index - 1)] = refinement.color(background, color)
+	for index, color in ipairs(built.terminal) do
+		vim.g["terminal_color_" .. (index - 1)] = color
 	end
 
 	for name, hl in pairs(groups) do

@@ -1730,6 +1730,21 @@ for _, path in ipairs(paths) do
 			expect_none(added, "globals appeared")
 		end)
 	end)
+
+	test("a load requires nothing that builds the groups, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			toggle_when_path_requires_it(world, "parhelion", path)
+
+			local required = world:lua [[
+				local names = vim.tbl_filter(function(name) return name:find "^parhelion" end, vim.tbl_keys(package.loaded))
+				table.sort(names)
+
+				return names
+			]]
+
+			assert(vim.deep_equal(required, { "parhelion" }), vim.inspect(required))
+		end)
+	end)
 end
 
 for _, table_name in ipairs { "scale", "hues", "label_hues" } do
@@ -1770,23 +1785,22 @@ for _, case in ipairs {
 	end)
 end
 
-test("a load that fails keeps the active colorscheme and raises its error", function()
-	in_world("parhelion", paths[1], function(world)
-		local before = world:lua [[return vim.api.nvim_get_hl(0, { name = "Normal" }).fg]]
+for _, background in ipairs { "dark", "light" } do
+	test("the built tables are what the sources build, in " .. background, function()
+		local shipped = dofile(root .. "/lua/parhelion/built/" .. background .. ".lua")
+		local built = require("parhelion.build").built(background)
 
-		local ok, message, name, after = unpack(world:lua [[
-			require("parhelion.chrome").families.with_a_typo = { no_such_role = "TypoGroup" }
-
-			local ok, message = pcall(require("parhelion").load)
-
-			return { ok, message, vim.g.colors_name, vim.api.nvim_get_hl(0, { name = "Normal" }).fg }
-		]])
-
-		assert(ok == false, "the load succeeded")
-		assert(message:find("the with_a_typo family names no_such_role, which is not a look", 1, true), message)
-		assert(name == "parhelion" and after == before, vim.inspect { name, before, after })
+		local stale = {}
+		for _, part in ipairs { "colors", "dimmed", "terminal" } do
+			if not vim.deep_equal(shipped[part], built[part]) then table.insert(stale, part) end
+		end
+		for name in pairs(vim.tbl_extend("force", {}, shipped.groups, built.groups)) do
+			if not vim.deep_equal(shipped.groups[name], built.groups[name]) then table.insert(stale, name) end
+		end
+		table.sort(stale)
+		expect_none(stale, "parts of the built tables are stale, so run " .. require("parhelion.build").command)
 	end)
-end)
+end
 
 for _, background in ipairs { "dark", "light" } do
 	for _, family_name in ipairs {

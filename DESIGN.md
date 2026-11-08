@@ -23,6 +23,9 @@ Plugin support below for how they are checked.
   value for that mode.
 - A **repaired group** is one `refinement.repaired_groups` sets directly, because no tone can reach it.
 - A **plugin-only group** is one parhelion sets and the base tables do not.
+- The **built tables** are `lua/parhelion/built/{dark,light}.lua`: every group, terminal color and color an override
+  function gets, written ahead of time from the base tables, `refinement.lua` and `chrome.lua`. A load reads one and
+  builds nothing.
 
 ## Layout
 
@@ -30,6 +33,8 @@ Plugin support below for how they are checked.
 | --- | --- |
 | `colors/parhelion.lua` | Colorscheme entry point |
 | `lua/parhelion/init.lua` | The load sequence below, and `setup` |
+| `lua/parhelion/build.lua` | Builds the groups from the base tables, `refinement.lua` and `chrome.lua`, and writes the built tables |
+| `lua/parhelion/built/{dark,light}.lua` | The built tables, which `build.lua` writes |
 | `lua/parhelion/plugins.lua` | Each supported plugin's name and the patterns its group names match, for the `plugins` option |
 | `lua/parhelion/refinement.lua` | The tones parhelion changes from the base tables, and the repaired groups |
 | `lua/parhelion/chrome.lua` | How plugin interfaces use color: the scale of steps, the toned accents, the roles, each plugin's family, and the links |
@@ -54,11 +59,8 @@ to the capture it stands for, here `@function`. Neovim falls a capture back alon
 
 `require("parhelion").load()` runs these steps:
 
-1. Builds the groups in three layers: the base tables' groups, toned, then the repaired groups, then `chrome.groups`,
-   every family's groups and then the links. A later layer replaces a group an earlier one set, whatever case either
-   spells its name in, so a plugin family wins over the base tables. A test keeps a repaired group from also being
-   named in `chrome.groups`. A failure here, such as a family naming a role `chrome.lua` lacks, raises its error and
-   leaves the active colorscheme untouched.
+1. Reads the built table for the mode, once per Neovim session, with `loadfile` and the table's path, since a
+   `require` would search the runtimepath first.
 2. Applies the options, as Options below says.
 3. `hi clear` when a colorscheme is already active, then `syntax reset`.
 4. Sets `colors_name`, the 16 terminal colors, and `g:fzf_colors` unless the user has set it, which makes fzf-lua and
@@ -66,6 +68,22 @@ to the capture it stands for, here `@function`. Neovim falls a capture back alon
    selection row on a light page.
 5. Sets every group with `nvim_set_hl`, which replaces a whole group. The repaired groups and the families also stop
    Neogit deriving its own dimmed versions, because Neogit leaves a group alone once it has attributes.
+
+`lua/parhelion/build.lua` builds the groups in three layers: the base tables' groups, toned, then the repaired groups,
+then `chrome.groups`, every family's groups and then the links. A later layer replaces a group an earlier one set,
+whatever case either spells its name in, so a plugin family wins over the base tables. A test keeps a repaired group
+from also being named in `chrome.groups`. A failure there, such as a family naming a role `chrome.lua` lacks, raises
+when the built tables are written, so it never reaches a load. Groups with the same look share one table in the built
+tables, which makes them faster to read, so nothing may change a group's table in place.
+
+After a change to the base tables, `refinement.lua` or `chrome.lua`, write the built tables again from the repository's
+root:
+
+```sh
+nvim --headless --clean --cmd "set rtp^=." -c "lua require('parhelion.build').write()" -c "qa!"
+```
+
+The `the built tables are what the sources build` tests fail, naming each stale group, until they are written.
 
 A load depends on its path. `hi clear` leaves previously linked groups listed but empty, so after toggling from dark to
 light `@keyword.type` exists and has no attributes. This is why a dark to light toggle reports more groups than a fresh
@@ -156,8 +174,8 @@ The roles are the looks `chrome.lua` builds in `looks`, and a new one goes there
 the label hues. The accent roles, such as `violet`, `orange`, `cyan` and `magenta`, are off the scale, so a group under
 one fails the off-scale check unless its family uses label hues or its name is in `outside_the_theme_reach`.
 
-A family naming a role that does not exist fails the load with the family's name and keeps the active colorscheme, and
-so do a link naming a group a family sets and a read of a scale step or hue `chrome.lua` lacks. The
+A family naming a role that does not exist raises with the family's name when the built tables are written, and so do
+a link naming a group a family sets and a read of a scale step or hue `chrome.lua` lacks. The
 `every plugin group holds one role` test fails when a group sits under two roles. The
 `no plugin family restyles what the buffer owns` test fails when a family names a treesitter capture, a diagnostic or
 LSP group, a group from a Vim syntax file, a plugin group that draws inside the buffer such as `GitSignsChange` or
@@ -221,8 +239,8 @@ Every comparison runs on all four load paths. The checks on query files run once
   treesitter capture, which would break capture fallback.
 - Plugin-only groups listed in `tests/parhelion/roles.lua` take the color of their nearest equivalent, which catches a
   group given the wrong role. The list is a sample, so a role it leaves out goes unchecked.
-- A load sets no Lua global. It raises and keeps the active colorscheme when a family names a role `chrome.lua` lacks,
-  and `chrome.groups` raises when a link names a group a family sets.
+- A load sets no Lua global and requires nothing that builds the groups, and the built tables are what the sources
+  build. `chrome.groups` raises when a family names a role `chrome.lua` lacks or a link names a group a family sets.
 - Parhelion sets no flash, mason or which-key group outside `chrome.lua`. Plugins that draw only from core groups,
   such as grug-far, oil, trouble and undotree, are held by their views.
 - Neogit status, Neogit commit view, Neogit commit popup, diffview, and 16 sample files render the same text, fg, bg, sp
