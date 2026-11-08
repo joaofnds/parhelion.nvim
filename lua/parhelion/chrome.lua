@@ -894,7 +894,7 @@ M.families = {
 		selected_row = "IlluminatedWordRead IlluminatedWordText IlluminatedWordWrite",
 	},
 	mini_cursorword = {
-		selected_row = "MiniCursorword",
+		selected_strong = "MiniCursorword",
 	},
 	yanky = {
 		selected_strong = "YankyPut YankyYanked",

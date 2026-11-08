@@ -767,7 +767,6 @@ for _, path in ipairs(paths) do
 			"IlluminatedWordText",
 			"IlluminatedWordRead",
 			"IlluminatedWordWrite",
-			"MiniCursorword",
 			"DiagnosticUnderlineError",
 			"DiagnosticUnderlineWarn",
 			"DiagnosticUnderlineInfo",

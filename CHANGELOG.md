@@ -15,8 +15,8 @@ The changes a user can see. Parhelion has no releases yet, so they all sit under
 
 ### Fixed
 
-- A selection, a reference to the symbol under the cursor, an underlined diagnostic and mini.cursorword's highlight keep
-  the code's colors instead of painting over them.
+- A selection, a reference to the symbol under the cursor and an underlined diagnostic keep the code's colors instead of
+  painting over them.
 - A misspelling has a red undercurl instead of a strikethrough, and the other spelling marks have violet, yellow and
   cyan undercurls.
 - The current quickfix entry stands out from the others.
