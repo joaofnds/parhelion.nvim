@@ -2390,7 +2390,10 @@ for _, mode in ipairs { "dark", "light" } do
 				test(
 					theme_test,
 					function()
-						expect_none(theme_colors.drawn_outside(shot, legibility.is_icon), "drawn colors are strangers")
+						expect_none(
+							theme_colors.drawn_outside(shot, legibility.draws_its_own_color),
+							"drawn colors are strangers"
+						)
 					end
 				)
 

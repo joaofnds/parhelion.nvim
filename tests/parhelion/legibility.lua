@@ -75,7 +75,7 @@ M.tiers = {
 	},
 }
 
-local separators = { "▎", "│", "\u{E0B0}", "\u{E0B2}" }
+local separators = { "▎", "│", "\u{E0B0}", "\u{E0B2}", "\u{E0BA}", "\u{E0BC}", "\u{E0BE}" }
 
 function M.is_separator(text) return vim.list_contains(separators, text) end
 
@@ -83,6 +83,8 @@ function M.is_icon(text)
 	local codepoint = vim.fn.char2nr(text)
 	return (codepoint >= 0xE000 and codepoint <= 0xF8FF) or codepoint >= 0xF0000
 end
+
+function M.draws_its_own_color(text) return M.is_icon(text) and not M.is_separator(text) end
 
 function M.is_line_art_or_icon(text)
 	local codepoint = vim.fn.char2nr(text)
