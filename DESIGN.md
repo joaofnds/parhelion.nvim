@@ -43,7 +43,7 @@ Plugin support below for how they are checked.
 | `lua/parhelion/chrome.lua` | How plugin interfaces use color: the scale of steps, the toned accents, the roles, each plugin's family, and the links |
 | `lua/parhelion/base/{dark,light}.lua` | The base tables |
 | `lua/lualine/themes/parhelion.lua` | The lualine theme, from the colors in the built tables and their `StatusLine` text. It began as solarized.nvim's |
-| `lua/barbecue/theme/parhelion.lua`, `lua/parhelion/bufferline.lua` | The theme files those plugins load. Barbecue's draws from the colors in the built tables, and bufferline's leaves the tab bar to `chrome.lua`'s groups |
+| `lua/barbecue/theme/parhelion.lua`, `lua/parhelion/bufferline.lua` | The theme files those plugins load. Barbecue's draws from the colors in the built tables, and bufferline's returns no highlights, so the groups bufferline's options name come from `chrome.lua` |
 | `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the colors, mode hues and groups in the built tables |
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries, which began as solarized.nvim's |
 | `tests/parhelion/` | The test suite |
@@ -252,8 +252,8 @@ Lualine, barbecue, bufferline, feline and reactive load a theme file of their ow
 says how to point each at parhelion's. Lualine runs its theme file again on every `ColorScheme` event, so it follows a
 toggle. Barbecue's, feline's and reactive's files read the mode when first required, so after a toggle they keep the
 earlier mode's colors until Neovim restarts. Bufferline's returns no highlights, because `chrome.lua` sets every
-group bufferline's `highlights` option names. Bufferline still builds the groups for its icons and for the items of its
-`groups` option from the backgrounds it computes.
+group bufferline's `highlights` option names. Bufferline still builds the groups for its icons, for the items of its
+`groups` option and for its custom areas from the backgrounds it computes.
 
 The lualine, barbecue, feline and reactive files read their colors from the built table for the mode, through
 `require("parhelion").built`, which hands out the table a load uses. Nothing stops a caller changing that table, and a

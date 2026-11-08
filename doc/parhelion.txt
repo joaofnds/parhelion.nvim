@@ -45,13 +45,14 @@ With lazy.nvim: >lua
 To change an option, call |parhelion.setup()| before `colorscheme`, in your
 |init.lua| or in lazy.nvim's `config`.
 
-Parhelion sets `g:fzf_colors` unless it is already set, so fzf-lua and fzf's
-own Vim plugin draw their pickers from parhelion's groups. Turning `fzf` off
-in |parhelion-plugins-option| removes the value parhelion set, at parhelion's
-next load, so fzf draws its own colors inside both pickers. A value you set
-yourself stays as it is. The exception is a value equal to parhelion's, set
-after parhelion set the variable and before it removed it, which parhelion
-takes for its own and removes.
+Parhelion sets `g:fzf_colors` unless it is already set or `fzf` is off in
+|parhelion-plugins-option|, so fzf-lua and fzf's own Vim plugin draw their
+pickers from parhelion's groups. Turning `fzf` off removes the value parhelion
+set, at parhelion's next load, so fzf draws its own colors inside both
+pickers. A value you set yourself stays as it is. The exception is a value
+equal to parhelion's, set after parhelion set the variable and before
+parhelion next loads with `fzf` off, which parhelion takes for its own and
+removes.
 
 ==============================================================================
 3. OPTIONS                                                 *parhelion-options*
@@ -197,9 +198,11 @@ look with it:
 - nvim-cmp: `cmp.config.window.bordered()` draws a selected row with the
   selection's fill, and on Neovim 0.11 and later it draws no border unless
   'winborder' is set or `border = "rounded"` is passed.
-- bufferline.nvim: with `show_buffer_icons` on, bufferline draws the icons
-  of background tabs, and in light those of visible tabs, on shades of its
-  own that parhelion does not use. Turning it off avoids this.
+- bufferline.nvim: with `show_buffer_icons` on, bufferline draws the icons of
+  background tabs, and in light those of visible tabs, on shades of its own
+  that parhelion does not use. Turning it off avoids this. The items of its
+  `groups` option, and the text of its `custom_areas` that sets no `bg`, draw
+  on such shades too.
 - alpha-nvim: the stock dashboard draws its header with `Type`, so it is
   orange. `dashboard.section.header.opts.hl` takes another group.
 - neo-tree.nvim: `name = { use_git_status_colors = false }` keeps a changed
@@ -220,11 +223,12 @@ barbecue.nvim ~
     `theme = "parhelion"`.
 
 bufferline.nvim ~
-    Nothing to set. `highlights = require("parhelion.bufferline").get_theme()`
-    also works and returns no highlights, because parhelion already sets
-    every group bufferline's `highlights` option names. Bufferline still
-    colors the groups it makes for its icons and for the items of its
-    `groups` option.
+    Nothing to set while bufferline's `themable` stays on, its default.
+    `highlights = require("parhelion.bufferline").get_theme()` also works and
+    returns no highlights, because parhelion already sets every group
+    bufferline's `highlights` option names. Bufferline still colors the groups
+    it makes for its icons, for the items of its `groups` option and for its
+    `custom_areas`.
 
 feline.nvim ~
     `components = require("parhelion.feline").get_statusline()` in feline's

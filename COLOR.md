@@ -491,7 +491,9 @@ Departs:
     read at Lc 7.5 to 14. In section c they read clearly, and the suite tests that layout.
   - Bufferline computes its tab backgrounds from `Normal`. With `show_buffer_icons` on it draws a background tab's icon
     on a shade the scale does not hold, `#ded8c7` in light and `#002028` in dark, and in light a visible tab's icon on
-    `#e8e2d0`. Turning it off avoids this.
+    `#e8e2d0`. Turning it off avoids this. The items of its `groups` option draw on those same shades, and their
+    separators, and custom area text that sets no `bg`, on the fill bufferline computes, `#cac4b5` in light and
+    `#00171d` in dark.
   - alpha's stock dashboard paints its header with `Type`, and lspsaga's hover paints its rule with `Type`
     (`lspsaga/hover.lua:146`), so both come out orange. Changing `Type` would change code syntax. alpha's
     `dashboard.section.header.opts.hl` takes another group.

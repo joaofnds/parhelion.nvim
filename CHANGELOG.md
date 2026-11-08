@@ -39,12 +39,12 @@ The changes a user can see, newest release first. A change not yet released goes
   in parhelion's colors instead of in shades bufferline derives, such as a near black edge on the slant. The selected
   tab draws its indicator, and the name and count of a buffer with an error, on the page instead of on the tab bar's
   fill.
-- With `fzf` turned off, a `g:fzf_colors` the user set to a copy of parhelion's before parhelion loaded stays set, and
-  parhelion still removes its own value after a plugin manager reloads parhelion's modules.
+- With `fzf` turned off, a `g:fzf_colors` the user sets to a copy of parhelion's stays set, unless parhelion set the
+  variable itself and has not loaded with `fzf` off since.
 - `setup` refuses, with parhelion's own message, an override keyed by a number, an override with a color or attribute
-  Neovim does not know, and a group name with a character Neovim does not accept. These used to pass `setup` and raise
-  at the next `:colorscheme parhelion`. An overrides function whose table has such a key raises the same message when
-  parhelion loads.
+  Neovim does not know, and a group name with a character Neovim does not accept. These used to pass `setup` while
+  another colorscheme was loaded, and raise at the next `:colorscheme parhelion`. An overrides function whose table has
+  such a key raises the same message when parhelion loads.
 
 ## 1.0.0 - 2026-11-08
 
