@@ -42,7 +42,8 @@ With lazy.nvim: >lua
         end,
     }
 <
-To change an option, call |parhelion.setup()| in `config`.
+To change an option, call |parhelion.setup()| before `colorscheme`, in your
+|init.lua| or in lazy.nvim's `config`.
 
 Parhelion sets `g:fzf_colors` unless it is already set, so fzf-lua and fzf's
 own Vim plugin draw their pickers from parhelion's groups. Turning `fzf` off

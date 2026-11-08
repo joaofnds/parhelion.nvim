@@ -45,7 +45,8 @@ Setting `background` later switches modes.
 
 ## Options
 
-To change an option, call `setup` in `config`. It takes these, shown with their defaults:
+To change an option, call `setup` before `colorscheme`, in `init.lua` or in lazy.nvim's `config`. It takes these,
+shown with their defaults:
 
 ```lua
 require("parhelion").setup {
