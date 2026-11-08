@@ -93,7 +93,12 @@ local function without_style(style, groups)
 end
 
 local function colors(background)
-	return vim.tbl_extend("error", { background = background }, chrome.scale[background], chrome.hues[background])
+	local named =
+		vim.tbl_extend("error", { background = background }, chrome.scale[background], chrome.hues[background])
+
+	return setmetatable(named, {
+		__index = function(_, name) error(string.format("parhelion has no color named %s", name), 2) end,
+	})
 end
 
 local scratch = vim.api.nvim_create_namespace "parhelion.overrides"

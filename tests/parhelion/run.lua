@@ -2363,6 +2363,11 @@ for _, path in ipairs { paths[1], paths[2] } do
 	for _, case in ipairs {
 		{ name = "an override function that returns no table", overrides = "function() end", names = "overrides" },
 		{ name = "an override Neovim refuses", overrides = [[{ Normal = { fg = "notacolor" } }]], names = "Normal" },
+		{
+			name = "an override function that reads a color parhelion lacks",
+			overrides = "function(colors) return { Normal = { fg = colors.purple } } end",
+			names = "purple",
+		},
 	} do
 		test(string.format("%s keeps the colors and options as they were, %s", case.name, path.label), function()
 			in_world("parhelion", path, function(world)
@@ -2476,6 +2481,41 @@ test("the help page names every plugin that can be turned off", function()
 
 	assert(vim.deep_equal(named, names), "the help names " .. table.concat(named, " "))
 end)
+
+local colors_in_the_help, in_the_table = {}, false
+for line in io.lines(root .. "/doc/parhelion.txt") do
+	if line:find "The table it gets holds:" then in_the_table = true end
+	if in_the_table and line == "" then break end
+	if in_the_table then
+		for name in line:gmatch "`([%w_]+)`" do
+			table.insert(colors_in_the_help, name)
+		end
+	end
+end
+table.sort(colors_in_the_help)
+
+local colors_an_override_gets = [[
+	local names = {}
+	require("parhelion").setup {
+		overrides = function(colors)
+			names = vim.tbl_keys(colors)
+			return {}
+		end,
+	}
+	table.sort(names)
+
+	return names
+]]
+
+for _, path in ipairs { paths[1], paths[2] } do
+	test("the help page names every color an override function gets, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local given = world:lua(colors_an_override_gets)
+
+			assert(vim.deep_equal(colors_in_the_help, given), "the function gets " .. table.concat(given, " "))
+		end)
+	end)
+end
 
 local turned_off = [[require("parhelion").setup { plugins = { ["telescope.nvim"] = false } }]]
 

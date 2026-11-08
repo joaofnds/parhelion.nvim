@@ -121,12 +121,16 @@ overrides ~
     - `background`: `"dark"` or `"light"`.
     - The surfaces: `page`, `float`, `raised`, `selected` and `backdrop`.
     - The text steps: `hairline`, `ghost`, `quiet`, `body` and `strong`.
-    - The signals: `accent`, `error`, `warn`, `ok` and `added`.
+    - The interface's accent: `accent`.
+    - The signals: `error`, `warn`, `ok` and `added`.
     - The diff fills: `added_wash`, `changed_wash`, `removed_wash`,
-      `added_word_wash`, `changed_word_wash`, `removed_word_wash`,
-      `match_wash`, `staged_added`, `staged_changed` and `staged_removed`.
-    - The accents: `yellow`, `orange`, `red`, `magenta`, `violet`, `blue`,
-      `cyan` and `green`.
+      `added_word_wash`, `changed_word_wash` and `removed_word_wash`.
+    - The search fill: `match_wash`.
+    - The staged git signs: `staged_added`, `staged_changed` and
+      `staged_removed`.
+    - The hues: `yellow`, `orange`, `red`, `magenta`, `violet`, `blue`, `cyan`
+      and `green`.
+    Reading a name not in this list raises an error.
 
                                                      *parhelion-plugins-option*
 plugins ~
