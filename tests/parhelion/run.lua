@@ -2171,10 +2171,20 @@ for _, path in ipairs { paths[1], paths[2] } do
 
 	test("the transparent option keeps the surfaces above the page, " .. path.label, function()
 		with_options(path, transparent, function(world)
-			local cursor_line, float = world:lua(resolved_look, "CursorLine"), world:lua(resolved_look, "NormalFloat")
+			local surfaces = {
+				CursorLine = scale.raised,
+				NormalFloat = scale.float,
+				Pmenu = scale.raised,
+				BlinkCmpSignatureHelp = scale.raised,
+				SnacksDiffContextLineNr = scale.raised,
+			}
+			local cleared = {}
+			for name, surface in pairs(surfaces) do
+				if world:lua(resolved_look, name).bg ~= surface then table.insert(cleared, name) end
+			end
+			table.sort(cleared)
 
-			assert(cursor_line.bg == scale.raised, "the cursor line is " .. tostring(cursor_line.bg))
-			assert(float.bg == scale.float, "the float is " .. tostring(float.bg))
+			expect_none(cleared, "groups lose their surface")
 		end)
 	end)
 

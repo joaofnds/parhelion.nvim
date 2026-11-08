@@ -37,9 +37,7 @@ local fzf_colors = {
 
 local gutter = { LineNr = true, LineNrAbove = true, LineNrBelow = true, SignColumn = true, FoldColumn = true }
 
-local function is_a_sign(name)
-	return name:find("Sign", 1, true) ~= nil or name:match "Nr$" ~= nil or name:match "Cul$" ~= nil
-end
+local function is_a_sign(name) return name:find "Signs?%u" ~= nil or name:find "Sign$" ~= nil end
 
 -- Neovim's group names ignore case, so a later layer replaces an earlier group whatever case either spells it in.
 local function layered(layers)
