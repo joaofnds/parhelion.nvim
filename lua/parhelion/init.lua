@@ -31,10 +31,6 @@ local fzf_colors = {
 	["spinner"] = { "fg", "PmenuMatch" },
 }
 
-local gutter = { LineNr = true, LineNrAbove = true, LineNrBelow = true, SignColumn = true, FoldColumn = true }
-
-local function is_a_sign(name) return name:find "Signs?%u" ~= nil or name:find "Sign$" ~= nil end
-
 -- A group as the options applied so far leave it: its attributes, false when the load sets none, or nil when parhelion
 -- does not draw it.
 local function drawn(built, changed, name)
@@ -86,13 +82,10 @@ local function turn_off_plugins(built, changed)
 end
 
 local function clear_backgrounds(built, changed)
-	local page, gutter_fill = built.colors.page, built.groups.LineNr.bg:lower()
-	each_drawn_group(built, changed, function(name, hl)
-		local fill = hl.bg and hl.bg:lower()
-		if fill and (fill == page or gutter[name] or (fill == gutter_fill and is_a_sign(name))) then
-			changed[name] = with(hl, "bg", "NONE")
-		end
-	end)
+	for _, name in ipairs(built.transparent_clears) do
+		local hl = drawn(built, changed, name)
+		if hl then changed[name] = with(hl, "bg", "NONE") end
+	end
 end
 
 local function remove_style(style, built, changed)

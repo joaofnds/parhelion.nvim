@@ -25,8 +25,9 @@ Plugin support below for how they are checked.
 - A **repaired group** is one `refinement.repaired_groups` sets directly, because no tone can reach it.
 - A **plugin-only group** is one parhelion sets and the base tables do not.
 - The **built tables** are `lua/parhelion/built/{dark,light}.lua`: every group and terminal color, the named colors an
-  override function and the theme files read, the hue the theme files give each mode and the fill `dim_inactive` gives,
-  written ahead of time from the base tables, `refinement.lua` and `chrome.lua`. A load reads one and builds nothing.
+  override function and the theme files read, the hue the theme files give each mode, the fill `dim_inactive` gives and
+  the groups `transparent` clears, written ahead of time from the base tables, `refinement.lua` and `chrome.lua`. A load
+  reads one and builds nothing.
 
 ## Layout
 

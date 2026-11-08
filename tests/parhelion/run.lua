@@ -2131,8 +2131,8 @@ for _, background in ipairs { "dark", "light" } do
 		local built = require("parhelion.build").build(background)
 
 		local stale = {}
-		for _, part in ipairs { "colors", "dimmed", "mode_hues", "terminal" } do
-			if not vim.deep_equal(shipped[part], built[part]) then table.insert(stale, part) end
+		for part in pairs(vim.tbl_extend("force", {}, shipped, built)) do
+			if part ~= "groups" and not vim.deep_equal(shipped[part], built[part]) then table.insert(stale, part) end
 		end
 		for name in pairs(vim.tbl_extend("force", {}, shipped.groups, built.groups)) do
 			if not vim.deep_equal(shipped.groups[name], built.groups[name]) then table.insert(stale, name) end

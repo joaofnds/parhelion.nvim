@@ -17,8 +17,30 @@ local function layered(layers)
 	return groups
 end
 
+local gutter = { LineNr = true, LineNrAbove = true, LineNrBelow = true, SignColumn = true, FoldColumn = true }
+
+local function is_a_sign(name) return name:find "Signs?%u" ~= nil or name:find "Sign$" ~= nil end
+
+local function cleared_by_transparent(groups, page)
+	local gutter_fill, names = groups.LineNr.bg:lower(), {}
+	for name, hl in pairs(groups) do
+		local fill = hl.bg and hl.bg:lower()
+		if fill and (fill == page or gutter[name] or (fill == gutter_fill and is_a_sign(name))) then
+			table.insert(names, name)
+		end
+	end
+	table.sort(names)
+
+	return names
+end
+
 function M.build(background)
 	local base = require("parhelion.base." .. background)
+	local groups = layered {
+		vim.tbl_map(function(hl) return refinement.highlight(background, hl) end, base.groups),
+		refinement.repaired_groups(background, base.groups),
+		chrome.groups(background),
+	}
 
 	return {
 		colors = vim.tbl_extend(
@@ -29,12 +51,9 @@ function M.build(background)
 		),
 		mode_hues = vim.tbl_map(function(hue) return chrome.hues[background][hue] end, chrome.mode_hues),
 		dimmed = chrome.dimmed[background],
+		transparent_clears = cleared_by_transparent(groups, chrome.scale[background].page),
 		terminal = vim.tbl_map(function(color) return refinement.color(background, color) end, base.terminal),
-		groups = layered {
-			vim.tbl_map(function(hl) return refinement.highlight(background, hl) end, base.groups),
-			refinement.repaired_groups(background, base.groups),
-			chrome.groups(background),
-		},
+		groups = groups,
 	}
 end
 
@@ -100,6 +119,12 @@ local function source(built)
 	table.insert(lines, "\tmode_hues = {")
 	for _, mode in ipairs(sorted_keys(built.mode_hues)) do
 		table.insert(lines, string.format("\t\t%s = %s,", mode, literal(built.mode_hues[mode])))
+	end
+	table.insert(lines, "\t},")
+
+	table.insert(lines, "\ttransparent_clears = {")
+	for _, name in ipairs(built.transparent_clears) do
+		table.insert(lines, string.format("\t\t%q,", name))
 	end
 	table.insert(lines, "\t},")
 
