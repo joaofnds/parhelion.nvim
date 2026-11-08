@@ -40,8 +40,10 @@ With lazy.nvim: >lua
 <
 The `setup` call is needed only to change an option.
 
-Parhelion sets |g:fzf_colors| unless it is already set, so fzf-lua and fzf's
-own Vim plugin draw their pickers from parhelion's groups.
+Parhelion sets `g:fzf_colors` unless it is already set, so fzf-lua and fzf's
+own Vim plugin draw their pickers from parhelion's groups. Turning `fzf` off
+in |parhelion-plugins-option| leaves it unset, so fzf draws its own colors
+inside both pickers, and a value you set yourself stays as it is.
 
 ==============================================================================
 3. OPTIONS                                                 *parhelion-options*

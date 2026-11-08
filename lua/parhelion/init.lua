@@ -146,6 +146,14 @@ local function with_options(background, groups)
 	return overridden(background, groups)
 end
 
+local function set_fzf_colors()
+	if options.plugins.fzf == false then
+		if vim.deep_equal(vim.g.fzf_colors, fzf_colors) then vim.g.fzf_colors = nil end
+	elseif vim.g.fzf_colors == nil then
+		vim.g.fzf_colors = fzf_colors
+	end
+end
+
 function M.setup(user_options)
 	user_options = user_options or {}
 	for name in pairs(user_options) do
@@ -197,7 +205,7 @@ function M.load()
 	if vim.g.colors_name then vim.cmd "hi clear" end
 	vim.cmd "syntax reset"
 	vim.g.colors_name = "parhelion"
-	if vim.g.fzf_colors == nil then vim.g.fzf_colors = fzf_colors end
+	set_fzf_colors()
 
 	for index, color in ipairs(base.terminal) do
 		vim.g["terminal_color_" .. (index - 1)] = refinement.color(background, color)
