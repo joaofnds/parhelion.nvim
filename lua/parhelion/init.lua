@@ -137,15 +137,15 @@ local function with_options(built)
 	return overridden(built, groups)
 end
 
-local parhelion_set_fzf_colors = false
-
 local function set_fzf_colors()
 	if options.plugins.fzf == false then
-		if parhelion_set_fzf_colors and vim.deep_equal(vim.g.fzf_colors, fzf_colors) then vim.g.fzf_colors = nil end
-		parhelion_set_fzf_colors = false
+		if vim.g.parhelion_set_fzf_colors and vim.deep_equal(vim.g.fzf_colors, fzf_colors) then
+			vim.g.fzf_colors = nil
+		end
+		vim.g.parhelion_set_fzf_colors = nil
 	elseif vim.g.fzf_colors == nil then
 		vim.g.fzf_colors = fzf_colors
-		parhelion_set_fzf_colors = true
+		vim.g.parhelion_set_fzf_colors = true
 	end
 end
 
