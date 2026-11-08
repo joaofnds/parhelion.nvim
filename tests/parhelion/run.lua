@@ -1747,6 +1747,27 @@ for _, path in ipairs(paths) do
 	end)
 end
 
+local kilobytes_a_reload_allocates = [[
+	collectgarbage "collect"
+	collectgarbage "stop"
+	local before = collectgarbage "count"
+	require("parhelion").load()
+	local allocated = collectgarbage "count" - before
+	collectgarbage "restart"
+
+	return allocated
+]]
+
+for _, path in ipairs { paths[1], paths[2] } do
+	test("a reload with the default options copies no groups, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local allocated = world:lua(kilobytes_a_reload_allocates)
+
+			assert(allocated < 32, string.format("a reload allocates %.0f KB of Lua memory", allocated))
+		end)
+	end)
+end
+
 for _, table_name in ipairs { "scale", "hues", "label_hues" } do
 	test(string.format("reading a color the %s lacks raises", table_name), function()
 		local colors = require("parhelion.chrome")[table_name].dark
@@ -2420,6 +2441,32 @@ for _, path in ipairs { paths[1], paths[2] } do
 			expect_none(missing, "options are lost")
 		end)
 	end)
+
+	for option, setup_code in pairs {
+		transparent = [[require("parhelion").setup { transparent = true }]],
+		dim_inactive = [[require("parhelion").setup { dim_inactive = true }]],
+		bold = [[require("parhelion").setup { bold = false }]],
+		italic = [[require("parhelion").setup { italic = false }]],
+		overrides = [[require("parhelion").setup { overrides = { Keyword = { fg = "#ff0000" } } }]],
+		plugins = [[require("parhelion").setup { plugins = { ["telescope.nvim"] = false } }]],
+	} do
+		test(string.format("setup with no options undoes the %s option, %s", option, path.label), function()
+			in_world("parhelion", path, function(world)
+				local before = world:lua [[return vim.api.nvim_get_hl(0, {})]]
+
+				world:lua(setup_code)
+				world:lua [[require("parhelion").setup()]]
+
+				local after = world:lua [[return vim.api.nvim_get_hl(0, {})]]
+				local kept = {}
+				for name in pairs(vim.tbl_extend("force", {}, before, after)) do
+					if not vim.deep_equal(before[name], after[name]) then table.insert(kept, name) end
+				end
+				table.sort(kept)
+				expect_none(kept, "groups keep the option")
+			end)
+		end)
+	end
 
 	test("setup refuses an option it does not know, " .. path.label, function()
 		in_world("parhelion", path, function(world)

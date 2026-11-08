@@ -96,9 +96,11 @@ local function overridden(built, groups)
 		vim.validate("the result of overrides", overrides, "table")
 	end
 
-	local result, spelling = vim.deepcopy(groups), {}
-	for name in pairs(result) do
-		spelling[name:lower()] = name
+	if next(overrides) == nil then return groups end
+
+	local result, spelling = {}, {}
+	for name, hl in pairs(groups) do
+		result[name], spelling[name:lower()] = hl, name
 	end
 	for name, override in pairs(overrides) do
 		vim.validate("overrides." .. name, override, "table")
@@ -115,10 +117,13 @@ local function overridden(built, groups)
 	return result
 end
 
+local function turns_a_plugin_off() return vim.tbl_contains(vim.tbl_values(options.plugins), false) end
+
 local function with_options(built)
-	local groups = without_plugins_turned_off(built.groups)
+	local groups = built.groups
+	if turns_a_plugin_off() then groups = without_plugins_turned_off(groups) end
 	if options.transparent then groups = without_backgrounds(built, groups) end
-	if options.dim_inactive then groups.NormalNC = { bg = built.dimmed } end
+	if options.dim_inactive then groups = vim.tbl_extend("force", groups, { NormalNC = { bg = built.dimmed } }) end
 	if not options.bold then groups = without_style("bold", groups) end
 	if not options.italic then groups = without_style("italic", groups) end
 
