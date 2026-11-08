@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Shoots the README's screenshots into the directory it is given: the editor and a diff, each in dark and light.
 # Neovim runs in a sandbox with its own config, data and state directories, so it never reads the user's own, and takes
-# its plugins from the test suite's pinned dependencies. agent-browser renders each screen at twice its size.
+# its plugins from the test suite's pinned dependencies. agent-browser renders each screen at twice its size, and oxipng
+# compresses each image without changing a pixel.
 set -euo pipefail
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 root=$(cd "$here/../.." && pwd)
@@ -24,5 +25,6 @@ for page in "$sandbox"/pages/*.html; do
   agent-browser --session "$session" open "file://$page" >/dev/null
   agent-browser --session "$session" eval "document.fonts.ready.then(() => true)" >/dev/null
   agent-browser --session "$session" screenshot "#screen" "$out/$name.png" >/dev/null
+  oxipng --quiet --opt max --strip safe "$out/$name.png"
   echo "$out/$name.png"
 done
