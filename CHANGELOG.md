@@ -1,8 +1,8 @@
 # Changelog
 
-The changes a user can see. Parhelion has no releases yet, so they all sit under Unreleased.
+The changes a user can see, newest release first. A change not yet released goes under an Unreleased heading.
 
-## Unreleased
+## 1.0.0 - 2026-11-08
 
 ### Added
 
