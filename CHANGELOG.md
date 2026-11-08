@@ -19,8 +19,6 @@ The changes a user can see. Parhelion has no releases yet, so they all sit under
   an Apple M5 Pro a first load takes about 1.65 ms instead of 4.4 ms, or 1.3 ms instead of 3.9 ms with `vim.loader`.
 - The lualine, barbecue, feline and reactive theme files take about half the time they did when a plugin requires one
   before parhelion loads.
-- Added and removed lines and words in a diff are tinted a clear green and red instead of olive and a muted or orange
-  red, in diff windows, Neogit, gitsigns, mini.diff, Snacks and Octo, in both modes.
 
 ### Fixed
 
@@ -40,3 +38,6 @@ The changes a user can see. Parhelion has no releases yet, so they all sit under
 - Code stays readable on reactive.nvim's cursorline fills in light mode.
 - snacks.nvim's GitHub views draw their states in the theme's colors, so merged, closed and draft items are readable
   in dark mode.
+- Added and removed lines in a diff are a clear green and red instead of olive and a muted or orange red, in diff
+  windows, Neogit, gitsigns, Snacks, Octo and mini.diff's deleted lines, in both modes. So are the changed words inside
+  them in diff windows, Neogit and gitsigns.

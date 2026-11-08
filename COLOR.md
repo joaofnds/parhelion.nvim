@@ -234,9 +234,9 @@ The rules, in both modes:
    green or red. Hints share the accent, as the base tables' diagnostics do. A label may reuse these hues without the
    meaning, which is how a Neogit tag is yellow, a remote green, and markdown's headings run through the base tables'
    colors.
-5. A changed word sits on a word wash, a stronger tint of its row's green, blue or red, and takes strong
-   text. Solid fills are for jump labels, which are a character wide, window picker labels, which fill a status line,
-   and the current search match, which is one match at a time. Severity sits on an icon or a bar and the text stays
+5. A changed word sits on a word wash, a stronger tint of its row's green, blue or red, and takes strong text. Solid
+   fills are for jump labels, which are a character wide, window picker labels, which fill a status line, and the
+   current search match, which is one match at a time. Severity sits on an icon or a bar and the text stays
    neutral.
 6. A selected row is a neutral step with brighter text, and a focused Neogit hunk header keeps its accent there. That
    borrows the idea of the specification's highlighted pair `base02:base1` and not its values, since dark body is
@@ -330,7 +330,7 @@ selection keeps the base tables' fill, `#2c4e56` in dark and the pink `#f8e2d9` 
 the base tables also set body text in dark and bold magenta in light. On those fills the accents read at 2.70:1 to
 3.25:1 in dark and 3.47:1 to 4.23:1 in light, body at 3.37:1 and 4.32:1, and comments at 2.41:1 and 3.03:1. A search
 match takes strong text on a warm fill, toned yellow blended over the light page and toned orange over the dark page,
-since yellow over the dark page turns the olive of an added line. The text reads at 5.18:1 in dark and 5.64:1 in light,
+since yellow over the dark page turns olive. The text reads at 5.18:1 in dark and 5.64:1 in light,
 where the base tables draw a dark match as a bold selection. The current match is page text on solid yellow and bold, at
 5.42:1 and 4.01:1, so it stands out from the others, and `CurSearch` and `Substitute` follow it. Inside a selection
 Neovim draws the selection's fill under a match and keeps the match's text color, so the match still shows in strong
@@ -395,19 +395,27 @@ on a context row.
 | Removed word | `#853e3e` | 1.97:1 | `#f9c3c0` | 1.43:1 |
 
 The changed word wash is a blend of Solarized's blue over the page, 50% in dark and 46% in light. The added and removed
-washes are not blends of Solarized's green and red. That green sits at a perceptual hue of 119, a yellow green, and a
-wash near it reads as olive rather than as an added line. So the added washes sit at a perceptual hue of 152 to 160,
-the removed washes at 5 to 23, and the gutter's signs, `Added` and `Removed` keep Solarized's green and red. A word's
-hue can sit away from its row's: light's changed word by 28.2 degrees, dark's removed word by 17.1, the added words by
-8.4 and 8.5, and the others under 3.
+washes are not blends of Solarized's green and red, because those blends take the wrong hue at the strength a wash
+needs. Green over the cream page stays a yellow green at a perceptual hue of 101 to 113 at every strength, and green
+over the dark page turns the same way at a word's strength, 130 to 135 at 40% to 50%, so it reads as olive rather than
+as an added line. Red over the cream page leans orange at a row's strength, 63 to 38 at 8% to 25%. Red over the dark
+page passes through blue, violet and magenta up to 25%, and at 30% it is a muted red at a chroma of 0.033, under the
+page's 0.049. So the added washes sit at a perceptual hue of 152 to 160 and the removed washes at 5 to 23, and the
+gutter's added and removed signs and the `Added` and `Removed` groups keep Solarized's green and red. The checks accept
+an added wash at 145 to 170 and a removed one at -10 to 30, with more chroma than the page. Those ranges are a
+judgment, wide enough to hold each wash here and narrow enough to shut out the olive and orange those blends make. A
+word's hue can sit away from its row's: light's changed word by 28.2 degrees, dark's removed word by 17.1, the added
+words by 8.4 and 8.5, and the others under 3.
 
 Four measures place the three row washes. A comment clears the floor on each, at Lc 30.2 or more in dark, where the base
 tables' dark `#0b4764`, which their `NeogitDiffAddHighlight` uses, leaves it at Lc 25.9. Body text reaches 4.5:1 on
 each, which the base tables' light `#f9e2d1`, from `NeogitDiffDeleteHighlight`, misses at 4.31:1. Each sits at a color
 difference of at least 6 from the raised step, so a tinted row does not read as the cursor line, which the base tables'
-light `#f1eccc`, from `NeogitDiffAddHighlight`, misses at 4.6. And each stays under the chroma the color checks read as
-color, so the tint is felt more than seen. Their contrast with the page sits together, 1.17:1 to 1.22:1 in dark and
-1.10:1 to 1.11:1 in light, so no kind of line outweighs another.
+light `#f1eccc`, from `NeogitDiffAddHighlight`, misses at 4.6. And each stays under the chroma of 0.07 that the color
+checks read as color. Four rows sit at a limit: dark's added row at the comment floor, Lc 30.2, light's added row at
+the body floor, 4.51:1, dark's changed row at the chroma ceiling, 0.069, and light's removed row at the edge of the
+theme's colors, 3.95 of the 4 that check allows. Their contrast with the page sits together, 1.17:1 to 1.22:1 in
+dark and 1.10:1 to 1.11:1 in light, so the three kinds of line differ in hue and not in lightness.
 
 Every plugin group takes a role in a family or follows a link. A group named for a color, such as `OctoGreen`, takes
 that accent, toned, and rainbow delimiters and git graph branches keep their hues.
@@ -460,9 +468,9 @@ Departs:
   selected at 4.17 and 3.89, the accent on selected at 3.94 and 3.12, quiet on raised at 3.48 and 3.27, and quiet on
   float at 4.21 and 3.61. Quiet text is counts, paths and kinds that the row around it already explains. Raising these
   pairs means less separation between the steps, which is what the hierarchy is made of.
-- On the washes, in dark and then light, quiet text reads at 3.37 to 3.40 and 3.37 to 3.38, comments at 3.37 to 3.40 and
-  3.17 to 3.18, and the accent and signals at 3.78 to 4.58 and 3.63 to 3.90. Dark inlay hints fall under the floor
-  there, at Lc 27.7 to 28.1, as they do on the cursor line at Lc 28.4, and no tested view draws that case.
+- On the washes, in dark and then light, quiet text reads at 3.29 to 3.44 and 3.35 to 3.37, comments at 3.29 to 3.44 and
+  3.16 to 3.17, and the accent and signals at 3.69 to 4.65 and 3.61 to 3.89. Dark inlay hints fall under the floor
+  there, at Lc 27.4 to 28.3, as they do on the cursor line at Lc 28.4, and no tested view draws that case.
 - Red-green colorblind vision is worse served in one respect. Simulated at full severity, the accent pairs closer than a
   difference of 5 go from 3 in the specification to 6 in each mode under deuteranopia, and from 1 to 2 in dark and 1 in
   light under protanopia. Green and orange go from 5.8 to 2.6 in dark and 2.2 in light. Diffs pair green with red, the
@@ -494,7 +502,7 @@ Departs:
   - Neogit draws a commit's age with `Special` and a commit view's file count with `Number`. Both are code groups, so
     the age is violet in both modes.
   - Diffview derives `DiffviewDiffAddAsDelete` from `DiffDelete` when `enhanced_diff_hl` is on, so the old side of an
-    added block draws in quiet gray at Lc 30.9 with its syntax gone.
+    added block draws in quiet gray at Lc 31.0 with its syntax gone.
   - `LineNr`, `SignColumn` and `DiagnosticSign*` keep the base tables' raised gutter, so a float that turns on line
     numbers or draws a sign shows a short raised strip.
   - `Visual` keeps the base tables' fill, which is gray in dark and pink in light, so a selection changes hue between
@@ -532,8 +540,8 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   Changing a tone, a repair, a step or a role means changing this table on purpose.
 - On each wash a comment clears Lc 30, body text reaches 4.5:1, and the raised step sits at least 5 away. `DiffChange`
   holds its wash, and Neogit's cursor rows and focused header differ from the rows around them.
-- Each added wash sits at a perceptual hue of 145 to 170 and each removed wash at -10 to 30, in both modes, so an added
-  line reads green and not olive, and a removed line red and not orange.
+- Each added wash sits at a perceptual hue of 145 to 170 and each removed wash at -10 to 30, in both modes, with more
+  chroma than the page, so an added line reads green and not olive, and a removed line red and not orange or gray.
 - A changed word in a diff window, in Neogit, in gitsigns or in mini.diff differs from its row by a color difference of
   at least 10, and its text holds 4.5:1 on it. Neogit's status and commit views draw the added and removed word washes,
   and Diffview the changed one, in cells on the screen, on every load path.
@@ -572,7 +580,8 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
 - Every color those views draw, and every group each view leaves defined, sits within 4 units of straight line CIELAB
   distance of a mix of two theme colors, because plugins derive shades by mixing and a color a
   plugin hard codes lands further out. It is a straight line distance because each color is compared against every mix.
-  The 4 is fitted just above the furthest color the views draw today, bufferline's computed `#002028` at 3.62.
+  The 4 sits just above the furthest colors the views hold: light's removed wash `#fee6e4` at 3.95, its added and
+  removed word washes at 3.84 and 3.81, and bufferline's computed `#002028` at 3.62.
   Bufferline's near black `#00171d` fill counts as one more color and does not mix, since mixing it with orange reaches
   every dark gray. Some strangers pass, such as `#888888` at 1.71, and the next check is what catches a hue among them.
   `tests/parhelion/theme_colors.lua` names the groups the theme cannot reach: barbar's fallback target groups, which are

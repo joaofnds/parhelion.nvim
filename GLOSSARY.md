@@ -63,5 +63,5 @@ buffers.
 **Wash**: a faint tint that fills a row and sets no text color, so code keeps its syntax. A diff's washes are green for
 added rows, blue for changed rows and red for removed rows.
 
-**Word wash**: a stronger blend of a wash's hue over the page that marks the words that changed inside a row. It carries
-strong text.
+**Word wash**: a stronger tint of its row's color that marks the words that changed inside a row. It carries strong
+text.
