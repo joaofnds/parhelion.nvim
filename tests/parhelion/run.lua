@@ -13,6 +13,7 @@ local deps = assert(vim.env.PARHELION_DEPS, "PARHELION_DEPS is required")
 vim.env.POPULAR_HERE = root .. "/tests/parhelion/popular"
 local samples = root .. "/tests/parhelion/samples"
 local fixture = vim.fn.tempname()
+local homes = vim.fn.tempname()
 assert(vim.system({ root .. "/tests/parhelion/fixture.sh", fixture }):wait().code == 0)
 
 local snapshot_code = table.concat(vim.fn.readfile(root .. "/tests/parhelion/snapshot.lua"), "\n")
@@ -68,8 +69,7 @@ local function test(name, body)
 end
 
 local function start_world(theme, path, plugins, options)
-	local xdg = deps .. "/xdg"
-	local world = xdg .. "/" .. theme
+	local world = homes .. "/" .. theme
 	local installed = options == nil or options.installed
 	return Nvim.spawn {
 		args = { "-u", root .. "/tests/parhelion/init.lua", "-i", "NONE", "-n" },
@@ -83,7 +83,7 @@ local function start_world(theme, path, plugins, options)
 			PARHELION_FIRST = path.first,
 			PARHELION_PLUGINS = plugins and "1" or "0",
 			PARHELION_INSTALLED = installed and "1" or "0",
-			XDG_DATA_HOME = xdg .. "/data",
+			XDG_DATA_HOME = deps .. "/xdg/data",
 			XDG_CONFIG_HOME = world .. "/config",
 			XDG_STATE_HOME = world .. "/state",
 			XDG_CACHE_HOME = world .. "/cache",
@@ -2303,7 +2303,7 @@ local popular_views = popular.list
 local shots_directory = vim.env.PARHELION_SHOTS
 
 local function start_popular(view, mode)
-	local state = deps .. "/xdg/popular/" .. view.name .. "-" .. mode
+	local state = homes .. "/popular/" .. view.name .. "-" .. mode
 	vim.fn.delete(state, "rf")
 	assert(vim.system({ root .. "/tests/parhelion/fixture.sh", fixture }):wait().code == 0)
 
