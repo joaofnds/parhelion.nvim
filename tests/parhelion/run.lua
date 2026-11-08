@@ -2410,21 +2410,21 @@ for _, path in ipairs { paths[1], paths[2] } do
 
 	test("setup refuses an option it does not know, " .. path.label, function()
 		in_world("parhelion", path, function(world)
-			local refused, message =
+			local accepted, message =
 				unpack(world:lua [[return { pcall(require("parhelion").setup, { transparnet = true }) }]])
 
-			assert(not refused, "it took the option")
+			assert(not accepted, "it took the option")
 			assert(tostring(message):find("transparnet", 1, true), tostring(message))
 		end)
 	end)
 
 	test("setup refuses an override that is not a table of attributes, " .. path.label, function()
 		in_world("parhelion", path, function(world)
-			local refused, message = unpack(world:lua [[
+			local accepted, message = unpack(world:lua [[
 				return { pcall(require("parhelion").setup, { overrides = { Keyword = "Comment" } }) }
 			]])
 
-			assert(not refused, "it took the override")
+			assert(not accepted, "it took the override")
 			assert(tostring(message):find("overrides.Keyword", 1, true), tostring(message))
 		end)
 	end)
@@ -2442,14 +2442,14 @@ for _, path in ipairs { paths[1], paths[2] } do
 			in_world("parhelion", path, function(world)
 				local before = world:lua [[return vim.api.nvim_get_hl(0, {})]]
 
-				local refused, message, after, reloaded = unpack(world:lua([[
-					local refused, message = pcall(require("parhelion").setup, { overrides = ]] .. case.overrides .. [[ })
+				local accepted, message, after, reloaded = unpack(world:lua([[
+					local accepted, message = pcall(require("parhelion").setup, { overrides = ]] .. case.overrides .. [[ })
 					local after = vim.api.nvim_get_hl(0, {})
 
-					return { refused, message, after, pcall(vim.cmd.colorscheme, "parhelion") }
+					return { accepted, message, after, pcall(vim.cmd.colorscheme, "parhelion") }
 				]]))
 
-				assert(not refused, "it took the override")
+				assert(not accepted, "it took the override")
 				assert(tostring(message):find(case.names, 1, true), tostring(message))
 				assert(vim.deep_equal(before, after), "the colors changed")
 				assert(reloaded, "the next load fails too")
@@ -2459,10 +2459,10 @@ for _, path in ipairs { paths[1], paths[2] } do
 
 	test("setup refuses an option of the wrong type, " .. path.label, function()
 		in_world("parhelion", path, function(world)
-			local refused, message =
+			local accepted, message =
 				unpack(world:lua [[return { pcall(require("parhelion").setup, { transparent = "yes" }) }]])
 
-			assert(not refused, "it took the option")
+			assert(not accepted, "it took the option")
 			assert(tostring(message):find("transparent", 1, true), tostring(message))
 		end)
 	end)
@@ -2675,10 +2675,10 @@ for _, path in ipairs { paths[1], paths[2] } do
 
 	test("setup refuses a plugin it does not know, " .. path.label, function()
 		in_world("parhelion", path, function(world)
-			local refused, message =
+			local accepted, message =
 				unpack(world:lua [[return { pcall(require("parhelion").setup, { plugins = { telescope = false } }) }]])
 
-			assert(not refused, "it took the plugin")
+			assert(not accepted, "it took the plugin")
 			assert(tostring(message):find("telescope", 1, true), tostring(message))
 		end)
 	end)
