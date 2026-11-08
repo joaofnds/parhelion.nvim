@@ -1313,7 +1313,7 @@ for _, case in ipairs {
 		hl = { fg = "#708101" },
 	},
 	{ name = "a row wash on a preview", background = "dark", group = "GitSignsAddPreview", hl = { bg = "#133c29" } },
-	{ name = "a word wash on a preview", background = "light", group = "GitSignsAddInline", hl = { bg = "#a9d5bc" } },
+	{ name = "a word wash on a preview", background = "dark", group = "GitSignsAddInline", hl = { bg = "#256139" } },
 	{ name = "violet on a Neogit header", background = "dark", group = "NeogitSectionHeader", hl = { fg = "#8188dd" } },
 	{ name = "orange on a Neogit branch", background = "light", group = "NeogitBranch", hl = { fg = "#b74a00" } },
 	{ name = "magenta on a heading", background = "dark", group = "RenderMarkdownH6", hl = { fg = "#ef5299" } },
@@ -1362,10 +1362,12 @@ for _, background in ipairs { "dark", "light" } do
 
 	for wash, hues in pairs(legibility.diff_wash_hues) do
 		test(string.format("the %s reads %s in %s", wash, hues.name, background), function()
-			local hue = color.perceptual_lch(scale[wash]).hue
+			local hue = color.signed_hue(scale[wash])
+			local chroma = color.perceptual_lch(scale[wash]).chroma
+			local page_chroma = color.perceptual_lch(scale.page).chroma
 
-			local signed = hue > 180 and hue - 360 or hue
-			assert(signed >= hues.from and signed <= hues.to, string.format("hue %.0f", hue))
+			assert(hue >= hues.from and hue <= hues.to, string.format("hue %.0f", hue))
+			assert(chroma > page_chroma, string.format("chroma %.3f, the page's %.3f", chroma, page_chroma))
 		end)
 	end
 

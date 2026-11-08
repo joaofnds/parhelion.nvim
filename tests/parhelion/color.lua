@@ -115,10 +115,11 @@ function M.perceptual_lch(color)
 	}
 end
 
-function M.hue_shift(from, to)
-	local shift = (M.perceptual_lch(to).hue - M.perceptual_lch(from).hue) % 360
-	return shift > 180 and shift - 360 or shift
-end
+local function signed(degrees) return degrees > 180 and degrees - 360 or degrees end
+
+function M.signed_hue(color) return signed(M.perceptual_lch(color).hue) end
+
+function M.hue_shift(from, to) return signed((M.perceptual_lch(to).hue - M.perceptual_lch(from).hue) % 360) end
 
 local function hue_of(b, a)
 	if a == 0 and b == 0 then return 0 end
