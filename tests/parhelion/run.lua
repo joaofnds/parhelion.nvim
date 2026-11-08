@@ -878,6 +878,75 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end
 end
 
+local syntax_groups = {
+	"Added",
+	"Boolean",
+	"Changed",
+	"Character",
+	"Comment",
+	"Conditional",
+	"Constant",
+	"Debug",
+	"Define",
+	"Delimiter",
+	"Error",
+	"Exception",
+	"Float",
+	"Function",
+	"Identifier",
+	"Ignore",
+	"Include",
+	"Keyword",
+	"Label",
+	"Macro",
+	"Number",
+	"Operator",
+	"PreCondit",
+	"PreProc",
+	"Removed",
+	"Repeat",
+	"Special",
+	"SpecialChar",
+	"SpecialComment",
+	"Statement",
+	"StorageClass",
+	"String",
+	"Structure",
+	"Tag",
+	"Todo",
+	"Type",
+	"Typedef",
+	"Underlined",
+}
+
+local function hue_family(background, hex)
+	if color.perceptual_lch(hex).chroma < legibility.smallest_chroma_with_visible_hue then return "neutral" end
+
+	return nearest_hue(background, hex)
+end
+
+test("every capture and syntax group draws the same hue in dark and light", function()
+	local drawn = {}
+	for _, path in ipairs { paths[1], paths[2] } do
+		in_world("parhelion", path, function(world) drawn[path.background] = snapshot(world).groups end)
+	end
+
+	local changed = {}
+	for name, dark in pairs(drawn.dark) do
+		local light = drawn.light[name]
+		local is_syntax = vim.startswith(name, "@") or vim.list_contains(syntax_groups, name)
+		if is_syntax and dark.fg and light and light.fg then
+			local in_dark, in_light = hue_family("dark", dark.fg), hue_family("light", light.fg)
+			if in_dark ~= in_light then
+				table.insert(changed, string.format("%s is %s in dark and %s in light", name, in_dark, in_light))
+			end
+		end
+	end
+	table.sort(changed)
+
+	expect_none(changed, "groups change hue")
+end)
+
 for _, entry_point in ipairs {
 	{ name = "the reactive cursor preset", code = [[return require "reactive.presets.parhelion-cursor"]] },
 	{ name = "the feline statusline", code = feline_statusline },

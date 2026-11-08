@@ -52,7 +52,6 @@ local literal_groups = {
 	light = {
 		LineNr = { fg = "#6c7c80", bg = "#eee8d5" },
 		NonText = { fg = "#728284" },
-		RenderMarkdownH6Bg = { fg = "#6165b7", bg = "#eee8df" },
 		Whitespace = { fg = "#728284" },
 	},
 }

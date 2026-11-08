@@ -117,10 +117,8 @@ python3 tests/parhelion/popular/render.py /tmp/shots /tmp/sheets
 That writes one HTML sheet for each pair of views, with dark and light side by side. A plugin the views leave out has
 only the group check behind it, and nobody has looked at it.
 
-Comparing a sheet's two sides shows code changing hue between modes. The base tables color constants violet in dark and
-magenta in light, and types orange and yellow. Plugin interfaces use the same roles in both modes, apart from markdown
-headings, lazy.nvim's load reasons, buttons and home heading, which follow the core groups lazy.nvim links them to, and
-which-key's and mini.clue's groups, which follow the same swap.
+Comparing a sheet's two sides shows each kind of code, and each plugin label, in the same hue in both modes. A suite
+test holds that for every capture and standard syntax group.
 
 ### Adding a plugin
 

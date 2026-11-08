@@ -170,9 +170,9 @@ Light:
 | `#268bd2` | `#117fc5` | 4.4 | -4.5 | -0.1 | 58.7 / 3.41 | 64.1 / 4.00 | Functions, identifiers |
 | `#2aa198` | `#018880` | 8.7 | -9.2 | +0.2 | 53.1 / 2.93 | 64.3 / 4.03 | Strings |
 | `#859900` | `#708101` | 8.6 | -8.8 | -0.0 | 53.8 / 2.97 | 64.7 / 4.03 | Statements, added lines |
-| `#b58900` | `#997401` | 8.4 | -8.6 | +0.5 | 53.8 / 2.98 | 64.5 / 4.01 | Types, warnings |
-| `#cb4b16` | `#b74a00` | 5.5 | -3.7 | +5.3 | 65.8 / 4.27 | 70.0 / 4.88 | Includes |
-| `#6c71c4` | `#6165b7` | 4.7 | -4.7 | +0.1 | 65.0 / 4.06 | 70.3 / 4.80 | Special characters |
+| `#b58900` | `#997401` | 8.4 | -8.6 | +0.5 | 53.8 / 2.98 | 64.5 / 4.01 | Warnings, modified |
+| `#cb4b16` | `#b74a00` | 5.5 | -3.7 | +5.3 | 65.8 / 4.27 | 70.0 / 4.88 | Types |
+| `#6c71c4` | `#6165b7` | 4.7 | -4.7 | +0.1 | 65.0 / 4.06 | 70.3 / 4.80 | Constants, special characters |
 
 Orange is the only saturated hue that moves. Five degrees toward yellow, in both modes, takes its difference
 from red from 10.1 to 13.8 in dark and 14.6 in light. The specification's author made the same kind of
@@ -187,7 +187,6 @@ otherwise:
 | Neogit graph grey, Buffon unloaded buffers | As low as Lc 8.3 in dark and 22 in light | The comment color |
 | `LineNr`, `NonText`, `Whitespace`, light only | Darker than body text, so the gutter read louder than the code | Lighter than body text, `#6c7c80` on the gutter and `#728284` on the page |
 | `OkMsg`, Neogit's white graph rows, fzf.vim's status line | Fixed colors from Neovim or the plugin, such as `#b3f6c0` and white on black | The theme's success and body colors, and the status line |
-| `RenderMarkdownH6Bg`, light only | The base tables stop at level 5 | Their recipe, 10% of the color over the page, `#6165b7` on `#eee8df` |
 
 The one color above that appears in neither the base tables nor the tone tables is light's `#6c7c80`.
 
@@ -213,13 +212,13 @@ The rules, in both modes:
    being read. Neogit, Diffview, which-key, mini.clue, mason, lazy.nvim and the markdown plugins have them. Mason's
    headers and tags are filled blocks of violet, blue, green, yellow and the quiet step, and its secondary highlight is
    magenta. lazy.nvim's load reasons and buttons follow the core groups lazy.nvim links them to, such as `Constant` for
-   an event and `Statement` for keys, so they take the code's colors and change hue between modes as the code does. Its
-   home heading links to `IncSearch` and takes the current match's yellow fill. Its section titles and times take the
-   core `Bold` group, which parhelion sets to bold alone, and its dimmed text is quiet. The same kind of label can
-   differ between plugins, so a key is violet in a Neogit popup and blue in which-key. A title adds bold to its hue in
-   Neogit, Diffview and mason. Elsewhere a window's main title holds the strong step and bold, as `FloatTitle`,
-   `TelescopeTitle` and `NeoTreeRootName` do, and a secondary one is quiet. Hashes and kinds stay quiet. Counts stay
-   quiet too, apart from Neogit's section headers and Diffview's panel, where they are body.
+   an event and `Statement` for keys, so they take the code's colors. Its home heading links to `IncSearch` and takes
+   the current match's yellow fill. Its section titles and times take the core `Bold` group, which parhelion sets to
+   bold alone, and its dimmed text is quiet. The same kind of label can differ between plugins, so a key is violet in a
+   Neogit popup and blue in which-key. A title adds bold to its hue in Neogit, Diffview and mason. Elsewhere a window's
+   main title holds the strong step and bold, as `FloatTitle`, `TelescopeTitle` and `NeoTreeRootName` do, and a
+   secondary one is quiet. Hashes and kinds stay quiet. Counts stay quiet too, apart from Neogit's section headers and
+   Diffview's panel, where they are body.
 3. One interface accent, Solarized blue, marks focus and matches. In Neogit, Diffview and Trouble it also marks paths,
    folders and popup titles. Other plugins' directories and paths stay neutral.
 4. A signal color keeps one meaning everywhere: red for errors and removals, yellow for warnings, conflicts and a change
@@ -307,8 +306,7 @@ file. The exceptions are `Added`, `@diff.plus`, `GitSignsAdd`, `GitGutterAdd` an
 colors, the `GitSignsStaged` signs, the text overlays `Visual`, `Search`, `IncSearch`, `Todo`, `LspReferenceRead`,
 `LspReferenceText`, `LspReferenceWrite` and the `DiagnosticUnderline` groups, `markdownH1` to `markdownH6`, `LspKind*`,
 lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
-render-markdown's heading bands count as the base tables', so the refinement sets the one they lack, light's sixth
-level, by their recipe.
+render-markdown's heading bands count as the base tables'.
 
 One plugin family paints over code, because it is a plugin's and not code's. mini.cursorword marks each other instance
 of the word under the cursor. The base tables recolor those instances teal in dark and bold magenta on pink in light,
@@ -347,18 +345,16 @@ and the status letters yellow for a modification, a rename or a copy, red for a 
 addition or an untracked file, so a renamed file differs in hue between Neogit and Diffview. Insertions and deletions
 match those letters, the file count is body and hashes stay quiet.
 
-Which-key shows a key in blue and a group in the color the base tables give constants, violet in dark and
-magenta in light. A description is a lifted cyan, `#3fb3a9` in dark and `#007a72` in light, which read at 6.17:1 and
-4.70:1 on the float where the toned cyan reads at 4.98:1 and 3.92:1. Its separators and icons are quiet. mini.clue's
-keys, descriptions and groups take the same looks.
+Which-key shows a key in blue and a group in the color the base tables give constants, violet. A description is a lifted
+cyan, `#3fb3a9` in dark and `#007a72` in light, which read at 6.17:1 and 4.70:1 on the float where the toned cyan reads
+at 4.98:1 and 3.92:1. Its separators and icons are quiet. mini.clue's keys, descriptions and groups take the same looks.
 
 Trouble's file names and directories are blue, its messages body, and its counts, positions and icons quiet.
 
 Markdown keeps the base tables' colors, toned, so headings run through six hues, blue, violet, yellow, orange, red and
-magenta in dark and red, magenta, yellow, orange, blue and violet in light, and emphasis, inline code, links and quotes
-keep theirs. render-markdown's headings, markview's and headlines' follow the same order, and render-markdown's bullets
-and quote bars are quiet. Plain text is the body step, `#93a1a1` in dark and `#586e75` in light, where the base tables
-have `#839496` and `#657b83`.
+magenta in both modes, and emphasis, inline code, links and quotes keep theirs. render-markdown's headings, markview's
+and headlines' follow the same order, and render-markdown's bullets and quote bars are quiet. Plain text is the body
+step, `#93a1a1` in dark and `#586e75` in light, where the base tables have `#839496` and `#657b83`.
 
 Diff lines are washes and not colored text. The base tables paint added lines blue in dark and green in light, changed
 lines yellow, changed words solid teal and the filler solid red, which hides the code's syntax and makes a diff the
@@ -436,6 +432,10 @@ Departs:
   so a bright color keeps its hue, and makes white `base1` and bright black `base01`, toned like every other color.
   Black is `base02` in both modes and bright white `base3` in dark and `base2` in light, so each end sits one surface
   step from the page it would vanish into.
+- Code keeps its hue across modes, as Solarized's does, but not Solarized's hues. Constants are violet, types orange,
+  and imports, includes and macros the bold neutral of keywords, where Solarized gives `Constant` cyan, `Type` yellow
+  and `PreProc` orange. Markdown's headings run blue, violet, yellow, orange, red and magenta. Light mode takes these
+  from dark mode, so a reader who switches modes keeps the colors they know.
 
 ## What this does not do
 
@@ -470,14 +470,14 @@ Departs:
     to 27 in dark, and with `show_buffer_icons` on it draws each inactive icon on a shade the scale does not hold,
     `#ded8c7` in light and `#002028` in dark. Turning both off avoids this.
   - alpha's stock dashboard paints its header with `Type`, and lspsaga's hover paints its rule with `Type`
-    (`lspsaga/hover.lua:146`), so both come out orange in dark and yellow in light. Changing `Type` would change
-    code syntax. alpha's `dashboard.section.header.opts.hl` takes another group.
+    (`lspsaga/hover.lua:146`), so both come out orange. Changing `Type` would change code syntax. alpha's
+    `dashboard.section.header.opts.hl` takes another group.
   - neo-tree colors a changed file's name with the same group as its change symbol, and gives the stage symbol its
     own. Parhelion leaves those names colored, since a changed file is what a tree is there to show. `name = {
     use_git_status_colors = false }` in its config keeps the names neutral, as nvim-tree's are.
   - nvim-notify's default renderer draws the title rule with the border's group in a heavy glyph, and it maps
     its inactive window to `NormalNC:NONE`, so its cards have no surface of their own.
-  - fidget draws its finished mark with `Constant`, so it is violet in dark and magenta in light.
+  - fidget draws its finished mark with `Constant`, so it is violet.
   - Neogit draws a commit's age with `Special` and a commit view's file count with `Number`. Both are code groups, so
     the age is violet in both modes.
   - Diffview derives `DiffviewDiffAddAsDelete` from `DiffDelete` when `enhanced_diff_hl` is on, so the old side of an
@@ -537,6 +537,7 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   black and bright white sit at least 3 from the page, about the step between the page and the raised surface, and
   white, bright black and bright white sit at least 3 from each other.
 - Accent pairs stay at least 13 apart.
+- Every capture and standard syntax group is the same accent, or neutral, in both modes.
 - In a patch, the hunk header sits at least 13 from its added and removed lines in both modes, under Vim syntax and
   under treesitter.
 - In the gitsigns view, each staged sign reads at 2:1 or more on the gutter, below the unstaged sign of the same change
