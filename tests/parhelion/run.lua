@@ -1768,6 +1768,37 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
+local modules_a_theme_file_requires = [[
+	local theme_file = ...
+	package.preload["feline.providers.lsp"] = function() return {} end
+	require(theme_file)
+
+	local names = vim.tbl_filter(
+		function(name) return name:find "^parhelion%." ~= nil and name ~= theme_file end,
+		vim.tbl_keys(package.loaded)
+	)
+	table.sort(names)
+
+	return names
+]]
+
+for _, path in ipairs { paths[1], paths[2] } do
+	for _, theme_file in ipairs {
+		"barbecue.theme.parhelion",
+		"parhelion.feline",
+		"reactive.presets.parhelion-cursor",
+		"reactive.presets.parhelion-cursorline",
+	} do
+		test(string.format("%s requires nothing that builds the groups, %s", theme_file, path.label), function()
+			in_world("parhelion", path, function(world)
+				local required = world:lua(modules_a_theme_file_requires, theme_file)
+
+				expect_none(required, "modules required")
+			end)
+		end)
+	end
+end
+
 for _, table_name in ipairs { "scale", "hues", "label_hues" } do
 	test(string.format("reading a color the %s lacks raises", table_name), function()
 		local colors = require("parhelion.chrome")[table_name].dark
@@ -1778,6 +1809,19 @@ for _, table_name in ipairs { "scale", "hues", "label_hues" } do
 		assert(message:find("the dark " .. table_name .. " has no color named no_such_color", 1, true), message)
 	end)
 end
+
+test("reading a color the built tables lack raises", function()
+	in_world("parhelion", paths[1], function(world)
+		local ok, message = unpack(world:lua [[
+			local colors = require("parhelion").built(vim.o.background).colors
+
+			return { pcall(function() return colors.no_such_color end) }
+		]])
+
+		assert(ok == false, "the read returned " .. tostring(message))
+		assert(message:find("parhelion has no color named no_such_color", 1, true), message)
+	end)
+end)
 
 test("a family that names a role the looks lack raises", function()
 	local chrome = require "parhelion.chrome"
@@ -1812,7 +1856,7 @@ for _, background in ipairs { "dark", "light" } do
 		local built = require("parhelion.build").built(background)
 
 		local stale = {}
-		for _, part in ipairs { "colors", "dimmed", "terminal" } do
+		for _, part in ipairs { "colors", "constant", "dimmed", "terminal" } do
 			if not vim.deep_equal(shipped[part], built[part]) then table.insert(stale, part) end
 		end
 		for name in pairs(vim.tbl_extend("force", {}, shipped.groups, built.groups)) do

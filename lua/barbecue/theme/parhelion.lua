@@ -1,13 +1,13 @@
-local scale = require("parhelion.chrome").scale[vim.o.background]
+local colors = require("parhelion").built(vim.o.background).colors
 
 local theme = {
-	normal = { fg = scale.body },
-	ellipsis = { fg = scale.quiet },
-	separator = { fg = scale.quiet },
-	modified = { fg = scale.warn },
-	dirname = { fg = scale.quiet },
-	basename = { fg = scale.body, bold = require("parhelion").draws_bold() },
-	context = { fg = scale.quiet },
+	normal = { fg = colors.body },
+	ellipsis = { fg = colors.quiet },
+	separator = { fg = colors.quiet },
+	modified = { fg = colors.warn },
+	dirname = { fg = colors.quiet },
+	basename = { fg = colors.body, bold = require("parhelion").draws_bold() },
+	context = { fg = colors.quiet },
 }
 
 for _, kind in
@@ -19,7 +19,7 @@ for _, kind in
 		)
 	)
 do
-	theme["context_" .. kind] = { fg = scale.quiet }
+	theme["context_" .. kind] = { fg = colors.quiet }
 end
 
 return theme

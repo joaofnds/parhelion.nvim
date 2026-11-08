@@ -40,8 +40,8 @@ Plugin support below for how they are checked.
 | `lua/parhelion/chrome.lua` | How plugin interfaces use color: the scale of steps, the toned accents, the roles, each plugin's family, and the links |
 | `lua/parhelion/base/{dark,light}.lua` | The base tables |
 | `lua/lualine/themes/parhelion.lua` | The lualine theme, toned |
-| `lua/barbecue/theme/parhelion.lua`, `lua/parhelion/bufferline.lua` | The theme files those plugins load. Barbecue's draws from the scale in `chrome.lua`, and bufferline's leaves the tab bar to `chrome.lua`'s groups |
-| `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the scale, the accents and the constant hue in `chrome.lua` |
+| `lua/barbecue/theme/parhelion.lua`, `lua/parhelion/bufferline.lua` | The theme files those plugins load. Barbecue's draws from the scale in the built tables, and bufferline's leaves the tab bar to `chrome.lua`'s groups |
+| `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the scale, the accents and the constant hue in the built tables |
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries |
 | `tests/parhelion/` | The test suite |
 | `.github/workflows/parhelion.yml` | Runs the suite and the format check in CI |
@@ -141,8 +141,8 @@ which makes every `nvim_set_hl` many times slower.
   `outside_the_theme_reach` in `tests/parhelion/restraint.lua`, such as `OctoPurple` or `rainbowcol1`.
   [COLOR.md](COLOR.md) gives the measures under How the suite holds this. The fix is the group's name under a role or
   as a link in `lua/parhelion/chrome.lua`, or a new family.
-- The theme files barbecue, feline and reactive load draw only from `chrome.lua`, and the lualine theme tones colors of
-  its own. Reactive's cursorline preset also mixes its colors toward black in dark mode and toward white in light, so
+- The theme files barbecue, feline and reactive load draw only from the colors of `chrome.lua`, and the lualine theme
+  tones colors of its own. Reactive's cursorline preset also mixes its colors toward black in dark mode and toward white in light, so
   each fill stays on its page's side and the code drawn over it keeps its contrast.
   `tests/parhelion/approved_presets.lua` pins the colors of the lualine theme, of the feline statusline in normal mode
   and of both reactive presets.
@@ -229,6 +229,12 @@ Lualine, barbecue, bufferline, feline and reactive load a theme file of their ow
 says how to point each at parhelion's. Barbecue's, feline's and reactive's files read the mode when first required, so
 after a toggle they keep the earlier mode's colors until they are reloaded or Neovim restarts. Bufferline's returns no
 highlights, because `chrome.lua` sets every `BufferLine` group.
+
+Barbecue's, feline's and reactive's files read their colors from the built table for the mode, through
+`require("parhelion").built`, which hands out the table a load uses, so they must not change it. Reading a color the
+table lacks raises, as reading one the scale or the accents lack in `chrome.lua` does. Each loads in about
+0.1 ms, and the `<theme file> requires nothing that builds the groups` tests fail when one requires `chrome.lua`, the
+refinement or the base tables, which take 1 to 1.5 ms to load.
 
 ## The test suite
 

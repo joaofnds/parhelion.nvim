@@ -27,6 +27,7 @@ function M.built(background)
 			chrome.scale[background],
 			chrome.hues[background]
 		),
+		constant = chrome.constant_hue[background],
 		dimmed = chrome.dimmed[background],
 		terminal = vim.tbl_map(function(color) return refinement.color(background, color) end, base.terminal),
 		groups = layered {
@@ -94,6 +95,7 @@ local function source(built)
 	end
 	table.insert(lines, "\t},")
 
+	table.insert(lines, string.format("\tconstant = %s,", literal(built.constant)))
 	table.insert(lines, string.format("\tdimmed = %s,", literal(built.dimmed)))
 
 	table.insert(lines, "\tgroups = {")

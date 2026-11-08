@@ -255,6 +255,7 @@ return {
 		warn = "#997401",
 		yellow = "#997401",
 	},
+	constant = "#6165b7",
 	dimmed = "#eee8d5",
 	groups = {
 		["@attribute"] = looks[1],

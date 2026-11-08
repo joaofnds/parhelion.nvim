@@ -1,13 +1,11 @@
-local chrome = require "parhelion.chrome"
 local parhelion = require "parhelion"
 local lsp = require "feline.providers.lsp"
 
 local M = {}
 
 local background = vim.o.background
-local scale = chrome.scale[background]
-local hues = chrome.hues[background]
-local constant = chrome.constant_hue[background]
+local built = parhelion.built(background)
+local colors, constant = built.colors, built.constant
 
 local assets = {
 	left_separator = "",
@@ -31,37 +29,37 @@ local assets = {
 }
 
 local settings = {
-	text = background == "light" and scale.page or scale.float,
-	bkg = background == "light" and scale.raised or scale.float,
-	diffs = hues.green,
-	extras = scale.ghost,
-	curr_file = hues.red,
-	curr_dir = hues.blue,
+	text = background == "light" and colors.page or colors.float,
+	bkg = background == "light" and colors.raised or colors.float,
+	diffs = colors.green,
+	extras = colors.ghost,
+	curr_file = colors.red,
+	curr_dir = colors.blue,
 	show_modified = false,
 	show_lazy_updates = false,
 }
 
 local mode_colors = {
-	["n"] = { "NORMAL", hues.blue },
-	["no"] = { "N-PENDING", hues.blue },
-	["i"] = { "INSERT", hues.green },
-	["ic"] = { "INSERT", hues.green },
-	["t"] = { "TERMINAL", hues.green },
-	["v"] = { "VISUAL", hues.blue },
-	["V"] = { "V-LINE", hues.blue },
-	["\22"] = { "V-BLOCK", hues.blue },
-	["R"] = { "REPLACE", hues.red },
-	["Rv"] = { "V-REPLACE", hues.red },
-	["s"] = { "SELECT", hues.red },
-	["S"] = { "S-LINE", hues.red },
-	["\19"] = { "S-BLOCK", hues.red },
+	["n"] = { "NORMAL", colors.blue },
+	["no"] = { "N-PENDING", colors.blue },
+	["i"] = { "INSERT", colors.green },
+	["ic"] = { "INSERT", colors.green },
+	["t"] = { "TERMINAL", colors.green },
+	["v"] = { "VISUAL", colors.blue },
+	["V"] = { "V-LINE", colors.blue },
+	["\22"] = { "V-BLOCK", colors.blue },
+	["R"] = { "REPLACE", colors.red },
+	["Rv"] = { "V-REPLACE", colors.red },
+	["s"] = { "SELECT", colors.red },
+	["S"] = { "S-LINE", colors.red },
+	["\19"] = { "S-BLOCK", colors.red },
 	["c"] = { "COMMAND", constant },
 	["cv"] = { "COMMAND", constant },
 	["ce"] = { "COMMAND", constant },
-	["r"] = { "PROMPT", hues.cyan },
-	["rm"] = { "MORE", hues.cyan },
-	["r?"] = { "CONFIRM", hues.green },
-	["!"] = { "SHELL", hues.green },
+	["r"] = { "PROMPT", colors.cyan },
+	["rm"] = { "MORE", colors.cyan },
+	["r?"] = { "CONFIRM", colors.green },
+	["!"] = { "SHELL", colors.green },
 }
 
 local view = {
@@ -204,10 +202,10 @@ local function diagnostics()
 	local severity = vim.diagnostic.severity
 
 	return {
-		diagnostic_count("diagnostic_errors", severity.ERROR, hues.red, assets.lsp.error),
-		diagnostic_count("diagnostic_warnings", severity.WARN, hues.yellow, assets.lsp.warning),
-		diagnostic_count("diagnostic_info", severity.INFO, hues.blue, assets.lsp.info),
-		diagnostic_count("diagnostic_hints", severity.HINT, scale.body, assets.lsp.hint),
+		diagnostic_count("diagnostic_errors", severity.ERROR, colors.red, assets.lsp.error),
+		diagnostic_count("diagnostic_warnings", severity.WARN, colors.yellow, assets.lsp.warning),
+		diagnostic_count("diagnostic_info", severity.INFO, colors.blue, assets.lsp.info),
+		diagnostic_count("diagnostic_hints", severity.HINT, colors.body, assets.lsp.hint),
 	}
 end
 
@@ -239,7 +237,7 @@ end
 function M.get_statusline()
 	return {
 		active = { mode_and_git(), diagnostics(), branch_servers_and_place() },
-		inactive = { { { provider = file_type, hl = { fg = scale.body, bg = scale.float } } } },
+		inactive = { { { provider = file_type, hl = { fg = colors.body, bg = colors.float } } } },
 	}
 end
 

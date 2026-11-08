@@ -74,11 +74,11 @@ local function without_style(style, groups)
 	return vim.tbl_map(function(hl) return vim.tbl_extend("force", hl, { [style] = false }) end, groups)
 end
 
-local function colors(built)
-	return setmetatable(vim.deepcopy(built.colors), {
-		__index = function(_, name) error(string.format("parhelion has no color named %s", name), 2) end,
-	})
-end
+local raises_on_a_missing_color = {
+	__index = function(_, name) error(string.format("parhelion has no color named %s", name), 2) end,
+}
+
+local function colors(built) return setmetatable(vim.deepcopy(built.colors), raises_on_a_missing_color) end
 
 local scratch = vim.api.nvim_create_namespace "parhelion.overrides"
 
@@ -182,10 +182,16 @@ local built_directory = debug.getinfo(1, "S").source:match "^@(.*[/\\])" .. "bui
 local built_tables = {}
 
 local function built_table(background)
-	built_tables[background] = built_tables[background] or assert(loadfile(built_directory .. background .. ".lua"))()
+	if not built_tables[background] then
+		local built = assert(loadfile(built_directory .. background .. ".lua"))()
+		setmetatable(built.colors, raises_on_a_missing_color)
+		built_tables[background] = built
+	end
 
 	return built_tables[background]
 end
+
+function M.built(background) return built_table(background) end
 
 function M.load()
 	local built = built_table(vim.o.background)

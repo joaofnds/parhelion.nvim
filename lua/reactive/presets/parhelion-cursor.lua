@@ -1,7 +1,5 @@
-local chrome = require "parhelion.chrome"
-
-local hues = chrome.hues[vim.o.background]
-local constant = chrome.constant_hue[vim.o.background]
+local built = require("parhelion").built(vim.o.background)
+local colors, constant = built.colors, built.constant
 
 local function cursor(color) return { hl = { ReactiveCursor = { bg = color } } } end
 
@@ -9,17 +7,17 @@ return {
 	name = "parhelion-cursor",
 	init = function() vim.opt.guicursor:append "a:ReactiveCursor" end,
 	modes = {
-		n = cursor(hues.yellow),
-		i = cursor(hues.cyan),
-		R = cursor(hues.cyan),
+		n = cursor(colors.yellow),
+		i = cursor(colors.cyan),
+		R = cursor(colors.cyan),
 		no = {
 			operators = {
-				d = cursor(hues.red),
+				d = cursor(colors.red),
 				y = cursor(constant),
-				c = cursor(hues.blue),
+				c = cursor(colors.blue),
 			},
 		},
-		[{ "v", "V", "\22" }] = cursor(hues.green),
-		[{ "s", "S", "\19" }] = cursor(hues.violet),
+		[{ "v", "V", "\22" }] = cursor(colors.green),
+		[{ "s", "S", "\19" }] = cursor(colors.violet),
 	},
 }
