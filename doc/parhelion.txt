@@ -50,8 +50,8 @@ own Vim plugin draw their pickers from parhelion's groups. Turning `fzf` off
 in |parhelion-plugins-option| removes the value parhelion set, at parhelion's
 next load, so fzf draws its own colors inside both pickers. A value you set
 yourself stays as it is. The exception is a value equal to parhelion's, set
-after parhelion set the variable and before it removed it, since parhelion
-cannot tell that value from its own.
+after parhelion set the variable and before it removed it, which parhelion
+takes for its own and removes.
 
 ==============================================================================
 3. OPTIONS                                                 *parhelion-options*
