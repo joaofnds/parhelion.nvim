@@ -181,7 +181,7 @@ function M.draws_bold() return options.bold end
 local built_directory = debug.getinfo(1, "S").source:match "^@(.*[/\\])" .. "built/"
 local built_tables = {}
 
-local function built_table(background)
+function M.built(background)
 	if not built_tables[background] then
 		local built = assert(loadfile(built_directory .. background .. ".lua"))()
 		setmetatable(built.colors, raises_on_a_missing_color)
@@ -191,10 +191,8 @@ local function built_table(background)
 	return built_tables[background]
 end
 
-function M.built(background) return built_table(background) end
-
 function M.load()
-	local built = built_table(vim.o.background)
+	local built = M.built(vim.o.background)
 	local groups = with_options(built)
 
 	if vim.g.colors_name then
