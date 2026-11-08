@@ -15,8 +15,8 @@ The changes a user can see. Parhelion has no releases yet, so they all sit under
 
 ### Changed
 
-- Loading parhelion takes about 1.5 to 1.9 ms instead of 3.9 to 4.4 ms, and loading it again in the same mode about
-  0.7 ms instead of 1.6 ms.
+- Loading parhelion takes about 1.3 to 1.65 ms instead of 3.9 to 4.4 ms, and loading it again in the same mode about
+  0.65 ms instead of 1.6 ms.
 - The barbecue, feline and reactive theme files load in about 0.1 ms instead of 1 to 1.5 ms.
 
 ### Fixed
