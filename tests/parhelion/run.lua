@@ -115,12 +115,13 @@ local function both_worlds(label, path, plugins, body)
 	if not ok then record_failure(label .. ", " .. path.label, err) end
 end
 
-local function in_world(theme, path, body)
-	local world = start_world(theme, path, false)
+local function closing(world, body)
 	local ok, err = xpcall(function() body(world) end, debug.traceback)
 	world:close()
 	if not ok then error(err, 0) end
 end
+
+local function in_world(theme, path, body) closing(start_world(theme, path, false), body) end
 
 local function expect_none(differences, what)
 	if #differences == 0 then return end
