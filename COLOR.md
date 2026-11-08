@@ -130,8 +130,9 @@ The floors, tested on every load path:
 | A text cell over the selection in a tested view | Lc 20 | Lc 20 |
 
 These floors are not standards. Each one sits just under what the chosen tones reach, so they hold the result in place
-and do not show that the result is right. Dark accents stop at 4.5:1, and their Lc follows from that. A cell at Lc 30 is
-present and findable, not comfortable. Comments stay at least Lc 10 below body text, so selective contrast survives.
+and do not show that the result is right. The selection's sits under comments over the dark selection, at Lc 23.9. Dark
+accents stop at 4.5:1, and their Lc follows from that. A cell at Lc 30 is present and findable, not comfortable.
+Comments stay at least Lc 10 below body text, so selective contrast survives.
 
 The floors are measured on the page. On the cursor line, which is a step closer to the text, dark body
 falls to 4.86:1, dark accents to 3.90 to 4.70:1 and dark comments to 3.48:1. Light body falls to 4.39:1,
@@ -262,16 +263,17 @@ row because it falls under 3:1 there in both modes, and under the legibility flo
 
 Selected, hairline, strong and the backdrop are not published or toned, and were chosen by eye against these measures.
 
+Selected is the step that keeps the spacing above. Hairline reads at 1.70:1 and 1.59:1 on the page, enough to see a line
+and too little to read as content, which also leaves it under 3:1. Strong sits about 60% of the way from body to the
+next published monotone, `base2` in dark and `base02` in light, at 9.23:1 and 8.60:1. `base2` itself reaches 12.25:1 in
+dark, which reads as white beside body, and strong only has to lead it. The backdrop is below, and the washes are
+further down this section.
+
 The `dim_inactive` option puts windows without focus on a dimmed surface. In dark it is `#002029`, L 22.5, 1.13:1 below
 the page. Light has no free step below its page, since raised is the only one apart from both the page and the text, so
 inactive windows take raised, and their cursor line and gutter, which are raised too, blend into it. On the dimmed
 surface quiet text reads at Lc 34.9 in dark and 53.8 in light, and the weakest accent at Lc 40.1, orange, and 55.7,
 blue.
-Selected is the step that keeps the spacing above. Hairline reads at 1.70:1 and 1.59:1 on the page, enough to see a line
-and too little to read as content, which also leaves it under 3:1. Strong sits about
-60% of the way from body to the next published monotone, `base2` in dark and `base02` in light, at 9.23:1 and 8.60:1.
-`base2` itself reaches 12.25:1 in dark, which reads as white beside body, and strong only has to lead it. The backdrop
-is below, and the washes are further down this section.
 
 Label hues sit apart from the scale, and only the plugins rule 2 names may hold them:
 
@@ -310,9 +312,9 @@ it. Dark mixes toward quiet text because its unstaged signs sit only Lc 36.5 to 
 enough to set them apart would put them under the text floor. A check in `tests/parhelion/restraint.lua` fails when a
 family names one of them, a group Neogit or Diffview uses to stand in for one of them, or a group from a Vim syntax
 file. The exceptions are `Added`, `@diff.plus`, `GitSignsAdd`, `GitGutterAdd` and `GitGutterAddLineNr`, which rule 4
-colors, the `GitSignsStaged` signs, the text overlays `Visual`, `Search`, `IncSearch`, `Todo`, `LspReferenceRead`,
-`LspReferenceText`, `LspReferenceWrite` and the `DiagnosticUnderline` groups, `markdownH1` to `markdownH6`, `LspKind*`,
-lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
+colors, the `GitSignsStaged` signs, the text overlays `Visual`, `Search`, `IncSearch`, `LspReferenceRead`,
+`LspReferenceText`, `LspReferenceWrite` and the `DiagnosticUnderline` groups, `Todo`, `markdownH1` to `markdownH6`,
+`LspKind*`, lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
 render-markdown's heading bands count as the base tables'.
 
 One plugin family paints over code, because it is a plugin's and not code's. mini.cursorword marks each other instance
@@ -320,24 +322,25 @@ of the word under the cursor. The base tables recolor those instances teal in da
 which spends the page's strongest color wherever the cursor happens to rest. It takes the selected step with strong
 text, which is neutral and stays legible over any word, where a background alone leaves a dark comment at Lc 28.2.
 
-The text overlays are the marks Neovim draws over code, and they tint or underline it and leave its colors alone, so a
-selection or a reference never hides what kind of token it covers. A selection keeps the base tables' fill, `#2c4e56` in
-dark and the pink `#f8e2d9` in light, and sets no text color, where the base tables also set body text in dark and bold
-magenta in light. On those fills the accents read at 2.70:1 to 3.25:1 in dark and 3.47:1 to 4.23:1 in light, body at
-3.37:1 and 4.32:1, and comments at 2.41:1 and 3.22:1. A search match takes strong text on a warm fill, toned yellow
-blended over the light page and toned orange over the dark page, since yellow over the dark page turns the olive of an
-added line. The text reads at 5.18:1 in dark and 5.64:1 in light, where the base tables draw a dark match as a bold
-selection. The current match is page text on solid yellow and bold, at 5.42:1 and 4.01:1, so it stands out from the
-others, and `CurSearch` and `Substitute` follow it. Inside a selection Neovim draws the selection's fill under a match
-and keeps the match's text color, so the match still shows in strong text. A reference to the symbol under the cursor
-takes the selected step alone, as vim-illuminate's references do, since a language server marks symbols and never the
-inside of a comment. A diagnostic underlines its text in the signal color and leaves the text's own color. A misspelling
-has a red undercurl, a capitalization hint a violet one, a word from another region a yellow one and a rare word a cyan
-one, as Solarized publishes them, where the base tables strike a misspelling through and color the other three's text.
-The current quickfix entry takes the selected step with strong text, where the base tables draw it like every other
-entry, and `Todo` is magenta and bold, Solarized's own mark, where the base tables give it the blue of a variable.
-Neovim links the active signature parameter, snippet tabstops and `VisualNOS` to the selection and a reference's target
-to the reference, so those follow.
+The text overlays are the marks Neovim draws over code. A selection, a reference, a diagnostic and a misspelling tint or
+underline it and leave its colors alone, so they never hide what kind of token they cover. A search match and the
+current quickfix entry set a text color of their own, because each marks a place to land on and not a kind of token. A
+selection keeps the base tables' fill, `#2c4e56` in dark and the pink `#f8e2d9` in light, and sets no text color, where
+the base tables also set body text in dark and bold magenta in light. On those fills the accents read at 2.70:1 to
+3.25:1 in dark and 3.47:1 to 4.23:1 in light, body at 3.37:1 and 4.32:1, and comments at 2.41:1 and 3.03:1. A search
+match takes strong text on a warm fill, toned yellow blended over the light page and toned orange over the dark page,
+since yellow over the dark page turns the olive of an added line. The text reads at 5.18:1 in dark and 5.64:1 in light,
+where the base tables draw a dark match as a bold selection. The current match is page text on solid yellow and bold, at
+5.42:1 and 4.01:1, so it stands out from the others, and `CurSearch` and `Substitute` follow it. Inside a selection
+Neovim draws the selection's fill under a match and keeps the match's text color, so the match still shows in strong
+text. A reference to the symbol under the cursor takes the selected step alone, as vim-illuminate's references do, since
+a language server marks symbols and never the inside of a comment. A diagnostic underlines its text in the signal color
+and leaves the text's own color. A misspelling has a red undercurl, a capitalization hint a violet one, a word from
+another region a yellow one and a rare word a cyan one, as Solarized publishes them, where the base tables strike a
+misspelling through and color the other three's text. The current quickfix entry takes the selected step with strong
+text, where the base tables draw it like every other entry. `Todo`, which is syntax and not an overlay, is magenta and
+bold, Solarized's own mark, where the base tables give it the blue of a variable. Neovim links the active signature
+parameter, snippet tabstops and `VisualNOS` to the selection and a reference's target to the reference, so those follow.
 
 Neogit's kinds of label hold hue, and two kinds can share one. A section header is violet and bold with a body count, a
 branch orange and bold, the checked out branch underlined as well, a remote green and bold, a tag yellow, its distance

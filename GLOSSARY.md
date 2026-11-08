@@ -53,7 +53,9 @@ Neovim highlights through `@lsp.*` groups at a priority above treesitter's.
 **Signal color**: an accent that holds one meaning wherever it marks a state: red for errors and removals, yellow for
 warnings, conflicts and a change among unchanged things, green for success and added things.
 
-**Surface**: a background on one fixed step of a neutral scale. Parhelion's are float, page, raised and selected.
+**Surface**: a background on one fixed step of a neutral scale. Parhelion's are float, page, raised and selected, the
+dimmed surface the `dim_inactive` option gives windows without focus, and the backdrop that dims what sits behind a
+float.
 
 **Terminal colors**: the 16 ANSI colors Neovim gives to programs running in its terminal
 buffers.
