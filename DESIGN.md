@@ -207,8 +207,8 @@ pins what it produces, `tests/parhelion/approved_files.lua` holds a checksum of 
 and `tests/parhelion/approved_presets.lua` pins the theme files' colors, so changing one means changing its pin on
 purpose. The tests that judge `refinement.lua` and `chrome.lua` are listed in [COLOR.md](COLOR.md).
 
-The base tables hold 509 groups in dark and 506 in light, from 25 and 24 colors. Set alone on Neovim 0.12.6 with
-`--clean`, `nvim_get_hl` lists 711 and 708 groups, from 32 and 31 colors, because it includes the groups Neovim defines
+The base tables hold 517 groups in dark and 515 in light, from 25 and 24 colors. Set alone on Neovim 0.12.6 with
+`--clean`, `nvim_get_hl` lists 719 and 717 groups, from 32 and 31 colors, because it includes the groups Neovim defines
 itself. In them `Normal` is `#839496` on `#002b36` and `#657b83` on `#fdf6e3`.
 
 Every comparison runs on all four load paths. The checks on query files run once, since no load path affects them.
