@@ -395,17 +395,19 @@ on a context row.
 | Removed word | `#853e3e` | 1.97:1 | `#f9c3c0` | 1.43:1 |
 
 The changed word wash is a blend of Solarized's blue over the page, 50% in dark and 46% in light. The added and removed
-washes are not blends of Solarized's green and red, because those blends take the wrong hue at the strength a wash
-needs. Green over the cream page stays a yellow green at a perceptual hue of 101 to 113 at every strength, and green
-over the dark page turns the same way at a word's strength, 130 to 135 at 40% to 50%, so it reads as olive rather than
-as an added line. Red over the cream page leans orange at a row's strength, 63 to 38 at 8% to 25%. Red over the dark
-page passes through blue, violet and magenta up to 25%, and at 30% it is a muted red at a chroma of 0.033, under the
-page's 0.049. So the added washes sit at a perceptual hue of 152 to 160 and the removed washes at 5 to 23, and the
-gutter's added and removed signs and the `Added` and `Removed` groups keep Solarized's green and red. The checks accept
-an added wash at 145 to 170 and a removed one at -10 to 30, with more chroma than the page. Those ranges are a
-judgment, wide enough to hold each wash here and narrow enough to shut out the olive and orange those blends make. A
-word's hue can sit away from its row's: light's changed word by 28.2 degrees, dark's removed word by 17.1, the added
-words by 8.4 and 8.5, and the others under 3.
+washes are picked for their hue and not blended from Solarized's green and red, since most of those blends miss the
+hue at the strength a wash needs. Green over the cream page stays a yellow green at a perceptual hue of 101 to 113 at
+every strength, so it reads as olive rather than as an added line. Green over the dark page keeps an added hue only up
+to 28%, which sits too close to its row for a word wash, since a changed word needs a difference of 10. Red over the
+cream page leans orange at a row's strength, 63 to 38 at 8% to 25%. Red over the dark page passes through blue, violet
+and magenta up to 25%, and at 30% it is a muted red at a chroma of 0.033, under the page's 0.049. A few blends would
+pass the checks, such as green at 15% for dark's added row, 2.2 from the picked `#133c29`, but no blend serves all
+eight. The added washes sit at a perceptual hue of 152 to 160 and the removed washes at 5 to 23, and the gutter's added
+and removed signs and the `Added` and `Removed` groups keep Solarized's green and red. The checks accept an added wash
+at 145 to 170 and a removed one at -10 to 30, with more chroma than the page. Those ranges are a judgment, wide enough
+to hold each wash here and narrow enough to shut out the olive and orange those blends make. A word's hue can sit away
+from its row's: light's changed word by 28.2 degrees, dark's removed word by 17.1, the added words by 8.4 and 8.5, and
+the others under 3.
 
 Four measures place the three row washes. A comment clears the floor on each, at Lc 30.2 or more in dark, where the base
 tables' dark `#0b4764`, which their `NeogitDiffAddHighlight` uses, leaves it at Lc 25.9. Body text reaches 4.5:1 on
