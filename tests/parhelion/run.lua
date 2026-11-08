@@ -1854,7 +1854,7 @@ end
 for _, background in ipairs { "dark", "light" } do
 	test("the built tables are what the sources build, in " .. background, function()
 		local shipped = dofile(root .. "/lua/parhelion/built/" .. background .. ".lua")
-		local built = require("parhelion.build").built(background)
+		local built = require("parhelion.build").build(background)
 
 		local stale = {}
 		for _, part in ipairs { "colors", "constant", "dimmed", "terminal" } do

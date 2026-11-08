@@ -17,7 +17,7 @@ local function layered(layers)
 	return groups
 end
 
-function M.built(background)
+function M.build(background)
 	local base = require("parhelion.base." .. background)
 
 	return {
@@ -116,11 +116,11 @@ local function source(built)
 end
 
 function M.write()
-	local built = vim.fs.dirname(debug.getinfo(1, "S").source:sub(2)) .. "/built"
-	vim.fn.mkdir(built, "p")
+	local built_directory = vim.fs.dirname(debug.getinfo(1, "S").source:sub(2)) .. "/built"
+	vim.fn.mkdir(built_directory, "p")
 
 	for _, background in ipairs { "dark", "light" } do
-		vim.fn.writefile(source(M.built(background)), built .. "/" .. background .. ".lua")
+		vim.fn.writefile(source(M.build(background)), built_directory .. "/" .. background .. ".lua")
 	end
 end
 
