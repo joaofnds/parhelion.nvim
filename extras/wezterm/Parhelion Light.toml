@@ -1,0 +1,13 @@
+[colors]
+foreground = "#586e75"
+background = "#fdf6e3"
+cursor_bg = "#586e75"
+cursor_fg = "#fdf6e3"
+cursor_border = "#586e75"
+selection_fg = "none"
+selection_bg = "#f8e2d9"
+ansi = ["#073642", "#dc322f", "#708101", "#997401", "#117fc5", "#d33682", "#018880", "#798686"]
+brights = ["#4c6168", "#dc322f", "#708101", "#997401", "#117fc5", "#d33682", "#018880", "#eee8d5"]
+
+[metadata]
+name = "Parhelion Light"

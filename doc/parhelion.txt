@@ -8,6 +8,7 @@ CONTENTS                                                  *parhelion-contents*
   3. Options .................................... |parhelion-options|
   4. Plugins .................................... |parhelion-plugins|
   5. Theme files ................................ |parhelion-theme-files|
+  6. Terminal themes ........................... |parhelion-terminal-themes|
 
 ==============================================================================
 1. INTRODUCTION                           *parhelion* *parhelion-introduction*
@@ -224,5 +225,13 @@ reactive.nvim ~
 The barbecue, feline and reactive files read 'background' when they are
 first required, so after a toggle they keep the earlier mode's colors until
 Neovim restarts.
+
+==============================================================================
+6. TERMINAL THEMES                                 *parhelion-terminal-themes*
+
+The plugin's `extras/` directory holds themes for Ghostty, kitty, WezTerm,
+Alacritty and iTerm2, in dark and in light. Each gives the terminal the page,
+text, cursor, selection and 16 terminal colors parhelion sets in Neovim. The
+README says how to install each one.
 
  vim:tw=78:ts=8:noet:ft=help:norl:

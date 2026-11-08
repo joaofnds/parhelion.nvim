@@ -1,0 +1,13 @@
+[colors]
+foreground = "#93a1a1"
+background = "#002b36"
+cursor_bg = "#93a1a1"
+cursor_fg = "#002b36"
+cursor_border = "#93a1a1"
+selection_fg = "none"
+selection_bg = "#2c4e56"
+ansi = ["#073642", "#f95148", "#859900", "#c1951e", "#40a0e8", "#ef5299", "#2aa198", "#a3b1b1"]
+brights = ["#71888f", "#f95148", "#859900", "#c1951e", "#40a0e8", "#ef5299", "#2aa198", "#fdf6e3"]
+
+[metadata]
+name = "Parhelion Dark"

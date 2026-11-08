@@ -115,12 +115,24 @@ local function source(built)
 	return lines
 end
 
+local function write_themes(root, themes)
+	for path, text in pairs(themes) do
+		vim.fn.mkdir(vim.fs.dirname(root .. "/" .. path), "p")
+		local file = assert(io.open(root .. "/" .. path, "wb"))
+		file:write(text)
+		file:close()
+	end
+end
+
 function M.write()
-	local built_directory = vim.fs.dirname(debug.getinfo(1, "S").source:sub(2)) .. "/built"
+	local module_directory = vim.fs.dirname(debug.getinfo(1, "S").source:sub(2))
+	local built_directory, root = module_directory .. "/built", vim.fn.fnamemodify(module_directory, ":h:h")
 	vim.fn.mkdir(built_directory, "p")
 
 	for _, background in ipairs { "dark", "light" } do
-		vim.fn.writefile(source(M.build(background)), built_directory .. "/" .. background .. ".lua")
+		local built = M.build(background)
+		vim.fn.writefile(source(built), built_directory .. "/" .. background .. ".lua")
+		write_themes(root, require("parhelion.extras").themes(built))
 	end
 end
 

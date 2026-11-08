@@ -2,6 +2,13 @@
 
 The changes a user can see, newest release first. A change not yet released goes under an Unreleased heading.
 
+## Unreleased
+
+### Added
+
+- Terminal themes for Ghostty, kitty, WezTerm, Alacritty and iTerm2 in `extras/`, in dark and light, with the page,
+  text, cursor, selection and terminal colors parhelion uses in Neovim. The README says how to install each.
+
 ## 1.0.0 - 2026-11-08
 
 ### Added

@@ -60,6 +60,9 @@ float.
 **Terminal colors**: the 16 ANSI colors Neovim gives to programs running in its terminal
 buffers.
 
+**Terminal theme**: a file that gives a terminal emulator its page, text, cursor and selection colors and its 16
+terminal colors.
+
 **Wash**: a faint tint that fills a row and sets no text color, so code keeps its syntax. A diff's washes are green for
 added rows, blue for changed rows and red for removed rows.
 

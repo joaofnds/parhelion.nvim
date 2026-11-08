@@ -154,6 +154,42 @@ local function nearest_hue(background, hex)
 	return nearest
 end
 
+local function ghostty_theme(background)
+	local settings = {}
+	for line in io.lines(root .. "/extras/ghostty/Parhelion " .. background:gsub("^%l", string.upper)) do
+		local key, value = line:gsub("^palette = (%d+)=", "palette %1 = "):match "^(.-) = (.+)$"
+		settings[key] = value
+	end
+
+	return settings
+end
+
+local function ghostty_settings_neovim_shows(snapshot)
+	local groups = snapshot.groups
+	local settings = {
+		background = groups.Normal.bg,
+		foreground = groups.Normal.fg,
+		["cursor-color"] = groups.Cursor.bg,
+		["cursor-text"] = groups.Cursor.fg,
+		["selection-background"] = groups.Visual.bg,
+		["selection-foreground"] = groups.Visual.fg or "cell-foreground",
+	}
+	for slot = 0, 15 do
+		settings["palette " .. slot] = snapshot.terminal[tostring(slot)]
+	end
+
+	return settings
+end
+
+local function setting_differences(theme, shown)
+	local differences = {}
+	for key in vim.spairs(vim.tbl_extend("force", {}, theme, shown)) do
+		if theme[key] ~= shown[key] then table.insert(differences, { key, theme = theme[key], neovim = shown[key] }) end
+	end
+
+	return differences
+end
+
 local function expect_close(actual, expected, tolerance, what)
 	local message = string.format("%s is %.4f, known to be %.4f", what, actual, expected)
 	assert(math.abs(actual - expected) <= tolerance, message)
@@ -390,6 +426,12 @@ for _, path in ipairs(paths) do
 			)
 
 			expect_none(too_close, "pairs of terminal neutrals too close")
+		end)
+
+		test("the Ghostty theme gives the page, text, cursor, selection and terminal colors, " .. path.label, function()
+			local theme, shown = ghostty_theme(path.background), ghostty_settings_neovim_shows(parhelion)
+
+			expect_none(setting_differences(theme, shown), "Ghostty settings differ from what Neovim shows")
 		end)
 
 		test("plugin-only text uses only colors the base tables or the chrome set, " .. path.label, function()
@@ -1915,6 +1957,43 @@ for _, background in ipairs { "dark", "light" } do
 		expect_none(stale, "parts of the built tables are stale, so run " .. require("parhelion.build").command)
 	end)
 end
+
+local function terminal_themes(background)
+	return require("parhelion.extras").themes(dofile(root .. "/lua/parhelion/built/" .. background .. ".lua"))
+end
+
+local function shipped(path)
+	local file = io.open(root .. "/" .. path, "rb")
+	if not file then return nil end
+
+	local text = file:read "a"
+	file:close()
+
+	return text
+end
+
+for _, background in ipairs { "dark", "light" } do
+	for path, text in vim.spairs(terminal_themes(background)) do
+		test(
+			string.format("%s is what the %s built table gives", path, background),
+			function()
+				assert(shipped(path) == text, "it is stale or missing, so run " .. require("parhelion.build").command)
+			end
+		)
+	end
+end
+
+test("every file git tracks under extras is a terminal theme the built tables give", function()
+	local given = vim.tbl_extend("error", terminal_themes "dark", terminal_themes "light")
+
+	local tracked = vim.system({ "git", "-C", root, "ls-files", "-z", "extras" }):wait()
+	local unknown = vim.tbl_filter(
+		function(path) return path ~= "" and given[path] == nil end,
+		vim.split(assert(tracked.code == 0 and tracked.stdout, tracked.stderr), "\0", { plain = true })
+	)
+
+	expect_none(unknown, "files under extras have no source, so delete them")
+end)
 
 for _, background in ipairs { "dark", "light" } do
 	for _, family_name in ipairs {

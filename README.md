@@ -41,6 +41,21 @@ require("parhelion").setup {
 `:help parhelion` says what each one does, and how to load the theme files lualine, barbecue, bufferline, feline and
 reactive use.
 
+## Terminal themes
+
+`extras/` gives the terminal around Neovim the same page, text, cursor, selection and 16 terminal colors parhelion
+uses, in dark and light:
+
+- Ghostty 1.2 or later: copy `extras/ghostty/*` to `~/.config/ghostty/themes/` and set
+  `theme = light:Parhelion Light,dark:Parhelion Dark`.
+- kitty: copy `extras/kitty/*` to `~/.config/kitty/themes/` and pick them with `kitten themes`, which can save one for
+  the system's dark mode and one for its light mode.
+- WezTerm: copy `extras/wezterm/*` to `~/.config/wezterm/colors/` and set `config.color_scheme` to `"Parhelion Dark"`
+  or `"Parhelion Light"`.
+- Alacritty 0.14 or later: add the path of a file in `extras/alacritty/` to `import` under `[general]`.
+- iTerm2: import a file in `extras/iterm2/` from the Color Presets menu in a profile's Colors settings. With "Use
+  separate colors for light and dark mode" on, each mode can take its own.
+
 ## Plugins
 
 Highlight groups ship for these plugins:

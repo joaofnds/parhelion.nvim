@@ -34,8 +34,10 @@ Plugin support below for how they are checked.
 | --- | --- |
 | `colors/parhelion.lua` | Colorscheme entry point |
 | `lua/parhelion/init.lua` | The load sequence below, and `setup` |
-| `lua/parhelion/build.lua` | Builds the groups from the base tables, `refinement.lua` and `chrome.lua`, and writes the built tables |
+| `lua/parhelion/build.lua` | Builds the groups from the base tables, `refinement.lua` and `chrome.lua`, and writes the built tables and the terminal themes |
 | `lua/parhelion/built/{dark,light}.lua` | The built tables, which `build.lua` writes |
+| `lua/parhelion/extras.lua` | Makes the terminal themes from a built table |
+| `extras/<terminal>/` | The terminal themes for Ghostty, kitty, WezTerm, Alacritty and iTerm2, which `build.lua` writes |
 | `lua/parhelion/plugins.lua` | Each supported plugin's name and the patterns its group names match, for the `plugins` option |
 | `lua/parhelion/refinement.lua` | The tones parhelion changes from the base tables, and the repaired groups |
 | `lua/parhelion/chrome.lua` | How plugin interfaces use color: the scale of steps, the toned accents, the roles, each plugin's family, and the links |
@@ -78,15 +80,16 @@ from also being named in `chrome.groups`. A failure there, such as a family nami
 when the built tables are written, so it never reaches a load. Groups with the same look share one table in the built
 tables, which makes them faster to read, so nothing may change a group's table in place.
 
-After a change to the base tables, `refinement.lua` or `chrome.lua`, write the built tables again from the repository's
-root:
+After a change to the base tables, `refinement.lua` or `chrome.lua`, write the built tables and the terminal themes
+again from the repository's root:
 
 ```sh
 nvim --headless --clean --cmd "set rtp^=." -c "lua require('parhelion.build').write()" -c "qa!"
 ```
 
-The `the built tables are what the sources build` tests fail, naming each stale group, until they are written. A
-running Neovim keeps the table it read first, so restart it to see the new one.
+The `the built tables are what the sources build` tests fail, naming each stale group, until they are written, and a
+test named for each stale terminal theme fails too. A running Neovim keeps the table it read first, so restart it to
+see the new one.
 
 A load depends on its path. `hi clear` leaves previously linked groups listed but empty, so after toggling from dark to
 light `@keyword.type` exists and has no attributes. This is why a dark to light toggle reports more groups than a fresh
@@ -290,6 +293,10 @@ Every comparison runs on all four load paths. The checks on query files run once
 - A load sets no Lua global and, with the defaults or any one option, requires nothing that builds the groups. A reload
   copies no groups and runs little more Lua than writing them, and the built tables are what the sources build.
   `chrome.groups` raises when a family names a role `chrome.lua` lacks or a link names a group a family sets.
+- The terminal themes in `extras/` are what the built tables give, and every file git tracks there is one of them.
+  The Ghostty theme's page, text, cursor, selection and terminal colors are the ones Neovim shows, so a theme that
+  maps a color from the wrong group fails. The other four formats take the same colors, but nothing checks that each
+  writes them under the right key.
 - Parhelion sets no flash, mason or which-key group outside `chrome.lua`. Plugins that draw only from core groups,
   such as grug-far, oil, trouble and undotree, are held by their views.
 - Neogit status, Neogit commit view, Neogit commit popup, diffview, and 16 sample files render the same text, fg, bg, sp
