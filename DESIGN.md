@@ -134,9 +134,11 @@ are the same on every machine:
 
 - `a load with the default options requires no module but parhelion` and `a load with the <option> option requires
   nothing that builds the groups` fail when a load builds the groups again, which takes 2.6 to 2.8 times the floor.
-- `a reload with the default options copies no groups` fails when a reload allocates more than 32 KB of Lua memory.
-- `a reload with the default options runs little more Lua than writing its groups` counts Lua VM instructions with the
-  JIT off, and fails at 1.25 times those of a loop that only writes the groups. A reload runs 1.03 times as many.
+- `a reload with the default options copies no groups` fails when a reload through `:colorscheme parhelion`, the path
+  a user takes, allocates more than 32 KB of Lua memory. It allocates about 6 KB.
+- `a reload with the default options runs little more Lua than writing its groups` counts the Lua VM instructions of a
+  reload through `:colorscheme parhelion` with the JIT off, and fails at 1.25 times those of a loop that only writes
+  the groups. A reload runs 1.03 times as many.
 
 None of them sees work Neovim does in C, such as a second `hi clear`, which only the script catches. Time a load under
 `-c luafile`, never `-l`, since `-l` turns on 'verbose', which makes every `nvim_set_hl` many times slower.

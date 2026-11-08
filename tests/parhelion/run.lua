@@ -1958,7 +1958,7 @@ local kilobytes_a_reload_allocates = [[
 	collectgarbage "collect"
 	collectgarbage "stop"
 	local before = collectgarbage "count"
-	require("parhelion").load()
+	vim.cmd.colorscheme "parhelion"
 	local allocated = collectgarbage "count" - before
 	collectgarbage "restart"
 
@@ -1992,7 +1992,7 @@ local lua_a_reload_runs_per_instruction_of_its_floor = [[
 	end
 
 	local groups = require("parhelion").built(vim.o.background).groups
-	local reload = instructions(function() require("parhelion").load() end)
+	local reload = instructions(function() vim.cmd.colorscheme "parhelion" end)
 	local floor = instructions(function()
 		for name, hl in pairs(groups) do
 			vim.api.nvim_set_hl(0, name, hl)
