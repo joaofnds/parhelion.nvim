@@ -4,7 +4,6 @@
 # which states its own authorship.
 set -euo pipefail
 dir=$1
-rm -rf "$dir"
 mkdir -p "$dir/src" "$dir/test"
 cd "$dir"
 git init -q -b main
@@ -126,7 +125,8 @@ committed=(package.json README.md tsconfig.json src/units.ts src/cache.ts src/re
   printf 'commit refs/heads/main\n'
   printf 'author Ada Example <ada@example.com> 1730000000 +0000\n'
   printf 'committer Ada Example <ada@example.com> 1730000000 +0000\n'
-  printf 'data 22\nfetch the day forecast\n'
+  message='fetch the day forecast'
+  printf 'data %d\n%s\n' "${#message}" "$message"
   for path in "${committed[@]}"; do
     printf 'M 100644 inline %s\ndata %d\n' "$path" "$(wc -c <"$path")"
     cat "$path"
