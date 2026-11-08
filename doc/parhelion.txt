@@ -135,6 +135,13 @@ overrides ~
       and `green`.
     Reading a name not in this list raises an error.
 
+    Parhelion's own queries mark some code in CSS, SCSS, JavaScript, TSX and
+    Lua, such as the name in a Lua function call, and draw it through the
+    general groups `@constant`, `@function`, `@keyword`, `@number`, `@string`,
+    `@tag` and `@type`. An override of a narrower group, such as
+    `@function.call` or `@function.lua`, does not reach that code, so override
+    the general group to change it too.
+
                                                     *parhelion-plugins-option*
 plugins ~
     A table from a plugin's name in |parhelion-plugins| to `false`, which
