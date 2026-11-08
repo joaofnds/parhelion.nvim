@@ -85,9 +85,17 @@ local derived_from_labels = {
 	"^RenderMarkdown_",
 }
 
-local linked_to_code = {
-	"^Lazy",
-}
+local function groups_lazy_links_to_core_groups()
+	local lazy_colors = dofile(vim.env.PARHELION_DEPS .. "/lazy.nvim/lua/lazy/view/colors.lua").colors
+	local names = {}
+	for name, target in pairs(lazy_colors) do
+		if type(target) == "string" then names["Lazy" .. name] = true end
+	end
+
+	return names
+end
+
+local follows_a_core_group = groups_lazy_links_to_core_groups()
 
 local has_meaning = {
 	"ERROR",
@@ -234,18 +242,19 @@ local function set_of(steps)
 	return set
 end
 
-local function may_hold_a_label_hue(name)
-	return holds_label_hues[name] or matches_any(name, derived_from_labels) or matches_any(name, linked_to_code)
-end
+local function may_hold_a_label_hue(name) return holds_label_hues[name] or matches_any(name, derived_from_labels) end
 
 function M.hues_off_the_scale(background, colors_by_group)
 	local on_the_scale = set_of(chrome.scale[background])
 	local label_hues = set_of(chrome.label_hues[background])
+	local code_hues = set_of(chrome.hues[background])
 	local found = {}
 	for name, colors in pairs(colors_by_group) do
 		if is_a_plugin_group(name) then
 			for attribute, hex in pairs(colors) do
-				local allowed = on_the_scale[hex:lower()] or (may_hold_a_label_hue(name) and label_hues[hex:lower()])
+				local allowed = on_the_scale[hex:lower()]
+					or (may_hold_a_label_hue(name) and label_hues[hex:lower()])
+					or (follows_a_core_group[name] and code_hues[hex:lower()])
 				if reads_as_color(hex) and not allowed then
 					table.insert(found, { group = name, attribute = attribute, color = hex })
 				end

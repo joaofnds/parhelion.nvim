@@ -166,6 +166,7 @@ local function looks(background)
 		hairline = { fg = scale.hairline },
 		hidden_on_float = { fg = scale.float, bg = scale.float },
 		hidden_on_page = { fg = scale.page, bg = scale.page },
+		italic = { italic = true },
 		label = { fg = scale.page, bg = scale.accent, bold = true },
 		magenta_bold = { fg = hues.magenta, bold = true },
 		ok = { fg = scale.ok },
@@ -283,10 +284,12 @@ end
 M.families = {
 	editor_frame = {
 		accent_bold = "PmenuMatch",
+		bold = "Bold",
 		error = "NvimFigureBrace NvimInternalError NvimInvalidSingleQuotedUnknownEscape NvimSingleQuotedUnknownEscape",
 		float_hairline = "FloatBorder",
 		float_quiet = "FloatFooter",
 		float_title = "FloatTitle",
+		italic = "Italic",
 		quiet = "WinBar WinBarNC",
 		raised_fill = "PmenuSbar",
 		raised_body = "Pmenu",
@@ -1074,6 +1077,11 @@ M.families = {
 		body = "VimwikiHR VimwikiList VimwikiMarkers VimwikiTag",
 		ghost = "VimwikiHeaderChar",
 		title = "VimwikiHeader1 VimwikiHeader2 VimwikiHeader3 VimwikiHeader4 VimwikiHeader5 VimwikiHeader6",
+	},
+	lazy = {
+		body = "LazyTaskOutput",
+		hairline = "LazyProgressTodo",
+		quiet = "LazyDimmed LazyProp",
 	},
 	mini_diff = {
 		changed_inline = "MiniDiffOverChange MiniDiffOverChangeBuf",

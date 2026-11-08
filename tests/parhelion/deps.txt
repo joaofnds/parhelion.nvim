@@ -52,3 +52,4 @@ mini.nvim https://github.com/echasnovski/mini.nvim 9b132c10d34675315327a7d58cc66
 overseer.nvim https://github.com/stevearc/overseer.nvim a93d9f6d6defdac4bcd6d2c8ba988650e42e0a0e
 oil.nvim https://github.com/stevearc/oil.nvim d3733d933833a0e59b813ecec99341527adf0c28
 vim-sneak https://github.com/justinmk/vim-sneak feea86adcfbf8e6b5e71fdd5f4f5736fd8819fdb
+lazy.nvim https://github.com/folke/lazy.nvim 306a05526ada86a7b30af95c5cc81ffba93fef97

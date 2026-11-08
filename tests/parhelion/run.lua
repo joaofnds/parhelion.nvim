@@ -917,6 +917,8 @@ for _, case in ipairs {
 	{ name = "magenta on a plugin it has no name for", group = "SomeNewPluginTitle", color = "#ef5299" },
 	{ name = "a description's cyan on a file tree", group = "NvimTreeGitNew", color = "#3fb3a9" },
 	{ name = "a hue off every scale on a group Neogit derives", group = "NeogitStashes", color = off_every_scale },
+	{ name = "a code hue on a group lazy.nvim does not define", group = "LazyGitFloat", color = "#2aa198" },
+	{ name = "a hue off every scale on a group lazy.nvim links", group = "LazyReasonKeys", color = off_every_scale },
 } do
 	test("the scale check reports " .. case.name, function()
 		local found = restraint.hues_off_the_scale("dark", { [case.group] = { fg = case.color } })
@@ -959,6 +961,12 @@ for _, case in ipairs {
 		background = "dark",
 		group = "RenderMarkdown_RenderMarkdownH2_RenderMarkdownSign",
 		hl = { fg = "#8188dd" },
+	},
+	{
+		name = "a code hue on a group lazy.nvim links to a core group",
+		background = "dark",
+		group = "LazyReasonFt",
+		hl = { fg = "#2aa198" },
 	},
 } do
 	test("the scale check accepts " .. case.name, function()
@@ -1323,8 +1331,10 @@ for _, background in ipairs { "dark", "light" } do
 		"diffview",
 		"gitsigns",
 		"headlines",
+		"lazy",
 		"markdown_text",
 		"markview",
+		"mason",
 		"mini_clue",
 		"mini_diff",
 		"neogit",

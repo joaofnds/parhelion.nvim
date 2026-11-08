@@ -89,16 +89,14 @@ How far that reaches differs by plugin:
 
 - **In a view**: aerial, alpha, barbar, blink.cmp and nvim-cmp with and without borders, bufferline, dap-ui,
   dashboard-nvim, dropbar, fidget, flash, fzf-lua, gitsigns, grug-far, harpoon, hop, vim-illuminate, indent-blankline,
-  rainbow-delimiters, leap, lspsaga, markview, mason, mini.nvim's editor modules, mini.files, mini.notify, mini.pick,
-  mini.starter, nvim-navic, neo-tree, noice, nvim-notify, nvim-tree, oil, overseer, render-markdown, Snacks' dashboard,
-  notifier and picker, telescope, trouble, undotree, vim-sneak and which-key. Neogit and Diffview are compared cell by
-  cell in the test suite.
+  rainbow-delimiters, lazy.nvim, leap, lspsaga, markview, mason, mini.nvim's editor modules, mini.files, mini.notify,
+  mini.pick, mini.starter, nvim-navic, neo-tree, noice, nvim-notify, nvim-tree, oil, overseer, render-markdown, Snacks'
+  dashboard, notifier and picker, telescope, trouble, undotree, vim-sneak and which-key. Neogit and Diffview are
+  compared cell by cell in the test suite.
 - **A family and no view**: Octo, Avante, Beacon, neotest, headlines, lir, git-graph, buffon,
   operator-sandwich, colorful-winsep, symbols-outline, todo-comments, yanky, artio, nvim-ufo, treesitter-context,
   lightspeed, pounce, window-picker, blink.indent, blink.pairs, coc.nvim, copilot.vim, dadbod-ui, fern, notifier,
   signify, telekasten, vimwiki and nvim-ts-rainbow. Their roles are checked as groups only.
-- **Links and no view**: lazy.nvim. `chrome.links` points the groups the base tables set for it at the core groups
-  lazy.nvim links them to by default, and lazy.nvim's own links color the rest. The links are checked as groups only.
 - **The base tables' own groups**: gitgutter, whose groups the base tables set.
 - **Loaded and nothing else**: `tests/parhelion/plugins.lua` also loads yazi.nvim and nvim-surround, so the group
   comparison runs with them present. Neither has a family or a view.
@@ -115,7 +113,8 @@ only the group check behind it, and nobody has looked at it.
 
 Comparing a sheet's two sides shows code changing hue between modes. The base tables color constants violet in dark and
 magenta in light, types orange and yellow, and added lines blue and green. Plugin interfaces use the same roles in both
-modes, apart from markdown headings and which-key's and mini.clue's groups, which follow the same swap.
+modes, apart from markdown headings, lazy.nvim's load reasons, buttons and home heading, which follow the core groups
+lazy.nvim links them to, and which-key's and mini.clue's groups, which follow the same swap.
 
 ### Adding a plugin
 
@@ -149,9 +148,9 @@ To check it by eye, add the plugin's pinned commit to `tests/parhelion/deps.txt`
 plugin to the list in `README.md`.
 
 Every name in a family needs a look pinned in `tests/parhelion/approved.lua` for the diff lines, Diffview, gitsigns,
-headlines, markdown text, markview, mini.clue, mini.diff, Neogit, render-markdown and which-key, and every role in any
-family needs one, because those pins are what fail when a color changes by accident. The `has a pinned look` tests name
-what is missing. Each link's resolved look is pinned there too.
+headlines, lazy.nvim, markdown text, markview, mason, mini.clue, mini.diff, Neogit, render-markdown and which-key, and
+every role in any family needs one, because those pins are what fail when a color changes by accident. The `has a pinned
+look` tests name what is missing. Each link's resolved look is pinned there too.
 
 A Neogit update can add groups it derives by dimming. The `every Neogit group clears the text floor` test catches those,
 and the fix is the group's name under a role in the `neogit` family, with its pin.

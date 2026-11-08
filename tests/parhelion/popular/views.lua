@@ -638,6 +638,29 @@ view("mason", {
 	run = function(nvim) cmd(nvim, "Mason", 900) end,
 })
 
+view("lazy", {
+	labels_on = "float",
+	plugins = { "lazy.nvim" },
+	setup = function()
+		local deps = vim.env.PARHELION_DEPS
+		require("lazy").setup({
+			{ dir = deps .. "/flash.nvim", keys = { "s" } },
+			{ dir = deps .. "/grug-far.nvim", ft = "markdown" },
+			{ dir = deps .. "/mason.nvim", cmd = "Mason" },
+			{ dir = deps .. "/which-key.nvim", event = "VeryLazy" },
+		}, {
+			lockfile = vim.fn.stdpath "state" .. "/lazy-lock.json",
+			install = { missing = false },
+			checker = { enabled = false },
+			change_detection = { enabled = false },
+			rocks = { enabled = false },
+			performance = { reset_packpath = false, rtp = { reset = false } },
+			ui = { backdrop = 100 },
+		})
+	end,
+	run = function(nvim) cmd(nvim, "Lazy", 900) end,
+})
+
 view("grug-far", {
 	plugins = { "grug-far.nvim" },
 	setup = function() require("grug-far").setup {} end,
