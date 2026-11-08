@@ -161,7 +161,8 @@ None of them sees work Neovim does in C, such as a second `hi clear`, which only
   lualine's bar text from their `StatusLine`. Reactive's cursorline preset also mixes its colors toward black in dark
   mode and toward white in light, so each fill stays on its page's side and the code drawn over it keeps its contrast.
   `tests/parhelion/approved_presets.lua` pins the colors of the lualine theme, of the feline statusline in normal mode
-  and of both reactive presets.
+  and of both reactive presets. Feline itself draws parhelion's statusline in every mode a test can reach, which is
+  all of them but the prompts, the shell and Ex mode, and the statusline must name the mode in each.
 
 How far that reaches differs by plugin:
 

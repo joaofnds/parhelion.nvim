@@ -206,6 +206,16 @@ function Nvim:capture()
 	return { rows = rows, defaults = self.defaults }
 end
 
+-- Unlike capture, it forces no redraw, so it shows what Neovim chose to draw.
+function Nvim:drawn_row(row)
+	local cells = {}
+	for col = 0, self.cols - 1 do
+		table.insert(cells, self.grid[row - 1][col][1])
+	end
+
+	return table.concat(cells)
+end
+
 function Nvim:close()
 	if not self.exited then
 		pcall(function() self.stdin:write(vim.mpack.encode { 2, "nvim_command", { "qa!" } }) end)

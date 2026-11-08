@@ -78,9 +78,15 @@ function M.setup(opts)
 	view = vim.tbl_deep_extend("force", view, opts.view or {})
 end
 
-local function mode_label() return mode_colors[vim.fn.mode()][1] end
+local function current_mode()
+	local mode = vim.api.nvim_get_mode().mode
 
-local function mode_color() return mode_colors[vim.fn.mode()][2] end
+	return mode_colors[mode:sub(1, 2)] or mode_colors[mode:sub(1, 1)]
+end
+
+local function mode_label() return current_mode()[1] end
+
+local function mode_color() return current_mode()[2] end
 
 local function has_git_changes()
 	local counts = vim.b.gitsigns_status_dict
@@ -234,7 +240,17 @@ local function branch_servers_and_place()
 	}
 end
 
+local function redraw_when_an_operator_starts_or_ends()
+	vim.api.nvim_create_autocmd("ModeChanged", {
+		group = vim.api.nvim_create_augroup("parhelion.feline", {}),
+		pattern = { "*:no*", "no*:*" },
+		command = "redrawstatus",
+	})
+end
+
 function M.get_statusline()
+	redraw_when_an_operator_starts_or_ends()
+
 	return {
 		active = { mode_and_git(), diagnostics(), branch_servers_and_place() },
 		inactive = { { { provider = file_type, hl = { fg = colors.body, bg = colors.float } } } },

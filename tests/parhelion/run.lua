@@ -1152,6 +1152,95 @@ for _, case in ipairs {
 	end)
 end
 
+local feline_draws_parhelions_statusline_in_every_buffer = [[
+	vim.opt.rtp:append(vim.env.PARHELION_DEPS .. "/feline.nvim")
+	require("feline").setup {
+		components = require("parhelion.feline").get_statusline(),
+		force_inactive = { filetypes = {}, buftypes = {}, bufnames = {} },
+	}
+]]
+
+local function drawn_statusline(world)
+	world:settle { quiet = 300 }
+
+	return world:drawn_row(world.rows - 1)
+end
+
+for _, keys in ipairs { "d", "dv", "dV", "d<C-v>" } do
+	test("the feline statusline names the operator-pending mode after " .. keys, function()
+		in_world("parhelion", paths[1], function(world)
+			world:lua(feline_draws_parhelions_statusline_in_every_buffer)
+			drawn_statusline(world)
+
+			world:request("nvim_input", keys)
+
+			local statusline = drawn_statusline(world)
+			assert(statusline:find("N-PENDING", 1, true), statusline)
+		end)
+	end)
+end
+
+for _, case in ipairs {
+	{ keys = "", mode = "n", name = "NORMAL" },
+	{ keys = "A<C-o>", mode = "niI", name = "NORMAL" },
+	{ keys = "R<C-o>", mode = "niR", name = "NORMAL" },
+	{ keys = "gR<C-o>", mode = "niV", name = "NORMAL" },
+	{ keys = "v", mode = "v", name = "VISUAL" },
+	{ keys = "V", mode = "V", name = "V-LINE" },
+	{ keys = "<C-v>", mode = "\22", name = "V-BLOCK" },
+	{ keys = "gh", mode = "s", name = "SELECT" },
+	{ keys = "gH", mode = "S", name = "S-LINE" },
+	{ keys = "g<C-h>", mode = "\19", name = "S-BLOCK" },
+	{ keys = "gh<C-o>", mode = "vs", name = "VISUAL" },
+	{ keys = "gH<C-o>", mode = "Vs", name = "V-LINE" },
+	{ keys = "g<C-h><C-o>", mode = "\22s", name = "V-BLOCK" },
+	{ keys = "A", mode = "i", name = "INSERT" },
+	{ keys = "A<C-n>", mode = "ic", name = "INSERT" },
+	{ keys = "A<C-x>", mode = "ix", name = "INSERT" },
+	{ keys = "R", mode = "R", name = "REPLACE" },
+	{ keys = "R<C-n>", mode = "Rc", name = "REPLACE" },
+	{ keys = "R<C-x>", mode = "Rx", name = "REPLACE" },
+	{ keys = "gR", mode = "Rv", name = "V-REPLACE" },
+	{ keys = "gR<C-n>", mode = "Rvc", name = "V-REPLACE" },
+	{ keys = "gR<C-x>", mode = "Rvx", name = "V-REPLACE" },
+	{ keys = ":", mode = "c", name = "COMMAND" },
+	{ keys = ":<Insert>", mode = "cr", name = "COMMAND" },
+	{ keys = ":terminal cat<CR>", mode = "nt", name = "NORMAL" },
+	{ keys = ":terminal cat<CR>i", mode = "t", name = "TERMINAL" },
+	{ keys = ":terminal cat<CR>i<C-\\><C-o>", mode = "ntT", name = "NORMAL" },
+} do
+	test(string.format("the feline statusline draws %s in mode %s", case.name, vim.fn.strtrans(case.mode)), function()
+		in_world("parhelion", paths[1], function(world)
+			world:lua(feline_draws_parhelions_statusline_in_every_buffer)
+			world:lua [[
+				vim.api.nvim_buf_set_lines(0, 0, -1, false, { "food foot fool", "fo" })
+				vim.api.nvim_win_set_cursor(0, { 2, 1 })
+			]]
+			world:request("nvim_input", case.keys)
+			drawn_statusline(world)
+			assert(world:request("nvim_get_mode").mode == case.mode, vim.inspect(world:request "nvim_get_mode"))
+
+			world:request("nvim_command", "redrawstatus")
+
+			local statusline = drawn_statusline(world)
+			assert(statusline:find(case.name, 1, true), statusline .. "\n" .. messages(world))
+		end)
+	end)
+end
+
+test("the feline statusline names normal mode again once an operator is cancelled", function()
+	in_world("parhelion", paths[1], function(world)
+		world:lua(feline_draws_parhelions_statusline_in_every_buffer)
+		world:request("nvim_input", "d")
+		drawn_statusline(world)
+
+		world:request("nvim_input", "<Esc>")
+
+		local statusline = drawn_statusline(world)
+		assert(statusline:find("NORMAL", 1, true), statusline)
+	end)
+end)
+
 for _, path in ipairs { paths[1], paths[2] } do
 	test("the barbecue theme writes text in the body color, " .. path.label, function()
 		in_world("parhelion", path, function(world)
