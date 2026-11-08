@@ -21,6 +21,13 @@ M.smallest_staged_sign_contrast = 2
 M.smallest_staged_sign_difference = 6
 M.smallest_control_contrast = 3
 
+M.diff_wash_hues = {
+	added_wash = { name = "green", from = 145, to = 170 },
+	added_word_wash = { name = "green", from = 145, to = 170 },
+	removed_wash = { name = "red", from = -10, to = 30 },
+	removed_word_wash = { name = "red", from = -10, to = 30 },
+}
+
 M.page_colors = { "#002b36", "#073642", "#002731", "#fdf6e3", "#eee8d5", "#fbf3db" }
 
 M.accents = {
