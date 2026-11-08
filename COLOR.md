@@ -317,10 +317,11 @@ colors, the `GitSignsStaged` signs, the text overlays `Visual`, `Search`, `IncSe
 `LspKind*`, lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
 render-markdown's heading bands count as the base tables'.
 
-One plugin family paints over code, because it is a plugin's and not code's. mini.cursorword marks each other instance
-of the word under the cursor. The base tables recolor those instances teal in dark and bold magenta on pink in light,
-which spends the page's strongest color wherever the cursor happens to rest. It takes the selected step with strong
-text, which is neutral and stays legible over any word, where a background alone leaves a dark comment at Lc 28.2.
+mini.cursorword marks each other instance of the word under the cursor. The base tables recolor those instances teal in
+dark and bold magenta on pink in light, which spends the page's strongest color wherever the cursor happens to rest. It
+takes the selected step alone, as vim-illuminate's references do, so a name keeps its syntax color while the cursor sits
+on it. It marks words inside comments too, and a dark comment reads at Lc 28.2 on that step, under the text floor and
+above the selection's.
 
 The text overlays are the marks Neovim draws over code. A selection, a reference, a diagnostic and a misspelling tint or
 underline it and leave its colors alone, so they never hide what kind of token they cover. A search match and the
