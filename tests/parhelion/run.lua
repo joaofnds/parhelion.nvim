@@ -2916,7 +2916,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 					assert(
 						allocated < reload_kilobytes_without_copies + changes.kilobytes,
 						string.format(
-							"a reload allocates %.0f KB of Lua memory, where a copy of the %d groups it changes takes %.0f KB",
+							"a reload allocates %.0f KB of Lua memory, where a copy of the groups it changes, %d of them, takes %.0f KB",
 							allocated,
 							changes.count,
 							changes.kilobytes
