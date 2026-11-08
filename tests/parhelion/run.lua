@@ -67,9 +67,10 @@ local function test(name, body)
 	end
 end
 
-local function start_world(theme, path, plugins)
+local function start_world(theme, path, plugins, options)
 	local xdg = deps .. "/xdg"
 	local world = xdg .. "/" .. theme
+	local installed = options == nil or options.installed
 	return Nvim.spawn {
 		args = { "-u", root .. "/tests/parhelion/init.lua", "-i", "NONE", "-n" },
 		cwd = fixture,
@@ -81,6 +82,7 @@ local function start_world(theme, path, plugins)
 			PARHELION_THEME = theme,
 			PARHELION_FIRST = path.first,
 			PARHELION_PLUGINS = plugins and "1" or "0",
+			PARHELION_INSTALLED = installed and "1" or "0",
 			XDG_DATA_HOME = xdg .. "/data",
 			XDG_CONFIG_HOME = world .. "/config",
 			XDG_STATE_HOME = world .. "/state",
@@ -511,6 +513,62 @@ for _, language in ipairs(query_languages) do
 			expect_none(unmatched, "patterns match nothing")
 		end)
 	end)
+end
+
+for _, language in ipairs(query_languages) do
+	test("every capture the extra " .. language .. " query names draws a color under parhelion", function()
+		in_world("parhelion", paths[1], function(parhelion)
+			local uncolored = parhelion:lua(
+				[[
+				local language, query_path = ...
+				local query = vim.treesitter.query.parse(language, table.concat(vim.fn.readfile(query_path), "\n"))
+
+				local function drawn_fg(name)
+					while name do
+						local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
+						if next(hl) then return hl.fg end
+						name = name:match "^(.*)%.[^.]*$"
+					end
+				end
+
+				return vim.tbl_filter(
+					function(capture) return drawn_fg("@" .. capture .. "." .. language) == nil end,
+					query.captures
+				)
+			]],
+				language,
+				root .. "/after/queries/" .. language .. "/highlights.scm"
+			)
+
+			expect_none(uncolored, "captures draw no color")
+		end)
+	end)
+end
+
+for _, path in ipairs { paths[1], paths[2] } do
+	local installed = start_world("default", path, false)
+	local absent = start_world("default", path, false, { installed = false })
+	local ok, err = xpcall(function()
+		for _, language in ipairs(query_languages) do
+			local sample = samples .. "/" .. views.sample_for(language)
+			test(
+				string.format(
+					"the %s sample draws the same under another colorscheme with parhelion installed, %s",
+					language,
+					path.label
+				),
+				function()
+					views.open_with_semantic_tokens(absent, sample, semantic_server_code)
+					views.open_with_semantic_tokens(installed, sample, semantic_server_code)
+
+					expect_same_render(absent, installed)
+				end
+			)
+		end
+	end, debug.traceback)
+	installed:close()
+	absent:close()
+	if not ok then record_failure("worlds under another colorscheme, " .. path.label, err) end
 end
 
 local group_colors_code = [[

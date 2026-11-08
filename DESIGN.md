@@ -42,6 +42,11 @@ Plugin support below for how they are checked.
 | `LICENSE.md` | The license |
 | `assets/screenshot.png` | The README screenshot |
 
+Neovim loads the extra queries whenever parhelion's `after` directory is on the runtimepath, whatever colorscheme is
+active. So they name their captures under `@parhelion`, such as `@parhelion.function`, and the base tables link each one
+to the capture it stands for, here `@function`. Neovim falls a capture back along its dots and nothing else defines
+`@parhelion`, so under another colorscheme those captures draw nothing and code looks as it does without parhelion.
+
 ## How a load works
 
 `require("parhelion").load()` runs these steps:
@@ -216,7 +221,9 @@ Every comparison runs on all four load paths. The checks on query files run once
   identifier as a `type` semantic token. The lua and javascript queries only change the screen when a language server is
   attached, because their priorities of 130 and 127 exist to beat semantic tokens at 125. The tsx query also changes it
   with no server.
-- Each extra query parses and each of its patterns matches its sample.
+- Each extra query parses, each of its patterns matches its sample, and each capture it names draws a color.
+- Under Neovim's default colorscheme, in dark and light and under the fake language server, the css, scss, javascript,
+  tsx and lua samples render the same with parhelion on the runtimepath as without it.
 - The base tables and the extra queries hold the contents `tests/parhelion/approved_files.lua` pins, and every query
   file has a pin. The lualine theme, the feline statusline and the reactive presets hold the colors
   `tests/parhelion/approved_presets.lua` pins.

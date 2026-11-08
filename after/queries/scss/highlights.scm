@@ -1,7 +1,7 @@
 ; extends
 
-((nesting_selector) @keyword
+((nesting_selector) @parhelion.keyword
   (#set! priority 125))
 
 (declaration
-  (variable_value) @string)
+  (variable_value) @parhelion.string)

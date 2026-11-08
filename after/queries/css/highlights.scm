@@ -1,15 +1,13 @@
 ; extends
 
-(integer_value) @number
+(integer_value) @parhelion.number
 
-((plain_value) @constant
+((plain_value) @parhelion.constant
   (#set! priority 125))
 
-(property_name) @field
-
-((selectors) @type
+((selectors) @parhelion.type
   (#set! priority 125))
 
-(tag_name) @tag
+(tag_name) @parhelion.tag
 
-(unit) @keyword
+(unit) @parhelion.keyword

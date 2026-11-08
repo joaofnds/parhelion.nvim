@@ -1,9 +1,9 @@
 return {
-	["after/queries/css/highlights.scm"] = "d7b674815c01d0c6c03f722d0e5ef3fd9f0fa1e5810c9d6a18e6524ca4508c6c",
-	["after/queries/javascript/highlights.scm"] = "5209150c163896d00cf32170878c7282f32008bb2e5c75e284bec7402028833c",
-	["after/queries/lua/highlights.scm"] = "2d637c6c0c66a21f9813064e32b4664654772aa0454a5d88d39861e11633ab92",
-	["after/queries/scss/highlights.scm"] = "551288a7dfba670d105c3b13838b647b833733a8ba0283625f962400c82f4010",
-	["after/queries/tsx/highlights.scm"] = "5209150c163896d00cf32170878c7282f32008bb2e5c75e284bec7402028833c",
-	["lua/parhelion/base/dark.lua"] = "aca566f0e313fe83f8a9d918590e9564151632370c278efd2a14f7a4683fc582",
-	["lua/parhelion/base/light.lua"] = "e491289d1da8c07e0dce36d364d923565bc0a8f7db1c37f4a9bf353c72b388d8",
+	["after/queries/css/highlights.scm"] = "eeedab9160ebbd53122ff41f634428616ea7dec6bff0e407643d233fc138e568",
+	["after/queries/javascript/highlights.scm"] = "d742965f2fd8a5f9182e997c597ea629a310520081dfc711f84083af94bf8737",
+	["after/queries/lua/highlights.scm"] = "a4cd7c660748368346c12ac5fb6f130e40d111f38d8bcaf1d804802768f9d225",
+	["after/queries/scss/highlights.scm"] = "e48f13b1efdaae8920a2677b9c5728f489d819ccf0e74cf09c1597d42d06db37",
+	["after/queries/tsx/highlights.scm"] = "d742965f2fd8a5f9182e997c597ea629a310520081dfc711f84083af94bf8737",
+	["lua/parhelion/base/dark.lua"] = "1a71f856c6dda10778a1c37dce466fd98751b577f89e8686d48d5d084ee99698",
+	["lua/parhelion/base/light.lua"] = "406b681903a673781dcdc91822cebb03b98515bd5fb11dc02a7ca83adc5c7bcc",
 }

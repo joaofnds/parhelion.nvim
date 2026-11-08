@@ -1,8 +1,10 @@
 local root, deps = vim.env.PARHELION_ROOT, vim.env.PARHELION_DEPS
 local theme = vim.env.PARHELION_THEME
 
-vim.opt.rtp:prepend(root)
-vim.opt.rtp:append(root .. "/after")
+if vim.env.PARHELION_INSTALLED == "1" then
+	vim.opt.rtp:prepend(root)
+	vim.opt.rtp:append(root .. "/after")
+end
 if theme == "base_refined" then vim.opt.rtp:prepend(root .. "/tests/parhelion/base_refined") end
 
 vim.o.number = true

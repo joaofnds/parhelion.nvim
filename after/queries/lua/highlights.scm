@@ -1,5 +1,5 @@
 ; extends
 
 ((function_call
-  name: (identifier) @function)
+  name: (identifier) @parhelion.function)
   (#set! priority 130))
