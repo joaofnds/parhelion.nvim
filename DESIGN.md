@@ -97,7 +97,8 @@ How far that reaches differs by plugin:
   operator-sandwich, colorful-winsep, symbols-outline, todo-comments, yanky, artio, nvim-ufo, treesitter-context,
   lightspeed, pounce, window-picker, blink.indent, blink.pairs, coc.nvim, copilot.vim, dadbod-ui, fern, notifier,
   signify, telekasten, vimwiki and nvim-ts-rainbow. Their roles are checked as groups only.
-- **The base tables' own groups**: gitgutter, whose groups the base tables set.
+- **The base tables' own groups**: gitgutter, whose groups the base tables set, apart from the added sign and number,
+  which the diff marks set.
 - **Loaded and nothing else**: `tests/parhelion/plugins.lua` also loads yazi.nvim and nvim-surround, so the group
   comparison runs with them present. Neither has a family or a view.
 
@@ -112,9 +113,9 @@ That writes one HTML sheet for each pair of views, with dark and light side by s
 only the group check behind it, and nobody has looked at it.
 
 Comparing a sheet's two sides shows code changing hue between modes. The base tables color constants violet in dark and
-magenta in light, types orange and yellow, and added lines blue and green. Plugin interfaces use the same roles in both
-modes, apart from markdown headings, lazy.nvim's load reasons, buttons and home heading, which follow the core groups
-lazy.nvim links them to, and which-key's and mini.clue's groups, which follow the same swap.
+magenta in light, and types orange and yellow. Plugin interfaces use the same roles in both modes, apart from markdown
+headings, lazy.nvim's load reasons, buttons and home heading, which follow the core groups lazy.nvim links them to, and
+which-key's and mini.clue's groups, which follow the same swap.
 
 ### Adding a plugin
 
@@ -147,10 +148,10 @@ To check it by eye, add the plugin's pinned commit to `tests/parhelion/deps.txt`
 `tests/parhelion/popular/views.lua`, whose `plugins` list names that dependency, then render the sheets above. Add the
 plugin to the list in `README.md`.
 
-Every name in a family needs a look pinned in `tests/parhelion/approved.lua` for the diff lines, Diffview, gitsigns,
-headlines, lazy.nvim, markdown text, markview, mason, mini.clue, mini.diff, Neogit, render-markdown and which-key, and
-every role in any family needs one, because those pins are what fail when a color changes by accident. The `has a pinned
-look` tests name what is missing. Each link's resolved look is pinned there too.
+Every name in a family needs a look pinned in `tests/parhelion/approved.lua` for the diff lines, the diff marks,
+Diffview, gitsigns, headlines, lazy.nvim, markdown text, markview, mason, mini.clue, mini.diff, Neogit, render-markdown
+and which-key, and every role in any family needs one, because those pins are what fail when a color changes by
+accident. The `has a pinned look` tests name what is missing. Each link's resolved look is pinned there too.
 
 A Neogit update can add groups it derives by dimming. The `every Neogit group clears the text floor` test catches those,
 and the fix is the group's name under a role in the `neogit` family, with its pin.
@@ -256,5 +257,5 @@ a failure, so check that it is enabled.
 
 ## Plugin-only colors
 
-Octo's diff tints are named in its family and take the washes, because a green tint for added text would disagree with
-the base tables' blue added lines in dark.
+Octo's diff tints are named in its family and take the washes, so a change in an Octo review looks the same as in a diff
+window.

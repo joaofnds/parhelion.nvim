@@ -1057,6 +1057,7 @@ for _, background in ipairs { "dark", "light" } do
 		{ name = "a changed word in gitsigns", word = "GitSignsChangeInline", line = "DiffChange" },
 		{ name = "a changed word in a mini.diff overlay", word = "MiniDiffOverChange", line = "DiffChange" },
 		{ name = "a changed word in a diff window", word = "DiffText", line = "DiffChange" },
+		{ name = "an added word in a changed line", word = "DiffTextAdd", line = "DiffChange" },
 	} do
 		test(string.format("%s stands out from its line in %s", case.name, background), function()
 			local groups = require("parhelion.chrome").groups(background)
@@ -1211,6 +1212,8 @@ for _, case in ipairs {
 	{ name = "Diffview's inactive status line", group = "DiffviewStatuslineNC", found = true },
 	{ name = "a gutter line", group = "GitSignsAddLn", found = true },
 	{ name = "a staged sign", group = "GitSignsStagedAdd", found = true },
+	{ name = "gitgutter's changed sign", group = "GitGutterChange", found = true },
+	{ name = "gitgutter's changed number", group = "GitGutterChangeLineNr", found = true },
 	{ name = "the fold column", group = "FoldColumn", found = true },
 	{ name = "a closed fold", group = "Folded", found = true },
 	{ name = "a lualine section", group = "lualine_a_normal", found = true },
@@ -1235,6 +1238,8 @@ for _, case in ipairs {
 	{ name = "the gutter's added sign", group = "GitSignsAdd", found = false },
 	{ name = "the added syntax group", group = "Added", found = false },
 	{ name = "an added line in a diff file", group = "@diff.plus", found = false },
+	{ name = "gitgutter's added sign", group = "GitGutterAdd", found = false },
+	{ name = "gitgutter's added number", group = "GitGutterAddLineNr", found = false },
 	{ name = "a picker group", group = "TelescopeNormal", found = false },
 } do
 	test(string.format("the boundary check %s %s", case.found and "reports" or "accepts", case.name), function()
@@ -1331,6 +1336,7 @@ end)
 for _, background in ipairs { "dark", "light" } do
 	for _, family_name in ipairs {
 		"diff_lines",
+		"diff_marks",
 		"diffview",
 		"gitsigns",
 		"headlines",

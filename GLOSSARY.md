@@ -48,14 +48,15 @@ differences between kinds of text, and quiet text recedes.
 Neovim highlights through `@lsp.*` groups at a priority above treesitter's.
 
 **Signal color**: an accent that holds one meaning wherever it marks a state: red for errors and removals, yellow for
-warnings, conflicts and a change among unchanged things, green for success.
+warnings, conflicts and a change among unchanged things, green for success and added things.
 
 **Surface**: a background on one fixed step of a neutral scale. Parhelion's are float, page, raised and selected.
 
 **Terminal colors**: the 16 ANSI colors Neovim gives to programs running in its terminal
 buffers.
 
-**Wash**: a faint tint of a signal or added color that fills a row and sets no text color, so code keeps its syntax.
+**Wash**: a faint tint that fills a row and sets no text color, so code keeps its syntax. A diff's washes are green for
+added rows, blue for changed rows and red for removed rows.
 
-**Word wash**: a stronger blend of a signal or added color over the page that marks the words that changed inside a
-row. It carries strong text.
+**Word wash**: a stronger blend of a wash's hue over the page that marks the words that changed inside a row. It carries
+strong text.

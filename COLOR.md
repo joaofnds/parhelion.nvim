@@ -221,14 +221,15 @@ The rules, in both modes:
    Diffview's panel, where they are body.
 3. One interface accent, Solarized blue, marks focus and matches. In Neogit, Diffview and Trouble it also marks paths,
    folders and popup titles. Other plugins' directories and paths stay neutral.
-4. A signal color keeps one meaning everywhere: red for errors and removals, yellow for warnings, conflicts and a
-   change among unchanged things, as in the gutter or a file tree, and green for success and for added things. Diffs
-   are where parhelion leaves Solarized's mapping, whose dark tables paint added lines blue, the accent's color, while a
-   reader expects a diff in green and red. So `Added`, `@diff.plus`, the gutter's added sign and every plugin's added
-   mark are green in both modes. Neovim's `PreInsert` and fzf-lua's `FzfLuaCmdBuf` link to `Added` without showing a
-   diff, so they keep the base tables' color.
-   Hints share the accent, as the base tables' diagnostics do. A label may reuse these hues without the meaning, which
-   is how a Neogit tag is yellow, a remote green, and markdown's headings run through the base tables' colors.
+4. A signal color keeps one meaning everywhere: red for errors and removals, yellow for warnings, conflicts and a change
+   among unchanged things, as in the gutter or a file tree, and green for success and for added things. Diffs are where
+   parhelion leaves Solarized's mapping, whose dark tables paint added lines blue, the accent's color, while a reader
+   expects a diff in green and red. So `Added`, `@diff.plus`, the gutter's added sign and every plugin's added mark are
+   green in both modes. A diff's changed rows and words are tinted blue, the one place the accent's hue marks a change,
+   while the gutter's changed sign stays yellow. Neovim's `PreInsert` and fzf-lua's `FzfLuaCmdBuf` link to `Added`
+   without showing a diff, so they keep the base tables' color. Hints share the accent, as the base tables' diagnostics
+   do. A label may reuse these hues without the meaning, which is how a Neogit tag is yellow, a remote green, and
+   markdown's headings run through the base tables' colors.
 5. A changed word sits on a word wash, a stronger blend of Solarized's published color over the page, and takes strong
    text. Solid fills are for jump labels, which are a character wide, and window picker labels, which fill a status
    line. Severity sits on an icon or a bar and the text stays neutral.
@@ -282,21 +283,23 @@ warmth.
 
 Every group `chrome.lua` names may differ from the base tables, and that file is the complete list. It takes in the
 plugins the base tables style, such as telescope, nvim-tree, neo-tree, nvim-notify and noice, the plugins that draw from
-core groups, such as which-key, blink.cmp, trouble, flash, fzf-lua and grug-far, and some core groups:
-`Directory`, `Title`, `FloatBorder`, `FloatTitle`, `FloatFooter`, `Pmenu*`, `WinBar`, `WildMenu`, the tab line, window
-separators in every window, the diff lines, markdown's Vim syntax headings, `markdownH1` to `markdownH6`, and the
-command line's expression groups `NvimFigureBrace`, `NvimInternalError`, `NvimInvalidSingleQuotedUnknownEscape` and
-`NvimSingleQuotedUnknownEscape`. A plugin whose default links to one of those core groups follows it, and gets a family
-when the result needs a role.
+core groups, such as which-key, blink.cmp, trouble, flash, fzf-lua and grug-far, and some core groups: `Directory`,
+`Title`, `FloatBorder`, `FloatTitle`, `FloatFooter`, `Pmenu*`, `PreInsert`, `WinBar`, `WildMenu`, the tab line, window
+separators in every window, the diff lines, `Added`, `@diff.plus`, markdown's Vim syntax headings, `markdownH1` to
+`markdownH6`, and the command line's expression groups `NvimFigureBrace`, `NvimInternalError`,
+`NvimInvalidSingleQuotedUnknownEscape` and `NvimSingleQuotedUnknownEscape`. A plugin whose default links to one of those
+core groups follows it, and gets a family when the result needs a role.
 
 Code syntax, `Normal`, `NormalFloat`, `Comment`, diagnostics, LSP references and the active signature parameter, the
 cursor line and column, the gutter and fold column, `Visual`, `Search`, `MatchParen`, `Conceal`, the status line,
-lualine and gitsigns' signs do not differ, apart from the added sign that rule 4 makes green, and gitsigns' line
-highlights follow the diff lines they link to. A check in `tests/parhelion/restraint.lua` fails when a family names one
-of them, a group Neogit or Diffview uses to stand in for one of them, or a group from a Vim syntax file. The exceptions
-are `Added`, `@diff.plus` and `GitSignsAdd`, which rule 4 colors, `markdownH1` to `markdownH6`, `LspKind*`, lspsaga's
-`DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups. render-markdown's
-heading bands count as the base tables', so the refinement sets the one they lack, light's sixth level, by their recipe.
+lualine and the gutter's signs do not differ, apart from gitsigns' and gitgutter's added sign and number, which rule 4
+makes green, and lualine's count of added lines, which takes that sign's color. gitsigns' line highlights follow the
+diff lines they link to. A check in `tests/parhelion/restraint.lua` fails when a family names one of them, a group
+Neogit or Diffview uses to stand in for one of them, or a group from a Vim syntax file. The exceptions are `Added`,
+`@diff.plus`, `GitSignsAdd`, `GitGutterAdd` and `GitGutterAddLineNr`, which rule 4 colors, `markdownH1` to `markdownH6`,
+`LspKind*`, lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
+render-markdown's heading bands count as the base tables', so the refinement sets the one they lack, light's sixth
+level, by their recipe.
 
 One family paints over code, because it is a plugin's and not code's. mini.cursorword marks each other instance of the
 word under the cursor. The base tables recolor those instances teal in dark and bold magenta on pink in light, which
@@ -337,12 +340,15 @@ color, so code keeps its syntax. `DiffText`, Neogit's inline groups, gitsigns' a
 word wash with strong text. Each word wash differs from its row by a color difference of 12.2 to 14.4, and strong text
 reads at 4.52:1 to 6.10:1 on it. That costs a changed word its syntax colors. On a word wash the accents reach 2.20:1 to
 3.58:1 in dark and 2.34:1 to 3.14:1 in light, body text 2.75:1 to 3.71:1 and the keyword monotone at most 4.48:1.
-Neogit's inline words are bold and `DiffText` is not. `DiffDelete` draws only the filler rows of a diff window, as quiet
-dashes on its wash. `DiffChange` needs its own wash and not the raised step, which is the cursor line's, because a
-changed line does not always hold a changed word: undotree, gitsigns' line highlights and `diffopt` `inline:none` draw
-the row alone. Neogit's hunks, gitsigns' previews and deleted lines, mini.diff's deleted overlay and Snacks' diffs use
-the same washes with no text color, so a change looks the same in each, and an added or removed row's tint matches the
-gutter sign beside it. Neogit's cursor brightens the text on a tinted row and steps up to selected on a context row.
+Neogit's inline words are bold and `DiffText` is not. `DiffTextAdd`, the text a changed line gains, takes the added word
+wash, which differs from the changed row by 24.4 to 37.3. Light's changed row is nearly neutral, a cool tint at hue 202
+and chroma 0.015, because a faint blend of blue over the cream page passes through gray, and a bluer row falls outside
+the theme's colors. `DiffDelete` draws only the filler rows of a diff window, as quiet dashes on its wash. `DiffChange`
+needs its own wash and not the raised step, which is the cursor line's, because a changed line does not always hold a
+changed word: undotree, gitsigns' line highlights and `diffopt` `inline:none` draw the row alone. Neogit's hunks,
+gitsigns' previews and deleted lines, mini.diff's deleted overlay and Snacks' diffs use the same washes with no text
+color, so a change looks the same in each, and an added or removed row's tint matches the gutter sign beside it.
+Neogit's cursor brightens the text on a tinted row and steps up to selected on a context row.
 
 | Wash | Dark | On page | Light | On page |
 | --- | --- | --- | --- | --- |
@@ -405,13 +411,13 @@ Departs:
   selected at 4.17 and 3.89, the accent on selected at 3.94 and 3.12, quiet on raised at 3.48 and 3.27, and quiet on
   float at 4.21 and 3.61. Quiet text is counts, paths and kinds that the row around it already explains. Raising these
   pairs means less separation between the steps, which is what the hierarchy is made of.
-- On the washes, in dark and then light, quiet text reads at 3.37 to 3.41 and 3.37 to 3.47, comments at 3.37 to 3.41
-  and 3.17 to 3.26, and the accent and signals at 3.78 to 4.60 and 3.63 to 4.00. Dark inlay hints fall under the
-  floor there, at Lc 27.7 to 28.1, as they do on the cursor line at Lc 28.4, and no tested view draws that case.
-- Red-green colorblind vision is worse served in one respect. Simulated at full severity,
-  the accent pairs closer than a difference of 5 go from 3 in the specification to 6 in each mode under
-  deuteranopia, and from 1 to 2 in dark and 1 in light under protanopia. Green and orange go from 5.8 to
-  2.6 in dark and 2.2 in light. Diffs still carry `+` and `-` signs.
+- On the washes, in dark and then light, quiet text reads at 3.37 to 3.40 and 3.37 to 3.38, comments at 3.37 to 3.40 and
+  3.17 to 3.18, and the accent and signals at 3.78 to 4.58 and 3.63 to 3.90. Dark inlay hints fall under the floor
+  there, at Lc 27.7 to 28.1, as they do on the cursor line at Lc 28.4, and no tested view draws that case.
+- Red-green colorblind vision is worse served in one respect. Simulated at full severity, the accent pairs closer than a
+  difference of 5 go from 3 in the specification to 6 in each mode under deuteranopia, and from 1 to 2 in dark and 1 in
+  light under protanopia. Green and orange go from 5.8 to 2.6 in dark and 2.2 in light. Diffs pair green with red, the
+  pair this vision confuses most, and carry `+` and `-` signs.
 - "Easy on the eyes" is not measured. Everything here measures contrast, and nothing here measures
   comfort over a long session.
 - Some plugin colors are out of the theme's reach:
@@ -459,12 +465,12 @@ Departs:
 ## How the suite holds this
 
 The suite renders the base tables with `refinement.lua` applied on top, renders parhelion, and compares every cell and
-every group. Only the groups `chrome.lua` names may differ. On the base side it applies eight chrome families and no
-others: bufferline, the tab line, window separators, markdown text, mini.cursorword, the diff lines, Neogit and
-Diffview, because they frame or fill the buffers the views compare. So any other chrome group that reaches a code,
-Neogit or Diffview screen by accident shows up as a difference. A change to `refinement.lua`, the base tables or the
-extra queries applies to both sides and that comparison stays green, so these tests judge those files and `chrome.lua`
-themselves:
+every group. Only the groups `chrome.lua` names may differ. On the base side it applies nine chrome families and no
+others: bufferline, the tab line, window separators, markdown text, mini.cursorword, the diff lines, the diff marks,
+Neogit and Diffview, because they frame or fill the buffers the views compare. So any other chrome group that reaches a
+code, Neogit or Diffview screen by accident shows up as a difference. A change to `refinement.lua`, the base tables or
+the extra queries applies to both sides and that comparison stays green, so these tests judge those files and
+`chrome.lua` themselves:
 
 - `tests/parhelion/approved_files.lua` holds a checksum of the base tables and the extra queries, and
   `tests/parhelion/approved_presets.lua` pins the lualine theme's colors, so changing one means changing its pin on
@@ -472,9 +478,9 @@ themselves:
 - `tests/parhelion/approved.lua` lists one group for each tone, every repaired group and at least one group for each
   role in each family of `chrome.lua` with their exact look, per mode, and each row is a test on the two load paths that
   end in that mode. A test fails when a tone or a role has no pinned group, or when a name has none in the diff lines,
-  Diffview, gitsigns, headlines, lazy.nvim, markdown text, markview, mason, mini.clue, mini.diff, Neogit,
-  render-markdown or which-key, since those are the families whose hues and washes the other checks accept. Changing a
-  tone, a repair, a step or a role means changing this table on purpose.
+  the diff marks, Diffview, gitsigns, headlines, lazy.nvim, markdown text, markview, mason, mini.clue, mini.diff,
+  Neogit, render-markdown or which-key, since those are the families whose hues and washes the other checks accept.
+  Changing a tone, a repair, a step or a role means changing this table on purpose.
 - On each wash a comment clears Lc 30, body text reaches 4.5:1, and the raised step sits at least 5 away. `DiffChange`
   holds its wash, and Neogit's cursor rows and focused header differ from the rows around them.
 - A changed word in a diff window, in Neogit, in gitsigns or in mini.diff differs from its row by a color difference of
@@ -485,9 +491,9 @@ themselves:
   unless it is a step of the chrome scale or a label hue.
 - No family names a group that holds code, a Vim syntax file's group, a diagnostic, an LSP reference, the gutter, the
   fold column, the status line or lualine, or a Neogit or Diffview group that stands in for the page, cursor line,
-  gutter or status line, apart from markdown's Vim syntax headings, completion kinds, lspsaga's `DiagnosticText`,
-  nvim-ts-rainbow's columns and telekasten's syntax groups. render-markdown's heading bands
-  count as the base tables' too.
+  gutter or status line, apart from the added syntax groups and gutter signs, markdown's Vim syntax headings, completion
+  kinds, lspsaga's `DiagnosticText`, nvim-ts-rainbow's columns and telekasten's syntax groups. render-markdown's heading
+  bands count as the base tables' too.
 - Each new tone stays within the difference limit, and each saturated tone within a degree of its source
   hue, with orange named as the exception. Its source color is one the base tables really use.
 - The page colors stay fixed.
