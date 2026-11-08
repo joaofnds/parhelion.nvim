@@ -10,12 +10,11 @@ CONTENTS                                                  *parhelion-contents*
   5. Theme files ................................ |parhelion-theme-files|
 
 ==============================================================================
-1. INTRODUCTION                               *parhelion* *parhelion-introduction*
+1. INTRODUCTION                           *parhelion* *parhelion-introduction*
 
 Parhelion is a colorscheme that draws code in a modern take on Solarized, in
 dark and in light, and gives plugin interfaces a quiet, consistent look of its
-own. It follows 'background': set it and load the colorscheme again to switch
-modes.
+own. It follows 'background', so setting it switches modes.
 
 Parhelion needs Neovim 0.12 or later with 'termguicolors' on. Its test suite
 runs on Neovim 0.12, and nothing older is tested.
@@ -115,7 +114,9 @@ overrides ~
 
     require("parhelion").setup {
         overrides = function(colors)
-            return { CursorLineNr = { fg = colors.violet, bg = colors.raised } }
+            return {
+                CursorLineNr = { fg = colors.violet, bg = colors.raised },
+            }
         end,
     }
 <
@@ -134,7 +135,7 @@ overrides ~
       and `green`.
     Reading a name not in this list raises an error.
 
-                                                     *parhelion-plugins-option*
+                                                    *parhelion-plugins-option*
 plugins ~
     A table from a plugin's name in |parhelion-plugins| to `false`, which
     leaves that plugin's groups to the plugin: parhelion sets none of them,
@@ -156,23 +157,37 @@ Parhelion sets groups for these plugins, named as their repositories are, and
 
 	aerial.nvim  ale  alpha-nvim  artio.nvim  avante.nvim  barbar.nvim
 	beacon.nvim  blink.cmp  blink.indent  blink.pairs  bufferline.nvim
-	buffon.nvim  coc.nvim  colorful-winsep.nvim  copilot.vim  dashboard-nvim
-	diffview.nvim  dropbar.nvim  fidget.nvim  flash.nvim  fzf  fzf-lua
-	gitgraph.nvim  gitsigns.nvim  grug-far.nvim  harpoon  headlines.nvim
-	hop.nvim  indent-blankline.nvim  indentmini.nvim  lazy.nvim  leap.nvim
-	lightspeed.nvim  lir.nvim  lspsaga.nvim  markview.nvim  mason.nvim
-	mini.nvim  neo-tree.nvim  neogit  neotest  noice.nvim  notifier.nvim
-	nvim-cmp  nvim-dap  nvim-dap-ui  nvim-navic  nvim-notify  nvim-surround
-	nvim-tree.lua  nvim-treesitter-context  nvim-ts-rainbow
-	nvim-ts-rainbow2  nvim-ufo  nvim-window-picker  octo.nvim  oil.nvim
-	overseer.nvim  pounce.nvim  rainbow-delimiters.nvim
-	render-markdown.nvim  snacks.nvim  symbols-outline.nvim  telekasten.nvim
-	telescope.nvim  todo-comments.nvim  trouble.nvim  undotree
-	vim-dadbod-ui  vim-fern  vim-gitgutter  vim-illuminate  vim-sandwich
-	vim-signify  vim-sneak  vimwiki  which-key.nvim  yanky.nvim
+	buffon.nvim  coc.nvim  colorful-winsep.nvim  copilot.vim
+	dashboard-nvim  diffview.nvim  dropbar.nvim  fidget.nvim  flash.nvim
+	fzf  fzf-lua  gitgraph.nvim  gitsigns.nvim  grug-far.nvim  harpoon
+	headlines.nvim  hop.nvim  indent-blankline.nvim  indentmini.nvim
+	lazy.nvim  leap.nvim  lightspeed.nvim  lir.nvim  lspsaga.nvim
+	markview.nvim  mason.nvim  mini.nvim  neo-tree.nvim  neogit  neotest
+	noice.nvim  notifier.nvim  nvim-cmp  nvim-dap  nvim-dap-ui  nvim-navic
+	nvim-notify  nvim-surround  nvim-tree.lua  nvim-treesitter-context
+	nvim-ts-rainbow  nvim-ts-rainbow2  nvim-ufo  nvim-window-picker
+	octo.nvim  oil.nvim  overseer.nvim  pounce.nvim
+	rainbow-delimiters.nvim  render-markdown.nvim  snacks.nvim
+	symbols-outline.nvim  telekasten.nvim  telescope.nvim
+	todo-comments.nvim  trouble.nvim  undotree  vim-dadbod-ui  vim-fern
+	vim-gitgutter  vim-illuminate  vim-sandwich  vim-signify  vim-sneak
+	vimwiki  which-key.nvim  yanky.nvim
 
-None of them needs any setup for it, apart from the theme files in
-|parhelion-theme-files|.
+None of them needs any setup for parhelion to color it, apart from the theme
+files in |parhelion-theme-files|. Some of their own settings change how they
+look with it:
+- nvim-web-devicons: `color_icons = false` draws every icon in one gray, since
+  a few of its own colors are dim on a dark page.
+- nvim-cmp: `cmp.config.window.bordered()` draws a selected row with the
+  selection's fill, and on Neovim 0.11 and later it draws no border unless
+  'winborder' is set or `border = "rounded"` is passed.
+- bufferline.nvim: `diagnostics` dims its counts in dark, and
+  `show_buffer_icons` draws inactive icons on a shade parhelion does not
+  use. Turning both off avoids this.
+- alpha-nvim: the stock dashboard draws its header with `Type`, so it is
+  orange. `dashboard.section.header.opts.hl` takes another group.
+- neo-tree.nvim: `name = { use_git_status_colors = false }` keeps a changed
+  file's name neutral, as nvim-tree's are.
 
 ==============================================================================
 5. THEME FILES                                         *parhelion-theme-files*
@@ -194,13 +209,15 @@ bufferline.nvim ~
     every `BufferLine` group the tab bar draws with.
 
 feline.nvim ~
-    `require "parhelion.feline"`.
+    `components = require("parhelion.feline").get_statusline()` in feline's
+    setup. Call `require("parhelion.feline").setup {}` before it to replace
+    parts of its `assets`, `settings`, `mode_colors` or `view` tables.
 
 reactive.nvim ~
     `load = { "parhelion-cursor", "parhelion-cursorline" }`.
 
 The barbecue, feline and reactive files read 'background' when they are
 first required, so after a toggle they keep the earlier mode's colors until
-they are loaded again or Neovim restarts.
+Neovim restarts.
 
  vim:tw=78:ts=8:noet:ft=help:norl:
