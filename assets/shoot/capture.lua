@@ -3,8 +3,6 @@ local root, deps, project = vim.env.PARHELION_ROOT, vim.env.PARHELION_DEPS, vim.
 local out, font = arg[1], vim.env.SHOOT_FONT
 local Nvim = dofile(root .. "/tests/parhelion/driver.lua")
 
-function Nvim:on_grid_cursor_goto(_, row, col) self.cursor = { row = row + 1, col = col + 1 } end
-
 local function command(nvim, text) nvim:request("nvim_command", text) end
 
 local function wait_for(nvim, condition)
@@ -60,8 +58,20 @@ local scenes = {
 	{ name = "diff", cols = 156, rows = 30, run = diff },
 }
 
-local function same_style(a, b)
-	return a.fg == b.fg and a.bg == b.bg and a.sp == b.sp and a.flags == b.flags and a.cursor == b.cursor
+local function same_style(a, b) return a.fg == b.fg and a.bg == b.bg and a.sp == b.sp and a.flags == b.flags end
+
+local underlines = {
+	{ "undercurl", "wavy" },
+	{ "underdouble", "double" },
+	{ "underdotted", "dotted" },
+	{ "underdashed", "dashed" },
+	{ "underline", "solid" },
+}
+
+local function underline_of(flags)
+	for _, underline in ipairs(underlines) do
+		if flags[underline[1]] then return underline[2] end
+	end
 end
 
 local function style_of(cell, cursor)
@@ -73,30 +83,34 @@ local function style_of(cell, cursor)
 	if flags.reverse then
 		fg, bg = bg, fg
 	end
-	if cell.cursor then
+	if cursor then
 		fg, bg = cursor.fg or bg, cursor.bg or fg
 	end
 
 	local style = { "color:" .. fg, "background:" .. bg }
 	if flags.bold then table.insert(style, "font-weight:700") end
 	if flags.italic then table.insert(style, "font-style:italic") end
-	local line = flags.undercurl and "wavy" or (flags.underline or flags.underdouble or flags.underdashed) and "solid"
-	if line then
-		table.insert(style, "text-decoration:underline " .. line .. " " .. (cell.sp or fg))
+	local underline = underline_of(flags)
+	if underline then
+		table.insert(style, "text-decoration:underline " .. underline .. " " .. (cell.sp or fg))
 		table.insert(style, "text-underline-offset:3px")
 	end
-	if flags.strikethrough then table.insert(style, "text-decoration:line-through") end
 
 	return table.concat(style, ";")
 end
 
 local function escape(text) return (text:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) end
 
-local function row_html(cells, cursor)
+local function row_html(cells, cursor_col, cursor)
 	local parts, first = {}, 1
 	while first <= #cells do
 		local last = first
-		while last < #cells and same_style(cells[last + 1], cells[first]) do
+		while
+			last < #cells
+			and first ~= cursor_col
+			and last + 1 ~= cursor_col
+			and same_style(cells[last + 1], cells[first])
+		do
 			last = last + 1
 		end
 
@@ -104,13 +118,15 @@ local function row_html(cells, cursor)
 		for index = first, last do
 			table.insert(texts, cells[index].text)
 		end
+		local text = escape(table.concat(texts))
+		if cells[first].flags:find "strikethrough" then text = "<s>" .. text .. "</s>" end
 		table.insert(
 			parts,
 			string.format(
 				'<span style="width:%dch;%s">%s</span>',
 				last - first + 1,
-				style_of(cells[first], cursor),
-				escape(table.concat(texts))
+				style_of(cells[first], first == cursor_col and cursor or nil),
+				text
 			)
 		)
 		first = last + 1
@@ -119,11 +135,11 @@ local function row_html(cells, cursor)
 	return '<div class="r">' .. table.concat(parts) .. "</div>"
 end
 
-local function page(shot, cursor_at, cursor)
+local function page(shot, cursor)
 	local rows = {}
 	for index, cells in ipairs(shot.rows) do
-		if cursor_at and index == cursor_at.row then cells[cursor_at.col].cursor = true end
-		table.insert(rows, row_html(cells, cursor))
+		local cursor_col = index == shot.cursor.row and shot.cursor.col or nil
+		table.insert(rows, row_html(cells, cursor_col, cursor))
 	end
 
 	return table.concat {
@@ -158,7 +174,7 @@ for _, scene in ipairs(scenes) do
 				return { fg = hex(hl.fg), bg = hex(hl.bg) }
 			]]
 			local path = string.format("%s/%s-%s.html", out, scene.name, mode)
-			vim.fn.writefile({ page(shot, nvim.cursor, cursor) }, path)
+			vim.fn.writefile({ page(shot, cursor) }, path)
 			print(path)
 		end)
 		nvim:close()

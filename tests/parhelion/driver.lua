@@ -20,6 +20,7 @@ function Nvim.spawn(opts)
 		attrs = {},
 		rows = opts.rows,
 		cols = opts.cols,
+		cursor = { row = 0, col = 0 },
 		last_change = vim.uv.now(),
 		unpacker = vim.mpack.Unpacker(),
 		errors = {},
@@ -104,6 +105,8 @@ function Nvim:on_grid_line(_, row, col, cells)
 		end
 	end
 end
+
+function Nvim:on_grid_cursor_goto(_, row, col) self.cursor = { row = row, col = col } end
 
 function Nvim:on_grid_scroll(_, top, bot, left, right, rows)
 	self.last_change = vim.uv.now()
@@ -203,7 +206,7 @@ function Nvim:capture()
 				{ text = cell[1], fg = style.fg, bg = style.bg, sp = style.sp, flags = style.flags }
 		end
 	end
-	return { rows = rows, defaults = self.defaults }
+	return { rows = rows, defaults = self.defaults, cursor = { row = self.cursor.row + 1, col = self.cursor.col + 1 } }
 end
 
 -- Unlike capture, it forces no redraw, so it shows what Neovim chose to draw.
