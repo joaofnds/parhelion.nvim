@@ -1,4 +1,6 @@
+---@type string, string
 local root, deps = vim.env.PARHELION_ROOT, vim.env.PARHELION_DEPS
+---@type string
 local theme = vim.env.PARHELION_THEME
 
 if vim.env.PARHELION_INSTALLED == "1" then
@@ -29,7 +31,9 @@ if not loaded then
   vim.cmd.cquit()
 end
 
-for _, name in ipairs(dofile(root .. "/tests/parhelion/plugins.lua").rtp) do
+---@module "plugins"
+local plugins = dofile(root .. "/tests/parhelion/plugins.lua")
+for _, name in ipairs(plugins.rtp) do
   if vim.env.PARHELION_PLUGINS == "1" or name == "nvim-treesitter" then vim.opt.rtp:append(deps .. "/" .. name) end
 end
 

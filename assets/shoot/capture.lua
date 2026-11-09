@@ -1,6 +1,13 @@
 -- Drives a sandboxed Neovim through the suite's UI driver and writes each screen the README shows as an HTML page.
+---@class shoot.Cursor
+---@field fg? string
+---@field bg? string
+
+---@type string, string, string
 local root, deps, project = vim.env.PARHELION_ROOT, vim.env.PARHELION_DEPS, vim.env.SHOOT_PROJECT
+---@type string, string
 local out, font = arg[1], vim.env.SHOOT_FONT
+---@module "driver"
 local Nvim = dofile(root .. "/tests/parhelion/driver.lua")
 
 local function command(nvim, text) nvim:request("nvim_command", text) end
@@ -58,6 +65,9 @@ local scenes = {
   { name = "diff", cols = 156, rows = 30, run = diff },
 }
 
+---@param a driver.Cell
+---@param b driver.Cell
+---@return boolean
 local function same_style(a, b) return a.fg == b.fg and a.bg == b.bg and a.sp == b.sp and a.flags == b.flags end
 
 local underlines = {
@@ -74,17 +84,22 @@ local function underline_of(flags)
   end
 end
 
+---@param cell driver.Cell
+---@param cursor? shoot.Cursor
+---@return string
 local function style_of(cell, cursor)
-  local fg, bg = cell.fg, cell.bg
+  ---@type table<string, true>
   local flags = {}
   for flag in cell.flags:gmatch "[^,]+" do
     flags[flag] = true
   end
+  local text, fill = cell.fg, cell.bg
   if flags.reverse then
-    fg, bg = bg, fg
+    text, fill = cell.bg, cell.fg
   end
+  local fg, bg = text, fill
   if cursor then
-    fg, bg = cursor.fg or bg, cursor.bg or fg
+    fg, bg = cursor.fg or fill, cursor.bg or text
   end
 
   local style = { "color:" .. fg, "background:" .. bg }
@@ -99,11 +114,19 @@ local function style_of(cell, cursor)
   return table.concat(style, ";")
 end
 
+---@param text string
+---@return string
 local function escape(text) return (text:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) end
 
+---@param cells driver.Cell[]
+---@param cursor_col? integer
+---@param cursor shoot.Cursor
+---@return string
 local function row_html(cells, cursor_col, cursor)
+  ---@type string[], integer
   local parts, first = {}, 1
   while first <= #cells do
+    ---@type integer
     local last = first
     while
       last < #cells
@@ -135,6 +158,9 @@ local function row_html(cells, cursor_col, cursor)
   return '<div class="r">' .. table.concat(parts) .. "</div>"
 end
 
+---@param shot driver.Shot
+---@param cursor shoot.Cursor
+---@return string
 local function page(shot, cursor)
   local rows = {}
   for index, cells in ipairs(shot.rows) do
@@ -168,6 +194,7 @@ for _, scene in ipairs(scenes) do
     local ok, err = pcall(function()
       scene.run(nvim)
       local shot = nvim:capture()
+      ---@type shoot.Cursor
       local cursor = nvim:lua [[
         local hl = vim.api.nvim_get_hl(0, { name = "Cursor", link = false })
         local function hex(n) return n and string.format("#%06x", n) or nil end

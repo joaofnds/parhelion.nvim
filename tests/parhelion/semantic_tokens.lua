@@ -1,7 +1,13 @@
+---@param line string
+---@return fun(): integer, string
+local function identifiers(line) return line:gmatch "()([%a_][%w_]*)" end
+
+---@param lines string[]
+---@return integer[]
 local function identifier_tokens(lines)
   local data, previous_row, previous_col = {}, 0, 0
   for index, line in ipairs(lines) do
-    for position, word in line:gmatch "()([%a_][%w_]*)" do
+    for position, word in identifiers(line) do
       local row, col = index - 1, position - 1
       local col_delta = row == previous_row and col - previous_col or col
       vim.list_extend(data, { row - previous_row, col_delta, #word, 0, 0 })

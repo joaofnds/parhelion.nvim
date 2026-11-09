@@ -1,3 +1,4 @@
+---@type string, string
 local root, deps = vim.env.PARHELION_ROOT, vim.env.PARHELION_DEPS
 
 vim.opt.rtp:prepend(root)

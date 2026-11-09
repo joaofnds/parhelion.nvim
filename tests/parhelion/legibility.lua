@@ -91,27 +91,75 @@ function M.is_line_art_or_icon(text)
   return (codepoint >= 0x2500 and codepoint <= 0x259F) or M.is_icon(text)
 end
 
+---@class legibility.Illegible
+---@field text string
+---@field background string
+---@field lightness number
+---@field cell string
+
+---@class legibility.UnderFloor
+---@field group string
+---@field text string
+---@field background string
+---@field lightness number
+
+---@class legibility.Tier
+---@field name string
+---@field groups string[]
+---@field ratio number
+---@field lightness number
+
+---@class legibility.BelowTier: legibility.UnderFloor
+---@field ratio number
+
+---@param cell driver.Cell
+---@return string text
+---@return string background
 local function text_and_background(cell)
   if cell.flags:find("reverse", 1, true) then return cell.bg, cell.fg end
   return cell.fg, cell.bg
 end
 
+---@param item driver.DrawnWith
+---@param fill string
+---@param groups driver.GroupColors
+---@return boolean
 local function is_remapped_onto(item, fill, groups)
-  local group = groups[item.name]
+  local name = item.name
+  local group = name and groups[name]
+
   return item.kind == "ui" and group ~= nil and group.bg ~= fill
 end
 
+---@param cell driver.Cell
+---@param background string
+---@param groups? driver.GroupColors
+---@return boolean
 local function is_over_the_selection(cell, background, groups)
   local selection = groups and groups.Visual and groups.Visual.bg
-  local drawing_the_fill = vim.iter(cell.drawn_with):filter(function(item) return item.bg == background end):totable()
-  if background ~= selection or #drawing_the_fill == 0 then return false end
+  ---@type driver.DrawnWith[]
+  local drawing_the_fill = vim
+    .iter(cell.drawn_with)
+    :filter(
+      ---@param item driver.DrawnWith
+      ---@return boolean
+      function(item) return item.bg == background end
+    )
+    :totable()
+  if not groups or background ~= selection or #drawing_the_fill == 0 then return false end
 
-  return vim
-    .iter(drawing_the_fill)
-    :all(function(item) return item.name == "Visual" or is_remapped_onto(item, background, groups) end)
+  return vim.iter(drawing_the_fill):all(
+    ---@param item driver.DrawnWith
+    ---@return boolean
+    function(item) return item.name == "Visual" or is_remapped_onto(item, background, groups) end
+  )
 end
 
+---@param shot { rows: driver.Cell[][], groups?: driver.GroupColors }
+---@param is_exempt fun(text: string): boolean
+---@return legibility.Illegible[]
 function M.illegible_text(shot, is_exempt)
+  ---@type legibility.Illegible[], table<string, true>
   local found, seen = {}, {}
   for _, row in ipairs(shot.rows) do
     for _, cell in ipairs(row) do
@@ -169,6 +217,8 @@ local words_for_line_art = {
   "VirtLine",
 }
 
+---@param name string
+---@return boolean
 local function is_line_art(name)
   for _, word in ipairs(words_for_line_art) do
     if name:find(word) then return true end
@@ -177,14 +227,19 @@ local function is_line_art(name)
   return false
 end
 
+---@param snapshot snapshot.Snapshot
+---@return legibility.UnderFloor[]
 function M.groups_under_text_floor(snapshot)
+  ---@type legibility.UnderFloor[]
   local found = {}
   for name, group in pairs(snapshot.groups) do
     local is_text = not is_line_art(name) and not vim.list_contains(M.decorations, name)
-    if group.fg and not snapshot.links[name] and is_text then
-      local text, background = group.fg, group.bg or snapshot.groups.Normal.bg
+    local fg = group.fg
+    if fg and not snapshot.links[name] and is_text then
+      local bg = assert(group.bg or snapshot.groups.Normal.bg)
+      local text, background = fg, bg
       if group.reverse then
-        text, background = background, text
+        text, background = bg, fg
       end
 
       local lightness = math.abs(color.lightness_contrast(text, background))
@@ -197,12 +252,20 @@ function M.groups_under_text_floor(snapshot)
   return found
 end
 
+---@param snapshot snapshot.Snapshot
+---@param name string
+---@return string text
+---@return string background
 function M.pair(snapshot, name)
   local group = snapshot.groups[name]
-  return group.fg, group.bg or snapshot.groups.Normal.bg
+  return assert(group.fg), assert(group.bg or snapshot.groups.Normal.bg)
 end
 
+---@param snapshot snapshot.Snapshot
+---@param tier legibility.Tier
+---@return legibility.BelowTier[]
 function M.below_tier(snapshot, tier)
+  ---@type legibility.BelowTier[]
   local found = {}
   for _, name in ipairs(tier.groups) do
     local text, background = M.pair(snapshot, name)

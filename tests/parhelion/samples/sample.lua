@@ -4,6 +4,7 @@ local M = { name = "sample", retries = 3, enabled = true }
 ---@param items string[]
 ---@return table<string, number>
 function M.count(items)
+  ---@type table<string, number>
   local seen = {}
   for _, item in ipairs(items) do
     seen[item] = (seen[item] or 0) + 1

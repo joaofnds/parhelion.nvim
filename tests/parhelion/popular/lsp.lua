@@ -1,10 +1,15 @@
 -- In-process language server: symbols of every kind, hover, references, and diagnostics of every severity.
+---@param line integer
+---@param first integer
+---@param last integer
+---@return lsp.Range
 local function range(line, first, last)
   return { start = { line = line, character = first }, ["end"] = { line = line, character = last } }
 end
 
 local symbols = {}
 for kind = 1, 26 do
+  ---@type string
   local name = vim.lsp.protocol.SymbolKind[kind]
   table.insert(
     symbols,
@@ -16,31 +21,34 @@ symbols = {
     name = "Stack",
     kind = 5,
     range = range(0, 0, 200),
-    selectionRange = range(0, 6, 11),
+    selectionRange = range(0, 10, 15),
     children = {
       {
         name = "new",
         kind = 9,
-        range = { start = { line = 5, character = 0 }, ["end"] = { line = 21, character = 3 } },
-        selectionRange = range(5, 15, 18),
+        range = { start = { line = 13, character = 0 }, ["end"] = { line = 32, character = 3 } },
+        selectionRange = range(13, 15, 18),
         children = symbols,
       },
       {
         name = "push",
         kind = 6,
-        range = { start = { line = 22, character = 0 }, ["end"] = { line = 27, character = 3 } },
-        selectionRange = range(22, 15, 19),
+        range = { start = { line = 33, character = 0 }, ["end"] = { line = 39, character = 3 } },
+        selectionRange = range(33, 15, 19),
       },
       {
         name = "pop",
         kind = 6,
-        range = { start = { line = 28, character = 0 }, ["end"] = { line = 30, character = 3 } },
-        selectionRange = range(28, 15, 18),
+        range = { start = { line = 40, character = 0 }, ["end"] = { line = 42, character = 3 } },
+        selectionRange = range(40, 15, 18),
       },
     },
   },
 }
 
+---@param method string
+---@param params { textDocument: { uri: string } }
+---@return table?
 local function respond(method, params)
   if method == "initialize" then
     return {
@@ -67,12 +75,12 @@ local function respond(method, params)
     }
   end
   if method == "textDocument/definition" or method == "textDocument/implementation" then
-    return { { uri = params.textDocument.uri, range = range(22, 15, 19) } }
+    return { { uri = params.textDocument.uri, range = range(33, 15, 19) } }
   end
   if method == "textDocument/references" then
     return {
-      { uri = params.textDocument.uri, range = range(22, 15, 19) },
-      { uri = params.textDocument.uri, range = range(33, 6, 10) },
+      { uri = params.textDocument.uri, range = range(33, 15, 19) },
+      { uri = params.textDocument.uri, range = range(45, 6, 10) },
     }
   end
   if method == "textDocument/codeAction" then
@@ -109,7 +117,7 @@ local function diagnostics(bufnr)
   local namespace = vim.api.nvim_create_namespace "gallery"
   vim.diagnostic.set(namespace, bufnr, {
     {
-      lnum = 7,
+      lnum = 17,
       col = 6,
       end_col = 11,
       severity = vim.diagnostic.severity.ERROR,
@@ -117,7 +125,7 @@ local function diagnostics(bufnr)
       source = "gallery",
     },
     {
-      lnum = 10,
+      lnum = 20,
       col = 8,
       end_col = 13,
       severity = vim.diagnostic.severity.WARN,
@@ -125,7 +133,7 @@ local function diagnostics(bufnr)
       source = "gallery",
     },
     {
-      lnum = 22,
+      lnum = 33,
       col = 15,
       end_col = 19,
       severity = vim.diagnostic.severity.INFO,
@@ -133,9 +141,9 @@ local function diagnostics(bufnr)
       source = "gallery",
     },
     {
-      lnum = 34,
-      col = 0,
-      end_col = 5,
+      lnum = 28,
+      col = 2,
+      end_col = 8,
       severity = vim.diagnostic.severity.HINT,
       message = "consider renaming",
       source = "gallery",

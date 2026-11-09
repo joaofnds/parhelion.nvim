@@ -45,13 +45,19 @@ local function print_tones(background)
   end
 end
 
+---@return string[]
 local function accent_names()
+  ---@type string[]
   local names = vim.tbl_keys(legibility.accents)
   table.sort(names)
   return names
 end
 
+---@param tone_of fun(c: string): string
+---@param seen_as fun(c: string): string
+---@return string
 local function closest_pairs(tone_of, seen_as)
+  ---@type { name: string, difference: number }[]
   local pairs_found = {}
   local names = accent_names()
   for i, first in ipairs(names) do
@@ -64,7 +70,13 @@ local function closest_pairs(tone_of, seen_as)
       table.insert(pairs_found, { name = first .. "/" .. second, difference = difference })
     end
   end
-  table.sort(pairs_found, function(a, b) return a.difference < b.difference end)
+  table.sort(
+    pairs_found,
+    ---@param a { name: string, difference: number }
+    ---@param b { name: string, difference: number }
+    ---@return boolean
+    function(a, b) return a.difference < b.difference end
+  )
 
   local shown = {}
   for i = 1, 4 do

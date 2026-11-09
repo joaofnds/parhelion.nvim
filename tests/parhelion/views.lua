@@ -1,5 +1,12 @@
 local M = {}
 
+---@class views.View
+---@field name string
+---@field run fun(nvim: driver.Nvim)
+---@field own_group? string
+---@field draws_labels? boolean
+---@field word_washes? string[]
+
 local function has_filetype(filetype, min_lines)
   return string.format("return vim.bo.filetype == %q and vim.api.nvim_buf_line_count(0) >= %d", filetype, min_lines)
 end
@@ -7,7 +14,10 @@ end
 local treesitter_highlights_current_buffer =
   "return vim.treesitter.highlighter.active[vim.api.nvim_get_current_buf()] ~= nil"
 
+---@param path string
+---@return fun(nvim: driver.Nvim)
 local function open_sample(path)
+  ---@param nvim driver.Nvim
   return function(nvim)
     nvim:request("nvim_command", "edit " .. vim.fn.fnameescape(path))
     nvim:settle { until_lua = treesitter_highlights_current_buffer, quiet = 300 }
@@ -57,8 +67,11 @@ local sample_files = {
   lua = "sample.lua",
 }
 
+---@param language string
+---@return string
 function M.sample_for(language) return sample_files[language] end
 
+---@return views.View[]
 function M.plugin_views()
   return {
     {
@@ -85,9 +98,14 @@ function M.plugin_views()
   }
 end
 
+---@param samples_dir string
+---@return views.View[]
 function M.code_views(samples_dir)
+  ---@type views.View[]
   local views = {}
-  for _, file in ipairs(vim.fn.sort(vim.fn.readdir(samples_dir))) do
+  ---@type string[]
+  local files = vim.fn.sort(vim.fn.readdir(samples_dir))
+  for _, file in ipairs(files) do
     table.insert(views, { name = "code-" .. file, run = open_sample(samples_dir .. "/" .. file) })
   end
   return views
@@ -98,6 +116,9 @@ local first_identifier_has_semantic_token = [[
   return #vim.inspect_pos(0, position[1] - 1, position[2] - 1).semantic_tokens > 0
 ]]
 
+---@param nvim driver.Nvim
+---@param path string
+---@param server_code string
 function M.open_with_semantic_tokens(nvim, path, server_code)
   open_sample(path)(nvim)
   nvim:lua(server_code)

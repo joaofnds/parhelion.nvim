@@ -8,14 +8,20 @@ function M.shows(filetype)
     :any(function(window) return vim.bo[vim.api.nvim_win_get_buf(window)].filetype == filetype end)
 end
 
+---@param chunks? [string, string|string[]][]
+---@param group string
+---@return boolean
 local function chunks_draw(chunks, group)
   return vim
     .iter(chunks or {})
     :any(function(chunk) return vim.list_contains(vim.iter({ chunk[2] }):flatten():totable(), group) end)
 end
 
+---@param mark vim.api.keyset.get_extmark_item
+---@param group string
+---@return boolean
 local function mark_draws(mark, group)
-  local details = mark[4]
+  local details = assert(mark[4])
   return details.hl_group == group or details.sign_hl_group == group or chunks_draw(details.virt_text, group)
 end
 

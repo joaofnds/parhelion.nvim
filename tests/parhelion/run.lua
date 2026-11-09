@@ -4,11 +4,12 @@ package.path = root .. "/tests/parhelion/?.lua;" .. root .. "/lua/?.lua;" .. pac
 local Nvim, compare, views, roles = require "driver", require "compare", require "views", require "roles"
 local color, legibility, refinement = require "color", require "legibility", require "parhelion.refinement"
 local color_difference_samples, theme_colors = require "color_difference_samples", require "theme_colors"
----@type table<string, table<string, vim.api.keyset.highlight>>
+---@type table<string, table<string, parhelion.Highlight>>
 local approved = require "approved"
 local approved_files, approved_presets = require "approved_files", require "approved_presets"
 local restraint = require "restraint"
 
+---@type string
 local deps = assert(vim.env.PARHELION_DEPS, "PARHELION_DEPS is required")
 vim.env.POPULAR_HERE = root .. "/tests/parhelion/popular"
 local samples = root .. "/tests/parhelion/samples"
@@ -19,19 +20,33 @@ assert(vim.system({ root .. "/tests/parhelion/fixture.sh", fixture }):wait().cod
 local snapshot_code = table.concat(vim.fn.readfile(root .. "/tests/parhelion/snapshot.lua"), "\n")
 local semantic_server_code = table.concat(vim.fn.readfile(root .. "/tests/parhelion/semantic_tokens.lua"), "\n")
 
+---@class run.Path
+---@field label string
+---@field first parhelion.Background
+---@field background parhelion.Background
+
+---@type table<parhelion.Background, parhelion.Base>
 local base_tables = {
   dark = dofile(root .. "/lua/parhelion/base/dark.lua"),
   light = dofile(root .. "/lua/parhelion/base/light.lua"),
 }
 
+---@param background parhelion.Background
+---@return compare.Table
 local function refined_table(background)
   return {
-    groups = vim.tbl_map(function(hl) return refinement.highlight(background, hl) end, base_tables[background].groups),
+    groups = vim.tbl_map(
+      ---@param hl parhelion.Highlight
+      ---@return parhelion.Highlight
+      function(hl) return refinement.highlight(background, hl) end,
+      base_tables[background].groups
+    ),
   }
 end
 
 local query_languages = { "css", "scss", "javascript", "tsx", "lua" }
 
+---@type run.Path[]
 local paths = {
   { label = "started in dark", first = "dark", background = "dark" },
   { label = "started in light", first = "light", background = "light" },
@@ -40,6 +55,7 @@ local paths = {
 }
 
 local failures, passes = {}, 0
+---@type string?
 local filter = vim.env.PARHELION_TEST_FILTER
 
 local function selected(name) return not filter or name:find(filter, 1, true) ~= nil end
@@ -53,8 +69,11 @@ local function record_failure(name, err)
   report("FAIL " .. name .. "\n" .. tostring(err))
 end
 
+---@type table<string, true>
 local named = {}
 
+---@param name string
+---@param body fun()
 local function test(name, body)
   if not selected(name) then return end
 
@@ -74,6 +93,11 @@ local function test(name, body)
   end
 end
 
+---@param theme string
+---@param path run.Path
+---@param plugins boolean
+---@param options? { installed: boolean }
+---@return driver.Nvim
 local function start_world(theme, path, plugins, options)
   local world = homes .. "/" .. theme
   local installed = options == nil or options.installed
@@ -97,8 +121,12 @@ local function start_world(theme, path, plugins, options)
   }
 end
 
+---@param nvim driver.Nvim
+---@return snapshot.Snapshot
 local function snapshot(nvim) return vim.json.decode(nvim:lua(snapshot_code)) end
 
+---@param nvim driver.Nvim
+---@return string
 local function messages(nvim) return nvim:request("nvim_exec2", "messages", { output = true }).output end
 
 local function toggle_when_path_requires_it(nvim, theme, path)
@@ -108,7 +136,11 @@ local function toggle_when_path_requires_it(nvim, theme, path)
   nvim:request("nvim_command", "colorscheme " .. theme)
 end
 
+---@param label string
+---@param starts (fun(): driver.Nvim)[]
+---@param body fun(...: driver.Nvim)
 local function in_worlds(label, starts, body)
+  ---@type driver.Nvim[]
   local worlds = {}
   local ok, err = xpcall(function()
     for _, start in ipairs(starts) do
@@ -124,6 +156,10 @@ local function in_worlds(label, starts, body)
   if not ok then record_failure(label, err) end
 end
 
+---@param label string
+---@param path run.Path
+---@param plugins boolean
+---@param body fun(base: driver.Nvim, parhelion: driver.Nvim)
 local function both_worlds(label, path, plugins, body)
   in_worlds(label .. ", " .. path.label, {
     function() return start_world("base_refined", path, plugins) end,
@@ -135,14 +171,21 @@ local function both_worlds(label, path, plugins, body)
   end)
 end
 
+---@param world driver.Nvim
+---@param body fun(world: driver.Nvim)
 local function closing(world, body)
   local ok, err = xpcall(function() body(world) end, debug.traceback)
   world:close()
   if not ok then error(err, 0) end
 end
 
+---@param theme string
+---@param path run.Path
+---@param body fun(world: driver.Nvim)
 local function in_world(theme, path, body) closing(start_world(theme, path, false), body) end
 
+---@param differences unknown[]
+---@param what string
 local function expect_none(differences, what)
   if #differences == 0 then return end
 
@@ -153,10 +196,13 @@ local function expect_none(differences, what)
   error(string.format("%d %s:\n  %s", #differences, what, table.concat(shown, "\n  ")), 0)
 end
 
+---@param base driver.Nvim
+---@param parhelion driver.Nvim
 local function expect_same_render(base, parhelion)
   expect_none(compare.cell_differences(base:capture(), parhelion:capture()), "cells differ")
 end
 
+---@param parhelion driver.Nvim
 local function expect_legible_text(parhelion)
   expect_none(
     legibility.illegible_text(parhelion:capture(), legibility.is_separator),
@@ -164,7 +210,21 @@ local function expect_legible_text(parhelion)
   )
 end
 
+---@param shown snapshot.Snapshot
+---@param slot string
+---@return string
+local function terminal_color(shown, slot)
+  local hex = shown.terminal[slot]
+  if type(hex) ~= "string" then error("terminal color " .. slot .. " is unset", 0) end
+
+  return hex
+end
+
+---@param background parhelion.Background
+---@param hex string
+---@return string?
 local function nearest_hue(background, hex)
+  ---@type string?, number?
   local nearest, smallest
   for name, hue in pairs(require("parhelion.chrome").hues[background]) do
     local difference = color.color_difference(hex, hue)
@@ -175,9 +235,13 @@ local function nearest_hue(background, hex)
   return nearest
 end
 
+---@param background parhelion.Background
+---@return table<string, string>
 local function ghostty_theme(background)
+  ---@type table<string, string>
   local settings = {}
   for line in io.lines(root .. "/extras/ghostty/Parhelion " .. background:gsub("^%l", string.upper)) do
+    ---@type string, string
     local key, value = line:gsub("^palette = (%d+)=", "palette %1 = "):match "^(.-) = (.+)$"
     settings[key] = value
   end
@@ -185,8 +249,11 @@ local function ghostty_theme(background)
   return settings
 end
 
-local function ghostty_settings_neovim_shows(snapshot)
-  local groups = snapshot.groups
+---@param shown snapshot.Snapshot
+---@return table<string, string|vim.NIL>
+local function ghostty_settings_neovim_shows(shown)
+  local groups = shown.groups
+  ---@type table<string, string|vim.NIL>
   local settings = {
     background = groups.Normal.bg,
     foreground = groups.Normal.fg,
@@ -196,15 +263,20 @@ local function ghostty_settings_neovim_shows(snapshot)
     ["selection-foreground"] = groups.Visual.fg or "cell-foreground",
   }
   for slot = 0, 15 do
-    settings["palette " .. slot] = snapshot.terminal[tostring(slot)]
+    settings["palette " .. slot] = shown.terminal[tostring(slot)]
   end
 
   return settings
 end
 
+---@param theme table<string, string|vim.NIL>
+---@param shown table<string, string|vim.NIL>
+---@return { [1]: string, theme: string|vim.NIL, neovim: string|vim.NIL }[]
 local function setting_differences(theme, shown)
   local differences = {}
-  for key in vim.spairs(vim.tbl_extend("force", {}, theme, shown)) do
+  ---@type table<string, string|vim.NIL>
+  local either = vim.tbl_extend("force", {}, theme, shown)
+  for key in vim.spairs(either) do
     if theme[key] ~= shown[key] then table.insert(differences, { key, theme = theme[key], neovim = shown[key] }) end
   end
 
@@ -426,6 +498,7 @@ for _, path in ipairs(paths) do
     local base, parhelion = snapshot(base_world), snapshot(parhelion_world)
 
     test("no group Neovim's help names for colorschemes draws Neovim's palette, " .. path.label, function()
+      ---@type { documented: integer, palette_colors: integer, drawn: string[] }
       local groups = parhelion_world:lua(documented_groups_drawing_neovims_palette)
 
       assert(
@@ -459,7 +532,7 @@ for _, path in ipairs(paths) do
     for position, hue in ipairs { "red", "green", "yellow", "blue", "magenta", "cyan" } do
       for _, slot in ipairs { position, position + 8 } do
         test(string.format("terminal color %d is %s, %s", slot, hue, path.label), function()
-          local nearest = nearest_hue(path.background, parhelion.terminal[tostring(slot)])
+          local nearest = nearest_hue(path.background, terminal_color(parhelion, tostring(slot)))
 
           assert(nearest == hue, "it is nearest " .. nearest)
         end)
@@ -468,18 +541,19 @@ for _, path in ipairs(paths) do
 
     for slot, name in pairs { ["0"] = "black", ["15"] = "bright white" } do
       test(string.format("terminal %s stands apart from the page, %s", name, path.label), function()
-        local difference = color.color_difference(parhelion.terminal[slot], parhelion.groups.Normal.bg)
+        local difference = color.color_difference(terminal_color(parhelion, slot), assert(parhelion.groups.Normal.bg))
 
         assert(difference >= legibility.smallest_neutral_step, string.format("the difference is %.2f", difference))
       end)
     end
 
     test("terminal white, bright black and bright white differ from each other, " .. path.label, function()
-      local terminal = parhelion.terminal
-
       local too_close = vim.tbl_filter(
+        ---@param pair string[]
+        ---@return boolean
         function(pair)
-          return color.color_difference(terminal[pair[1]], terminal[pair[2]]) < legibility.smallest_neutral_step
+          return color.color_difference(terminal_color(parhelion, pair[1]), terminal_color(parhelion, pair[2]))
+            < legibility.smallest_neutral_step
         end,
         { { "7", "8" }, { "7", "15" }, { "8", "15" } }
       )
@@ -534,6 +608,8 @@ for _, path in ipairs(paths) do
 
     test("plugin-only groups never shadow a capture fallback, " .. path.label, function()
       local captures = vim.tbl_filter(
+        ---@param name string
+        ---@return boolean
         function(name) return name:sub(1, 1) == "@" end,
         compare.parhelion_only_groups(base, parhelion)
       )
@@ -548,18 +624,24 @@ for _, path in ipairs(paths) do
     test("flash, mason and which-key take their groups from chrome alone, " .. path.label, function()
       local restyled = require("parhelion.chrome").groups(path.background)
 
-      local leaked = vim.tbl_filter(function(name)
-        local lower = name:lower()
-        local from_a_chrome_plugin = vim.startswith(lower, "flash")
-          or vim.startswith(lower, "mason")
-          or vim.startswith(lower, "whichkey")
-        return from_a_chrome_plugin and restyled[name] == nil
-      end, compare.parhelion_only_groups(base, parhelion))
+      local leaked = vim.tbl_filter(
+        ---@param name string
+        ---@return boolean
+        function(name)
+          local lower = name:lower()
+          local from_a_chrome_plugin = vim.startswith(lower, "flash")
+            or vim.startswith(lower, "mason")
+            or vim.startswith(lower, "whichkey")
+          return from_a_chrome_plugin and restyled[name] == nil
+        end,
+        compare.parhelion_only_groups(base, parhelion)
+      )
 
       expect_none(leaked, "groups outside chrome")
     end)
 
     test("colors_name identifies the theme, " .. path.label, function()
+      ---@type string?
       local name = parhelion_world:lua "return vim.g.colors_name"
       assert(name == "parhelion", "colors_name is " .. tostring(name))
     end)
@@ -579,6 +661,12 @@ for _, path in ipairs(paths) do
     end
   end)
 end
+
+---@class run.Look
+---@field fg? string
+---@field bg? string
+---@field bold? boolean
+---@field italic? boolean
 
 local resolved_look = [[
   local look = vim.api.nvim_get_hl(0, { name = ..., link = false })
@@ -611,10 +699,13 @@ for _, case in ipairs {
         local sample = samples .. "/" .. views.sample_for(case.language)
         views.open_with_semantic_tokens(world, sample, semantic_server_code)
 
+        ---@type driver.Position
         local position = world:lua(screen_position_of, case.pattern)
         local drawn = world:capture().rows[position.row][position.col].fg
 
-        local want = world:lua(resolved_look, case.capture).fg
+        ---@type run.Look
+        local look = world:lua(resolved_look, case.capture)
+        local want = look.fg
         assert(drawn == want, string.format("%s is drawn %s, not %s", case.pattern, drawn, want))
       end)
     end)
@@ -637,8 +728,10 @@ local parsers_built_from_another_revision = [[
 
 test("each parser is built from the revision nvim-treesitter names", function()
   in_world("parhelion", paths[1], function(world)
+    ---@module "languages"
     local languages = dofile(root .. "/tests/parhelion/languages.lua")
 
+    ---@type string[]
     local stale = world:lua(parsers_built_from_another_revision, languages)
 
     expect_none(stale, "parsers are stale")
@@ -648,6 +741,7 @@ end)
 for _, language in ipairs(query_languages) do
   test("the extra " .. language .. " query parses and every pattern matches its sample", function()
     in_world("parhelion", paths[1], function(parhelion)
+      ---@type integer[]
       local unmatched = parhelion:lua(
         [[
         local language, query_path, sample = ...
@@ -687,6 +781,7 @@ for _, path in ipairs { paths[1], paths[2] } do
       string.format("every capture the extra %s query names draws a color under parhelion, %s", language, path.label),
       function()
         in_world("parhelion", path, function(parhelion)
+          ---@type string[]
           local uncolored = parhelion:lua(
             [[
           local language, query_path = ...
@@ -786,6 +881,8 @@ for _, path in ipairs(paths) do
 
     test("every Neogit group clears the text floor, " .. path.label, function()
       local neogit_groups = vim.tbl_filter(
+        ---@param found legibility.UnderFloor
+        ---@return boolean
         function(found) return vim.startswith(found.group, "Neogit") end,
         legibility.groups_under_text_floor(snapshot(parhelion))
       )
@@ -825,6 +922,7 @@ for _, path in ipairs(paths) do
     local color_ceiling_test = view.name .. " keeps its text under the color ceiling, " .. path.label
     local color_floor_test = view.name .. " keeps a share of its text in color, " .. path.label
     local scale_test = view.name .. " stays on the scale, " .. path.label
+    ---@type table<string, string>
     local word_tests = {}
     for _, wash in ipairs(view.word_washes or {}) do
       word_tests[wash] = string.format("%s draws the %s, %s", view.name, wash, path.label)
@@ -855,6 +953,8 @@ for _, path in ipairs(paths) do
           assert(groups[view.own_group], "the plugin defined no groups of its own")
 
           local off_the_scale = vim.tbl_filter(
+            ---@param found restraint.Finding
+            ---@return integer?
             function(found) return found.group:find "^Neogit" or found.group:find "^Diffview" end,
             restraint.hues_off_the_scale(path.background, groups)
           )
@@ -926,8 +1026,12 @@ local statusline_colors = [[
   return { groups.StatusLine.fg, groups.StatusLine.bg, groups.StatusLineNC.fg, groups.StatusLineNC.bg }
 ]]
 
+---@param background parhelion.Background
+---@param extra string[]
+---@return table<string, true>
 local function known_colors(background, extra)
   local chrome = require "parhelion.chrome"
+  ---@type table<string, true>
   local known = {}
   for _, colors in ipairs { chrome.scale[background], chrome.hues[background], extra } do
     for _, hex in pairs(colors) do
@@ -1026,9 +1130,17 @@ local search_inside_a_selection = [[
   vim.api.nvim_feedkeys("$V", "n", false)
 ]]
 
+---@param shot driver.Shot
+---@param text string
+---@return driver.Cell
 local function cell_at(shot, text)
   for _, row in ipairs(shot.rows) do
-    local line = table.concat(vim.tbl_map(function(cell) return cell.text end, row))
+    local line = table.concat(vim.tbl_map(
+      ---@param cell driver.Cell
+      ---@return string
+      function(cell) return cell.text end,
+      row
+    ))
     local column = line:find(text, 1, true)
     if column then return row[vim.str_utfindex(line, "utf-32", column - 1) + 1] end
   end
@@ -1129,23 +1241,32 @@ local syntax_groups = {
   "Underlined",
 }
 
+---@param background parhelion.Background
+---@param hex string
+---@return string?
 local function hue_family(background, hex)
   if color.perceptual_lch(hex).chroma < legibility.smallest_chroma_with_visible_hue then return "neutral" end
 
   return nearest_hue(background, hex)
 end
 
+---@param background parhelion.Background
+---@param groups table<string, snapshot.Group>
+---@param name string
+---@return string?
 local function drawn_hue(background, groups, name)
   local hl = groups[name] or {}
-  return hue_family(background, hl.fg or groups.Normal.fg)
+  return hue_family(background, assert(hl.fg or groups.Normal.fg))
 end
 
 test("every capture, syntax group and inlay hint draws the same hue in dark and light", function()
+  ---@type table<parhelion.Background, table<string, snapshot.Group>>
   local drawn = {}
   for _, path in ipairs { paths[1], paths[2] } do
     in_world("parhelion", path, function(world) drawn[path.background] = snapshot(world).groups end)
   end
 
+  ---@type table<string, true>
   local names = {}
   for _, groups in pairs(drawn) do
     for name in pairs(groups) do
@@ -1183,10 +1304,16 @@ for _, entry_point in ipairs {
   for _, path in ipairs { paths[1], paths[2] } do
     test(string.format("%s uses parhelion's colors, %s", entry_point.name, path.label), function()
       in_world("parhelion", path, function(world)
+        ---@type string[]
         local colors = world:lua(colors_returned_by, entry_point.code)
 
         local known = known_colors(path.background, world:lua(entry_point.extra))
-        local foreign = vim.tbl_filter(function(found) return not known[found] end, colors)
+        local foreign = vim.tbl_filter(
+          ---@param found string
+          ---@return boolean
+          function(found) return not known[found] end,
+          colors
+        )
 
         assert(#colors > 0, "it returned no color")
         expect_none(foreign, "colors come from outside the theme")
@@ -1232,6 +1359,7 @@ local highlights_that_are_not_tables = [[
 for _, preset in ipairs { "cursor", "cursorline" } do
   test(string.format("the reactive %s preset holds its highlights in tables", preset), function()
     in_world("parhelion", paths[1], function(world)
+      ---@type string[]
       local found = world:lua(highlights_that_are_not_tables, "reactive.presets.parhelion-" .. preset)
 
       expect_none(found, "highlights are not tables")
@@ -1241,6 +1369,7 @@ for _, preset in ipairs { "cursor", "cursorline" } do
   for _, path in ipairs { paths[1], paths[2] } do
     test(string.format("the reactive %s preset has its approved colors, %s", preset, path.label), function()
       in_world("parhelion", path, function(world)
+        ---@type table<string, string>
         local colors = world:lua(colors_by_slot, "reactive.presets.parhelion-" .. preset)
 
         local want = approved_presets[path.background][preset]
@@ -1250,9 +1379,12 @@ for _, preset in ipairs { "cursor", "cursorline" } do
   end
 end
 
-local function only_fills(colors_by_slot)
+---@param slots table<string, string>
+---@return table<string, string>
+local function only_fills(slots)
+  ---@type table<string, string>
   local fills = {}
-  for slot, hex in pairs(colors_by_slot) do
+  for slot, hex in pairs(slots) do
     if vim.endswith(slot, ".bg") then fills[slot] = hex end
   end
 
@@ -1265,6 +1397,7 @@ for _, path in ipairs { paths[1], paths[2] } do
       local fills = only_fills(world:lua(colors_by_slot, "reactive.presets.parhelion-cursorline"))
       local chrome = require "parhelion.chrome"
       local scale = chrome.scale[path.background]
+      ---@type table<string, string>
       local texts = vim.tbl_extend("error", chrome.hues[path.background], {
         body = scale.body,
         quiet = scale.quiet,
@@ -1290,6 +1423,7 @@ end
 for _, path in ipairs { paths[1], paths[2] } do
   test("the lualine theme has its approved colors, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type table<string, string>
       local colors = world:lua(colors_by_slot, "lualine.themes.parhelion")
 
       local want = approved_presets[path.background].lualine
@@ -1309,6 +1443,7 @@ for _, path in ipairs { paths[3], paths[4] } do
         world:lua(lualine_runs_its_theme_file)
         toggle_when_path_requires_it(world, "parhelion", path)
 
+        ---@type string?
         local text = world:lua(lualine_runs_its_theme_file).normal.c.fg
 
         assert(text == snapshot(world).groups.StatusLine.fg, "text is " .. tostring(text))
@@ -1322,6 +1457,7 @@ test("the lualine theme, run again after bold is turned off, leaves the normal m
     world:lua(lualine_runs_its_theme_file)
     world:lua [[require("parhelion").setup { bold = false }]]
 
+    ---@type string?
     local style = world:lua(lualine_runs_its_theme_file).normal.a.gui
 
     assert(style == nil, "the label is " .. tostring(style))
@@ -1346,6 +1482,7 @@ local feline_colors_by_slot = [[
 for _, path in ipairs { paths[1], paths[2] } do
   test("the feline statusline has its approved colors in normal mode, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type table<string, string>
       local colors = world:lua(feline_colors_by_slot, feline_statusline)
 
       local want = approved_presets[path.background].feline
@@ -1357,6 +1494,7 @@ end
 for _, path in ipairs { paths[1], paths[2] } do
   test("the feline statusline writes its mode in the page color, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type { fg: string, bg: string }
       local cell =
         world:lua("local components = loadstring(...)() return components.active[1][1].hl()", feline_statusline)
 
@@ -1373,10 +1511,24 @@ local feline_draws_parhelions_statusline_in_every_buffer = [[
   }
 ]]
 
+---@class run.Statusline
+---@field text string
+---@field mode string
+---@field hue string
+---@field mode_cell driver.DrawnCell
+---@field file_name_cell driver.DrawnCell
+
+---@param world driver.Nvim
+---@return run.Statusline
 local function drawn_statusline(world)
   world:settle { quiet = 300 }
   local cells = world:drawn_row(world.rows - 1)
-  local texts = vim.tbl_map(function(cell) return cell.text end, cells)
+  local texts = vim.tbl_map(
+    ---@param cell driver.DrawnCell
+    ---@return string
+    function(cell) return cell.text end,
+    cells
+  )
 
   local mode_width = 1
   while cells[mode_width + 1] and cells[mode_width + 1].bg == cells[1].bg do
@@ -1553,6 +1705,7 @@ for _, path in ipairs { paths[3], paths[4] } do
       world:lua(barbecue_runs_its_theme_file)
       toggle_when_path_requires_it(world, "parhelion", path)
 
+      ---@type string?
       local text = world:lua(barbecue_runs_its_theme_file).normal.fg
 
       assert(text == snapshot(world).groups.Normal.fg, "text is " .. tostring(text))
@@ -1565,6 +1718,7 @@ test("the barbecue theme, run again after bold is turned off, leaves the file na
     world:lua(barbecue_runs_its_theme_file)
     world:lua [[require("parhelion").setup { bold = false }]]
 
+    ---@type boolean?
     local bold = world:lua(barbecue_runs_its_theme_file).basename.bold
 
     assert(not bold, "the file name is bold")
@@ -1574,6 +1728,7 @@ end)
 for _, path in ipairs { paths[1], paths[2] } do
   test("the barbecue theme writes text in the body color, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type string?
       local text = world:lua [[return require("barbecue.theme.parhelion").normal.fg]]
 
       assert(text == snapshot(world).groups.Normal.fg, "text is " .. tostring(text))
@@ -1584,15 +1739,22 @@ for _, path in ipairs { paths[1], paths[2] } do
     in_world("parhelion", path, function(world)
       local scale_colors = vim.tbl_values(require("parhelion.chrome").scale[path.background])
 
+      ---@type string[]
       local colors = world:lua(colors_returned_by, [[return require "barbecue.theme.parhelion"]])
 
-      local off_scale = vim.tbl_filter(function(found) return not vim.list_contains(scale_colors, found) end, colors)
+      local off_scale = vim.tbl_filter(
+        ---@param found string
+        ---@return boolean
+        function(found) return not vim.list_contains(scale_colors, found) end,
+        colors
+      )
       expect_none(off_scale, "colors sit off the scale")
     end)
   end)
 
   test("the bufferline theme leaves the tab bar to the theme's groups, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type integer
       local theme = world:lua [[return vim.tbl_count(require("parhelion.bufferline").get_theme()())]]
 
       assert(theme == 0, "it answered with " .. theme .. " groups")
@@ -1630,6 +1792,7 @@ for _, path in ipairs { paths[1], paths[2] } do
       ["spinner"] = "accent",
     } do
       test(string.format("the fzf color %s paints the %s step, %s", key, step, path.label), function()
+        ---@type string|vim.NIL
         local painted = world:lua(resolved_code, key)
 
         assert(painted == scale[step], string.format("%s paints %s", key, tostring(painted)))
@@ -1641,7 +1804,9 @@ for _, path in ipairs { paths[1], paths[2] } do
       table.sort(shipped)
       vim.cmd.colorscheme(vim.fn.fnamemodify(shipped[1], ":t:r"))
     ]]
-    for _, key in ipairs(vim.tbl_keys(world:lua "return vim.g.fzf_colors")) do
+    ---@type table<string, string[]>
+    local fzf_colors = world:lua "return vim.g.fzf_colors"
+    for _, key in ipairs(vim.tbl_keys(fzf_colors)) do
       test(
         string.format("the fzf color %s survives another colorscheme, %s", key, path.label),
         function() assert(world:lua(resolved_code, key) ~= vim.NIL, key .. " resolves to nothing") end
@@ -1651,6 +1816,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("a loaded theme leaves the user's fzf colors alone, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type table<string, string[]>
       local kept = world:lua [[
         vim.g.fzf_colors = { fg = { "fg", "Comment" } }
         vim.cmd.colorscheme "parhelion"
@@ -1664,6 +1830,7 @@ for _, path in ipairs { paths[1], paths[2] } do
   for _, lualine_mode in ipairs { "normal", "insert", "visual", "replace", "command" } do
     test(string.format("lualine's %s section keeps its label legible, %s", lualine_mode, path.label), function()
       in_world("parhelion", path, function(world)
+        ---@type { fg: string, bg: string }
         local section = world:lua([[return require("lualine.themes.parhelion")[...].a]], lualine_mode)
 
         local lightness = math.abs(color.lightness_contrast(section.fg, section.bg))
@@ -1830,7 +1997,7 @@ for _, background in ipairs { "dark", "light" } do
 
   for _, wash in ipairs { "added_wash", "changed_wash", "removed_wash" } do
     test(string.format("a comment clears the text floor on the %s in %s", wash, background), function()
-      local comment = refined_table(background).groups.Comment.fg
+      local comment = assert(refined_table(background).groups.Comment.fg)
 
       local lightness = math.abs(color.lightness_contrast(comment, scale[wash]))
 
@@ -1976,12 +2143,17 @@ test("a command a plugin defines after a slow start is ready once the screen set
   assert(ok, err)
 end)
 
+---@param definitions table<string, vim.api.keyset.highlight>
+---@param winhighlight string
+---@return driver.GroupColors
 local function group_colors_beside_a_focused_float(definitions, winhighlight)
   local nvim = Nvim.spawn { args = { "-u", "NONE", "-i", "NONE", "-n" }, cwd = fixture, rows = 10, cols = 40 }
 
-  local ok, groups = pcall(function()
-    nvim:lua(
-      [[
+  local ok, groups = pcall(
+    ---@return driver.GroupColors
+    function()
+      nvim:lua(
+        [[
         local definitions, winhighlight = ...
         for name, definition in pairs(definitions) do
           vim.api.nvim_set_hl(0, name, definition)
@@ -1994,12 +2166,13 @@ local function group_colors_beside_a_focused_float(definitions, winhighlight)
         )
         vim.wo[float].winhighlight = winhighlight
       ]],
-      definitions,
-      winhighlight
-    )
-    nvim:settle { quiet = 200 }
-    return vim.json.decode(nvim:lua(group_colors_code))
-  end)
+        definitions,
+        winhighlight
+      )
+      nvim:settle { quiet = 200 }
+      return vim.json.decode(nvim:lua(group_colors_code))
+    end
+  )
   nvim:close()
   assert(ok, groups)
 
@@ -2296,9 +2469,12 @@ end
 for _, path in ipairs { paths[1], paths[2] } do
   test("the base side gives the completion menu the base fill's refined tone, " .. path.label, function()
     in_world("base_refined", path, function(world)
-      local base = require("parhelion.base." .. path.background).groups.Pmenu.bg
+      ---@type parhelion.Base
+      local base_table = require("parhelion.base." .. path.background)
+      local base = assert(base_table.groups.Pmenu.bg)
       local want = require("parhelion.refinement").color(path.background, base):lower()
 
+      ---@type string
       local menu =
         world:lua [[return string.format("#%06x", vim.api.nvim_get_hl(0, { name = "Pmenu", link = false }).bg)]]
 
@@ -2319,6 +2495,7 @@ for _, path in ipairs(paths) do
     in_world("parhelion", path, function(world)
       toggle_when_path_requires_it(world, "parhelion", path)
 
+      ---@type string[]
       local added = world:lua [[
         local before = vim.g.globals_before_the_first_load
 
@@ -2333,6 +2510,7 @@ for _, path in ipairs(paths) do
     in_world("parhelion", path, function(world)
       toggle_when_path_requires_it(world, "parhelion", path)
 
+      ---@type string[]
       local required = world:lua(modules_of_parhelion_loaded)
       assert(vim.deep_equal(required, { "parhelion" }), vim.inspect(required))
     end)
@@ -2352,6 +2530,8 @@ test("setup with the defaults written out requires no module but parhelion", fun
       }
     ]]
 
+    ---@type string[]
+    ---@type string[]
     local required = world:lua(modules_of_parhelion_loaded)
     assert(vim.deep_equal(required, { "parhelion" }), vim.inspect(required))
   end)
@@ -2378,6 +2558,7 @@ local reload_kilobytes_without_copies = 32
 for _, path in ipairs { paths[1], paths[2] } do
   test("a reload with the default options copies no groups, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type number
       local allocated = world:lua(kilobytes_a_reload_allocates)
 
       assert(
@@ -2418,6 +2599,7 @@ local lua_a_reload_runs_per_instruction_of_its_floor = [[
 for _, path in ipairs { paths[1], paths[2] } do
   test("a reload with the default options runs little more Lua than writing its groups, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type number
       local ratio = world:lua(lua_a_reload_runs_per_instruction_of_its_floor)
 
       assert(ratio < 1.25, string.format("a reload runs %.2f times the Lua of writing its groups", ratio))
@@ -2425,10 +2607,16 @@ for _, path in ipairs { paths[1], paths[2] } do
   end)
 end
 
+---@param timings table<string, string>
+---@param settings? table<string, string>
+---@return vim.SystemCompleted
 local function bench_with_timings(timings, settings)
+  ---@type string
+  local search_path = vim.env.PATH
+  ---@type table<string, string>
   local env = vim.tbl_extend("force", {
     PARHELION_BENCH_RUNS = "1",
-    PATH = root .. "/tests/parhelion/fake_nvim:" .. vim.env.PATH,
+    PATH = root .. "/tests/parhelion/fake_nvim:" .. search_path,
   }, settings or {})
   for name, first_and_reload in pairs(timings) do
     env["PARHELION_FAKE_TIMINGS_" .. name] = first_and_reload
@@ -2468,10 +2656,18 @@ for _, case in ipairs {
   end)
 end
 
+---@param stdout? string
+---@param load string
+---@return integer
 local function lines_naming(stdout, load)
-  local named = string.format("  the %s takes more than 1.25 times its floor", load)
+  local wanted = string.format("  the %s takes more than 1.25 times its floor", load)
 
-  return #vim.tbl_filter(function(line) return line == named end, vim.split(stdout, "\n", { plain = true }))
+  return #vim.tbl_filter(
+    ---@param line string
+    ---@return boolean
+    function(line) return line == wanted end,
+    vim.split(assert(stdout), "\n", { plain = true })
+  )
 end
 
 for _, case in ipairs {
@@ -2662,6 +2858,7 @@ for _, path in ipairs { paths[1], paths[2] } do
   for _, theme_file in ipairs(theme_files) do
     test(string.format("%s loads without raising, %s", theme_file, path.label), function()
       in_world("parhelion", path, function(world)
+        ---@type { loaded: boolean, message: string }
         local required = world:lua(requiring, theme_file)
 
         assert(required.loaded, required.message)
@@ -2674,6 +2871,7 @@ for _, path in ipairs { paths[1], paths[2] } do
   for _, theme_file in ipairs(theme_files) do
     test(string.format("%s requires no other parhelion module, %s", theme_file, path.label), function()
       in_world("parhelion", path, function(world)
+        ---@type string[]
         local required = world:lua(modules_a_theme_file_requires, theme_file)
 
         expect_none(required, "modules required")
@@ -2684,8 +2882,10 @@ end
 
 for _, table_name in ipairs { "scale", "hues", "label_hues" } do
   test(string.format("reading a color the %s lacks raises", table_name), function()
+    ---@type table<string, string>
     local colors = require("parhelion.chrome")[table_name].dark
 
+    ---@type boolean, string
     local ok, message = pcall(function() return colors.no_such_color end)
 
     assert(ok == false, "the read returned " .. tostring(message))
@@ -2695,6 +2895,7 @@ end
 
 test("reading a color the built tables lack raises", function()
   in_world("parhelion", paths[1], function(world)
+    ---@type boolean, string
     local ok, message = unpack(world:lua [[
       local colors = require("parhelion").built(vim.o.background).colors
 
@@ -2735,14 +2936,19 @@ end
 
 for _, background in ipairs { "dark", "light" } do
   test("the built tables are what the sources build, in " .. background, function()
+    ---@type parhelion.Built
     local shipped = dofile(root .. "/lua/parhelion/built/" .. background .. ".lua")
     local built = require("parhelion.build").build(background)
 
     local stale = {}
-    for part in pairs(vim.tbl_extend("force", {}, shipped, built)) do
+    ---@type table<string, unknown>
+    local parts = vim.tbl_extend("force", {}, shipped, built)
+    for part in pairs(parts) do
       if part ~= "groups" and not vim.deep_equal(shipped[part], built[part]) then table.insert(stale, part) end
     end
-    for name in pairs(vim.tbl_extend("force", {}, shipped.groups, built.groups)) do
+    ---@type table<string, parhelion.Highlight>
+    local groups = vim.tbl_extend("force", {}, shipped.groups, built.groups)
+    for name in pairs(groups) do
       if not vim.deep_equal(shipped.groups[name], built.groups[name]) then table.insert(stale, name) end
     end
     table.sort(stale)
@@ -2750,6 +2956,8 @@ for _, background in ipairs { "dark", "light" } do
   end)
 end
 
+---@param background parhelion.Background
+---@return table<string, string>
 local function terminal_themes(background)
   return require("parhelion.extras").themes(dofile(root .. "/lua/parhelion/built/" .. background .. ".lua"))
 end
@@ -2777,9 +2985,12 @@ test("every file git tracks under extras is a terminal theme the built tables gi
   local given = vim.tbl_extend("error", terminal_themes "dark", terminal_themes "light")
 
   local tracked = vim.system({ "git", "-C", root, "ls-files", "-z", "extras" }):wait()
+  assert(tracked.code == 0, tracked.stderr)
   local unknown = vim.tbl_filter(
+    ---@param path string
+    ---@return boolean
     function(path) return path ~= "" and given[path] == nil end,
-    vim.split(assert(tracked.code == 0 and tracked.stdout, tracked.stderr), "\0", { plain = true })
+    vim.split(assert(tracked.stdout, tracked.stderr), "\0", { plain = true })
   )
 
   expect_none(unknown, "files under extras have no source, so delete them")
@@ -2806,6 +3017,8 @@ for _, background in ipairs { "dark", "light" } do
   for _, family_name in ipairs(pinned_families) do
     test(string.format("every name in %s has a pinned look in %s", family_name, background), function()
       local unpinned = vim.tbl_filter(
+        ---@param name string
+        ---@return boolean
         function(name) return approved[background][name] == nil end,
         vim.tbl_keys(require("parhelion.chrome").family_groups(background, family_name))
       )
@@ -2815,6 +3028,7 @@ for _, background in ipairs { "dark", "light" } do
   end
 
   test("every tone has a pinned look in " .. background, function()
+    ---@type table<string, true>
     local pinned = {}
     for _, look in pairs(approved[background]) do
       for _, attribute in ipairs(refinement.color_attributes) do
@@ -2823,6 +3037,8 @@ for _, background in ipairs { "dark", "light" } do
     end
 
     local unpinned = vim.tbl_filter(
+      ---@param tone string
+      ---@return boolean
       function(tone) return not pinned[tone] end,
       vim.tbl_values(refinement.tones[background])
     )
@@ -2880,7 +3096,12 @@ for background, base_table in pairs(base_tables) do
     local restyled = require("parhelion.chrome").groups(background)
     local repaired = refinement.repaired_groups(background, base_table.groups)
 
-    local overwritten = vim.tbl_filter(function(name) return restyled[name] ~= nil end, vim.tbl_keys(repaired))
+    local overwritten = vim.tbl_filter(
+      ---@param name string
+      ---@return boolean
+      function(name) return restyled[name] ~= nil end,
+      vim.tbl_keys(repaired)
+    )
 
     expect_none(overwritten, "repaired groups never reach the screen")
   end)
@@ -2892,7 +3113,7 @@ for _, background in ipairs { "dark", "light" } do
   for _, group in ipairs { "FzfLuaBackdrop", "LazyBackdrop", "MasonBackdrop" } do
     test(group .. " dims the page without blacking it out in " .. background, function()
       local page = require("parhelion.chrome").scale[background].page
-      local backdrop = require("parhelion.chrome").groups(background)[group].bg
+      local backdrop = assert(require("parhelion.chrome").groups(background)[group].bg)
 
       local dimmed = color.mix(page, backdrop, stock_backdrop_opacity)
 
@@ -2912,7 +3133,15 @@ for _, background in ipairs { "dark", "light" } do
       table.insert(colored, groups["SnacksNotifierTitle" .. level].fg)
     end
 
-    expect_none(vim.tbl_filter(function(fg) return fg ~= scale.strong end, colored), "toast titles carrying a color")
+    expect_none(
+      vim.tbl_filter(
+        ---@param fg string?
+        ---@return boolean
+        function(fg) return fg ~= scale.strong end,
+        colored
+      ),
+      "toast titles carrying a color"
+    )
   end)
 end
 
@@ -2937,10 +3166,15 @@ test("every plugin group holds one role", function()
   expect_none(restraint.groups_in_two_roles(families), "groups hold two roles")
 end)
 
+---@module "popular.views"
 local popular = dofile(root .. "/tests/parhelion/popular/views.lua")
 local popular_views = popular.list
+---@type string?
 local shots_directory = vim.env.PARHELION_SHOTS
 
+---@param view popular.View
+---@param mode string
+---@return driver.Nvim
 local function start_popular(view, mode)
   local state = homes .. "/popular/" .. view.name .. "-" .. mode
   vim.fn.delete(state, "rf")
@@ -2965,6 +3199,8 @@ local function start_popular(view, mode)
   }
 end
 
+---@param nvim driver.Nvim
+---@param view popular.View
 local function run_popular(nvim, view)
   nvim:settle { quiet = 500 }
   view.run(nvim)
@@ -2974,6 +3210,9 @@ local function run_popular(nvim, view)
   end
 end
 
+---@param view popular.View
+---@param mode parhelion.Background
+---@param shot driver.Shot
 local function keep_shot(view, mode, shot)
   if not shots_directory then return end
 
@@ -3007,6 +3246,7 @@ for _, mode in ipairs { "dark", "light" } do
         color_floor_test,
       }
     then
+      ---@type driver.Nvim
       local nvim
       local opened, shot = xpcall(function()
         nvim = start_popular(view, mode)
@@ -3065,9 +3305,10 @@ for _, mode in ipairs { "dark", "light" } do
           end)
         end
 
-        if view.labels_on then
+        local labels_on = view.labels_on
+        if labels_on then
           test(color_floor_test, function()
-            local surface = require("parhelion.chrome").scale[mode][view.labels_on]
+            local surface = require("parhelion.chrome").scale[mode][labels_on]
             local window = { rows = { restraint.cells_on(shot, surface) } }
 
             local share = restraint.share_of_text_in_color(window, legibility.is_icon)
@@ -3085,18 +3326,26 @@ for _, mode in ipairs { "dark", "light" } do
   end
 end
 
+---@param view popular.View
+---@param mode parhelion.Background
+---@return driver.GroupColors
 local function groups_of_popular_view(view, mode)
   local nvim = start_popular(view, mode)
-  local ok, groups = xpcall(function()
-    run_popular(nvim, view)
-    return vim.json.decode(nvim:lua(group_colors_code))
-  end, debug.traceback)
+  local ok, groups = xpcall(
+    ---@return driver.GroupColors
+    function()
+      run_popular(nvim, view)
+      return vim.json.decode(nvim:lua(group_colors_code))
+    end,
+    debug.traceback
+  )
   nvim:close()
   if not ok then error(groups, 0) end
 
   return groups
 end
 
+---@type { staged: string, unstaged: string }[]
 local staged_signs = {}
 for _, kind in ipairs { "Add", "Change", "Delete", "Changedelete", "Topdelete", "Untracked" } do
   for _, column in ipairs { "", "Cul", "Nr" } do
@@ -3142,6 +3391,8 @@ end
 for _, mode in ipairs { "dark", "light" } do
   local arrows = { "NvimTreeFolderArrowClosed", "NvimTreeFolderArrowOpen" }
   local names = vim.tbl_map(
+    ---@param arrow string
+    ---@return string
     function(arrow) return string.format("nvim-tree's %s reads on the tree in %s", arrow, mode) end,
     arrows
   )
@@ -3198,8 +3449,13 @@ local resolved_fills = [[
   return fills
 ]]
 
+---@param background parhelion.Background
+---@return parhelion.Background
 local function other_background(background) return background == "dark" and "light" or "dark" end
 
+---@param path run.Path
+---@param setup_code string
+---@param body fun(world: driver.Nvim)
 local function with_options(path, setup_code, body)
   in_world("parhelion", path, function(world)
     world:lua(setup_code)
@@ -3280,6 +3536,8 @@ for _, path in ipairs { paths[1], paths[2] } do
   test("the transparent option clears the page's background, " .. path.label, function()
     with_options(path, transparent, function(world)
       local on_the_page = vim.tbl_filter(
+        ---@param name string
+        ---@return boolean
         function(name) return world:lua(resolved_look, name).bg ~= nil end,
         { "Normal", "TabLineSel", "BufferLineBufferSelected" }
       )
@@ -3291,6 +3549,8 @@ for _, path in ipairs { paths[1], paths[2] } do
   test("the transparent option clears the gutter's background, " .. path.label, function()
     with_options(path, transparent, function(world)
       local in_the_gutter = vim.tbl_filter(
+        ---@param name string
+        ---@return boolean
         function(name) return world:lua(resolved_look, name).bg ~= nil end,
         gutter_groups
       )
@@ -3320,6 +3580,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("the dim_inactive option gives inactive windows a dimmer surface, " .. path.label, function()
     with_options(path, [[require("parhelion").setup { dim_inactive = true }]], function(world)
+      ---@type run.Look
       local inactive = world:lua(resolved_look, "NormalNC")
 
       assert(inactive.bg == dimmed[path.background], "inactive windows are " .. tostring(inactive.bg))
@@ -3328,12 +3589,15 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("the dim_inactive option changes the surface of inactive windows only, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type table<string, integer|string>
       local before = world:lua(resolved_fills)
 
       world:lua [[require("parhelion").setup { dim_inactive = true }]]
 
       local changed = {}
-      for name, fill in pairs(world:lua(resolved_fills)) do
+      ---@type table<string, integer|string>
+      local after = world:lua(resolved_fills)
+      for name, fill in pairs(after) do
         if fill ~= before[name] then table.insert(changed, name) end
       end
       table.sort(changed)
@@ -3342,6 +3606,7 @@ for _, path in ipairs { paths[1], paths[2] } do
   end)
 
   test("the dimmer surface keeps code readable, " .. path.label, function()
+    ---@type table<string, string>
     local texts = vim.tbl_extend("error", require("parhelion.chrome").hues[path.background], {
       body = scale.body,
       quiet = scale.quiet,
@@ -3361,6 +3626,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("inactive windows keep the page without dim_inactive, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type run.Look
       local inactive = world:lua(resolved_look, "NormalNC")
 
       assert(inactive.bg == scale.page, "inactive windows are " .. tostring(inactive.bg))
@@ -3379,6 +3645,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("the theme files are bold where parhelion draws bold, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type string[]
       local bold = world:lua(bold_in_theme_files, feline_statusline)
 
       local every_slot = {
@@ -3393,6 +3660,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("turning bold off leaves the theme files without bold, " .. path.label, function()
     with_options(path, [[require("parhelion").setup { bold = false }]], function(world)
+      ---@type string[]
       local bold = world:lua(bold_in_theme_files, feline_statusline)
 
       expect_none(bold, "theme files are bold")
@@ -3402,6 +3670,7 @@ for _, path in ipairs { paths[1], paths[2] } do
   test("an override merges into the group parhelion sets, " .. path.label, function()
     local overrides = [[require("parhelion").setup { overrides = { Keyword = { bold = false } } }]]
     with_options(path, overrides, function(world)
+      ---@type run.Look
       local keyword = world:lua(resolved_look, "Keyword")
 
       assert(keyword.fg == approved[path.background].Keyword.fg, "the keyword is " .. tostring(keyword.fg))
@@ -3412,6 +3681,7 @@ for _, path in ipairs { paths[1], paths[2] } do
   test("an override merges into the group whatever case it spells the name in, " .. path.label, function()
     local overrides = [[require("parhelion").setup { overrides = { keyword = { bold = false } } }]]
     with_options(path, overrides, function(world)
+      ---@type run.Look
       local keyword = world:lua(resolved_look, "Keyword")
 
       assert(keyword.fg == approved[path.background].Keyword.fg, "the keyword is " .. tostring(keyword.fg))
@@ -3422,6 +3692,7 @@ for _, path in ipairs { paths[1], paths[2] } do
   test("an override with a link replaces the group, " .. path.label, function()
     local overrides = [[require("parhelion").setup { overrides = { Keyword = { link = "Comment" } } }]]
     with_options(path, overrides, function(world)
+      ---@type string?
       local link = world:lua [[return vim.api.nvim_get_hl(0, { name = "Keyword" }).link]]
 
       assert(link == "Comment", "the keyword links to " .. tostring(link))
@@ -3433,6 +3704,7 @@ for _, path in ipairs { paths[1], paths[2] } do
       overrides = function(colors) return { Boolean = { fg = colors.red } } end,
     }]]
     with_options(path, overrides, function(world)
+      ---@type run.Look
       local boolean = world:lua(resolved_look, "Boolean")
 
       assert(
@@ -3445,6 +3717,7 @@ for _, path in ipairs { paths[1], paths[2] } do
   test("an override sets the bold that bold off removed, " .. path.label, function()
     local overrides = [[require("parhelion").setup { bold = false, overrides = { Keyword = { bold = true } } }]]
     with_options(path, overrides, function(world)
+      ---@type run.Look
       local keyword = world:lua(resolved_look, "Keyword")
 
       assert(keyword.bold, "the keyword is not bold")
@@ -3456,6 +3729,7 @@ for _, path in ipairs { paths[1], paths[2] } do
       overrides = function(colors) return { Keyword = { fg = colors.violet, bg = colors.raised } } end,
     }]]
     with_options(path, overrides, function(world)
+      ---@type run.Look
       local keyword = world:lua(resolved_look, "Keyword")
 
       assert(keyword.fg == require("parhelion.chrome").hues[path.background].violet, tostring(keyword.fg))
@@ -3465,6 +3739,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("bold off restyles a group as transparent left it, " .. path.label, function()
     with_options(path, [[require("parhelion").setup { transparent = true, bold = false }]], function(world)
+      ---@type run.Look
       local tab = world:lua(resolved_look, "TabLineSel")
 
       assert(tab.bg == nil and not tab.bold, "TabLineSel is " .. vim.inspect(tab))
@@ -3475,6 +3750,7 @@ for _, path in ipairs { paths[1], paths[2] } do
     in_world("parhelion", path, function(world)
       world:lua [[require("parhelion").setup { transparent = true }]]
 
+      ---@type run.Look
       local normal = world:lua(resolved_look, "Normal")
 
       assert(normal.bg == nil, "Normal is " .. tostring(normal.bg))
@@ -3493,7 +3769,9 @@ for _, path in ipairs { paths[1], paths[2] } do
       local other = other_background(path.background)
       local missing = {}
       local function check(step, background)
+        ---@type run.Look, run.Look
         local normal, inactive = world:lua(resolved_look, "Normal"), world:lua(resolved_look, "NormalNC")
+        ---@type run.Look
         local keyword = world:lua(resolved_look, "Keyword")
         if normal.bg ~= nil then table.insert(missing, step .. ": transparent") end
         if inactive.bg ~= dimmed[background] then table.insert(missing, step .. ": dim") end
@@ -3518,6 +3796,7 @@ for _, path in ipairs { paths[1], paths[2] } do
       string.format("a load with the %s option requires nothing that builds the groups, %s", option, path.label),
       function()
         with_options(path, setup_code, function(world)
+          ---@type string[]
           local required = world:lua(modules_that_build_the_groups)
 
           expect_none(required, "modules that build the groups are loaded")
@@ -3541,14 +3820,18 @@ for _, path in ipairs { paths[1], paths[2] } do
 
     test(string.format("setup with no options undoes the %s option, %s", option, path.label), function()
       in_world("parhelion", path, function(world)
+        ---@type table<string, vim.api.keyset.get_hl_info>
         local before = world:lua [[return vim.api.nvim_get_hl(0, {})]]
 
         world:lua(setup_code)
         world:lua [[require("parhelion").setup()]]
 
+        ---@type table<string, vim.api.keyset.get_hl_info>
         local after = world:lua [[return vim.api.nvim_get_hl(0, {})]]
         local kept = {}
-        for name in pairs(vim.tbl_extend("force", {}, before, after)) do
+        ---@type table<string, vim.api.keyset.get_hl_info>
+        local either = vim.tbl_extend("force", {}, before, after)
+        for name in pairs(either) do
           if not vim.deep_equal(before[name], after[name]) then table.insert(kept, name) end
         end
         table.sort(kept)
@@ -3560,11 +3843,14 @@ for _, path in ipairs { paths[1], paths[2] } do
       string.format("a reload with the %s option copies only the groups it changes, %s", option, path.label),
       function()
         with_options(path, setup_code, function(world)
+          ---@type number
           local allocated = world:lua(kilobytes_a_reload_allocates)
+          ---@type table<string, vim.api.keyset.get_hl_info>
           local with_the_option = world:lua [[return vim.api.nvim_get_hl(0, {})]]
 
           world:lua [[require("parhelion").setup()]]
 
+          ---@type { count: integer, kilobytes: number }
           local changes = world:lua(kilobytes_a_copy_of_the_changed_groups_takes, with_the_option)
           assert(
             allocated < reload_kilobytes_without_copies + changes.kilobytes,
@@ -3589,6 +3875,7 @@ for _, path in ipairs { paths[1], paths[2] } do
       ),
       function()
         with_options(path, setup_code, function(world)
+          ---@type number
           local ratio = world:lua(lua_a_reload_runs_per_instruction_of_its_floor)
 
           assert(ratio <= bound, string.format("a reload runs %.2f times the Lua of writing its groups", ratio))
@@ -3599,6 +3886,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("setup refuses an option it does not know, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type boolean, string?
       local accepted, message =
         unpack(world:lua [[return { pcall(require("parhelion").setup, { transparnet = true }) }]])
 
@@ -3609,6 +3897,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("setup refuses an override that is not a table of attributes, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type boolean, string?
       local accepted, message = unpack(world:lua [[
         return { pcall(require("parhelion").setup, { overrides = { Keyword = "Comment" } }) }
       ]])
@@ -3638,6 +3927,7 @@ for _, path in ipairs { paths[1], paths[2] } do
   } do
     test(string.format("setup refuses %s while another colorscheme is loaded, %s", case.name, path.label), function()
       in_world("parhelion", path, function(world)
+        ---@type boolean, string?
         local accepted, message = unpack(world:lua([[
           vim.cmd.colorscheme "default"
 
@@ -3652,6 +3942,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("a load refuses an override function that returns a list, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type boolean, string?
       local loaded, message = unpack(world:lua [[
         vim.cmd.colorscheme "default"
         require("parhelion").setup { overrides = function() return { { fg = "#ff0000" } } end }
@@ -3680,13 +3971,16 @@ for _, path in ipairs { paths[1], paths[2] } do
   } do
     test(string.format("%s keeps the colors and options as they were, %s", case.name, path.label), function()
       in_world("parhelion", path, function(world)
+        ---@type table<string, vim.api.keyset.get_hl_info>
         local before = world:lua [[
           require("parhelion").setup { transparent = true }
 
           return vim.api.nvim_get_hl(0, {})
         ]]
 
+        ---@type boolean, string?, table<string, vim.api.keyset.get_hl_info>, boolean, table<string, vim.api.keyset.get_hl_info>
         local accepted, message, after, reloaded, reloaded_look = unpack(world:lua([[
+          ---@type boolean, string?
           local accepted, message = pcall(require("parhelion").setup, { overrides = ]] .. case.overrides .. [[ })
           local after = vim.api.nvim_get_hl(0, {})
           local reloaded = pcall(vim.cmd.colorscheme, "parhelion")
@@ -3705,6 +3999,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("setup refuses an option of the wrong type, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type boolean, string?
       local accepted, message =
         unpack(world:lua [[return { pcall(require("parhelion").setup, { transparent = "yes" }) }]])
 
@@ -3731,6 +4026,9 @@ local names_set = [[
   return names
 ]]
 
+---@param name string
+---@param patterns string[]
+---@return boolean
 local function matches_one_of(name, patterns)
   for _, pattern in ipairs(patterns) do
     if name:find(pattern) then return true end
@@ -3739,6 +4037,8 @@ local function matches_one_of(name, patterns)
   return false
 end
 
+---@param name string
+---@return string[]
 local function owners_of(name)
   local owners = {}
   for plugin, patterns in pairs(plugins) do
@@ -3749,16 +4049,30 @@ local function owners_of(name)
   return owners
 end
 
+---@param names string[]
+---@return string[]
 local function plugin_groups(names)
-  return vim.tbl_filter(function(name) return not restraint.neovim_own_groups[name] and not name:find "^@" end, names)
+  return vim.tbl_filter(
+    ---@param name string
+    ---@return boolean
+    function(name) return not restraint.neovim_own_groups[name] and not name:find "^@" end,
+    names
+  )
 end
 
+---@param text string
+---@param pattern string
+---@return fun(): string
+local function captures(text, pattern) return text:gmatch(pattern) end
+
+---@return string[]
 local function plugins_readme_lists()
+  ---@type string[], string?
   local names, section = {}, nil
   for line in io.lines(root .. "/README.md") do
     section = line:match "^## (.+)" or section
     if section == "Plugins" and line:find "^%- %[" then
-      for name in line:gmatch "%[[^/%]]+/([^%]]+)%]%(" do
+      for name in captures(line, "%[[^/%]]+/([^%]]+)%]%(") do
         table.insert(names, name)
       end
     end
@@ -3773,28 +4087,38 @@ test("every plugin the README lists can be turned off or brings only a theme fil
   local known = vim.list_extend(vim.tbl_keys(plugins), plugins_with_only_a_theme_file)
 
   expect_none(
-    vim.tbl_filter(function(name) return not vim.list_contains(known, name) end, listed),
+    vim.tbl_filter(
+      ---@param name string
+      ---@return boolean
+      function(name) return not vim.list_contains(known, name) end,
+      listed
+    ),
     "listed plugins have no entry"
   )
   expect_none(
-    vim.tbl_filter(function(name) return not vim.list_contains(listed, name) end, known),
+    vim.tbl_filter(
+      ---@param name string
+      ---@return boolean
+      function(name) return not vim.list_contains(listed, name) end,
+      known
+    ),
     "plugins are missing from the README"
   )
 end)
 
 test("the help page names every plugin that can be turned off", function()
-  local named, in_the_list = {}, false
+  local help_names, in_the_list = {}, false
   for line in io.lines(root .. "/doc/parhelion.txt") do
     if line:find "%*parhelion%-plugins%*" then in_the_list = true end
     if in_the_list and line:find "^====" then break end
-    if in_the_list and line:find "^\t" then vim.list_extend(named, vim.split(vim.trim(line), "%s+")) end
+    if in_the_list and line:find "^\t" then vim.list_extend(help_names, vim.split(vim.trim(line), "%s+")) end
   end
-  table.sort(named)
+  table.sort(help_names)
 
   local names = vim.tbl_keys(plugins)
   table.sort(names)
 
-  assert(vim.deep_equal(named, names), "the help names " .. table.concat(named, " "))
+  assert(vim.deep_equal(help_names, names), "the help names " .. table.concat(help_names, " "))
 end)
 
 local function code_block(path, marker, opening_line, closing_line)
@@ -3810,14 +4134,21 @@ local function code_block(path, marker, opening_line, closing_line)
   return table.concat(code, "\n")
 end
 
+---@param block string
+---@return string[]
 local function groups_a_setup_block_changes(block)
+  ---@type string[]
   local changed
   in_world("parhelion", paths[1], function(world)
+    ---@type table<string, vim.api.keyset.get_hl_info>
     local before = world:lua "return vim.api.nvim_get_hl(0, {})"
     world:lua(block)
+    ---@type table<string, vim.api.keyset.get_hl_info>
     local after = world:lua "return vim.api.nvim_get_hl(0, {})"
 
     changed = vim.tbl_filter(
+      ---@param name string
+      ---@return boolean
       function(name) return not vim.deep_equal(before[name], after[name]) end,
       vim.tbl_keys(vim.tbl_extend("force", before, after))
     )
@@ -3869,15 +4200,21 @@ test("the help page's defaults, run as written, draw what no setup draws", funct
 end)
 
 test("the README's options block names each option the help page documents", function()
-  local named = options_a_setup_block_names(readme_options_block())
+  local option_names = options_a_setup_block_names(readme_options_block())
 
-  assert(vim.deep_equal(named, options_the_help_documents()), "the block names " .. table.concat(named, " "))
+  assert(
+    vim.deep_equal(option_names, options_the_help_documents()),
+    "the block names " .. table.concat(option_names, " ")
+  )
 end)
 
 test("the help page's defaults name each option the help page documents", function()
-  local named = options_a_setup_block_names(help_defaults_block())
+  local option_names = options_a_setup_block_names(help_defaults_block())
 
-  assert(vim.deep_equal(named, options_the_help_documents()), "the defaults name " .. table.concat(named, " "))
+  assert(
+    vim.deep_equal(option_names, options_the_help_documents()),
+    "the defaults name " .. table.concat(option_names, " ")
+  )
 end)
 
 test("every plugin's patterns fix the letter the names they match start with", function()
@@ -3896,7 +4233,7 @@ for line in io.lines(root .. "/doc/parhelion.txt") do
   if line:find "The table it gets holds:" then in_the_table = true end
   if in_the_table and line == "" then break end
   if in_the_table then
-    for name in line:gmatch "`([%w_]+)`" do
+    for name in captures(line, "`([%w_]+)`") do
       table.insert(colors_in_the_help, name)
     end
   end
@@ -3919,6 +4256,7 @@ local colors_an_override_gets = [[
 for _, path in ipairs { paths[1], paths[2] } do
   test("the help page names every color an override function gets, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type string[]
       local given = world:lua(colors_an_override_gets)
 
       assert(vim.deep_equal(colors_in_the_help, given), "the function gets " .. table.concat(given, " "))
@@ -3926,10 +4264,12 @@ for _, path in ipairs { paths[1], paths[2] } do
   end)
 end
 
+---@type table<string, table<string, string?>>, boolean
 local step_table_in_color_md, in_the_step_table = {}, false
 for line in io.lines(root .. "/COLOR.md") do
   if line:find "^| Step |" then in_the_step_table = true end
   if in_the_step_table and not line:find "^|" then break end
+  ---@type string?, string?, string?, string?, string?
   local step, dark, dark_lightness, light, light_lightness =
     line:match "^| (%l+) | [^|]+ | `(#%x+)` | ([%d.]+) | `(#%x+)` | ([%d.]+) |$"
   if in_the_step_table and step then
@@ -3959,6 +4299,8 @@ local scale_colors_outside_the_step_table = {
   "backdrop",
 }
 
+---@param scale table<string, string>
+---@return string[]
 local function steps_of(scale)
   local steps = {}
   for name in pairs(scale) do
@@ -4009,7 +4351,10 @@ local function expect_design_notes_say(sentence)
   assert(design_notes:find(sentence, 1, true), "DESIGN.md does not say: " .. sentence)
 end
 
+---@param groups table<string, parhelion.Highlight>
+---@return integer
 local function colors_in(groups)
+  ---@type table<string, true>
   local colors = {}
   for _, hl in pairs(groups) do
     for _, key in ipairs { "fg", "bg", "sp" } do
@@ -4040,7 +4385,9 @@ test("DESIGN.md gives the number of groups the base tables hold, of colors they 
 end)
 
 test("DESIGN.md gives the number of groups a load writes", function()
+  ---@type table<string, parhelion.Highlight>
   local dark = dofile(root .. "/lua/parhelion/built/dark.lua").groups
+  ---@type table<string, parhelion.Highlight>
   local light = dofile(root .. "/lua/parhelion/built/light.lua").groups
 
   expect_design_notes_say(
@@ -4075,7 +4422,12 @@ for _, path in ipairs { paths[1], paths[2] } do
       local unmatched = {}
       for plugin, patterns in pairs(plugins) do
         for _, pattern in ipairs(patterns) do
-          local matched = vim.tbl_filter(function(name) return name:find(pattern) end, names)
+          local matched = vim.tbl_filter(
+            ---@param name string
+            ---@return integer?
+            function(name) return name:find(pattern) end,
+            names
+          )
           if #matched == 0 then table.insert(unmatched, plugin .. " " .. pattern) end
         end
       end
@@ -4086,6 +4438,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("parhelion sets every group bufferline defines, " .. path.label, function()
     closing(start_world("parhelion", path, true), function(world)
+      ---@type string[]
       local unset = world:lua [[
         local groups = require("parhelion").built(vim.o.background).groups
         local unset = {}
@@ -4103,9 +4456,18 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("turning a plugin off leaves its groups to the plugin, " .. path.label, function()
     with_options(path, turned_off, function(world)
+      ---@type string[]
       local names = world:lua(names_set)
 
-      expect_none(vim.tbl_filter(function(name) return name:find "^Telescope" end, names), "groups are set")
+      expect_none(
+        vim.tbl_filter(
+          ---@param name string
+          ---@return integer?
+          function(name) return name:find "^Telescope" end,
+          names
+        ),
+        "groups are set"
+      )
       assert(vim.list_contains(names, "GitSignsAdd"), "gitsigns lost its groups")
     end)
   end)
@@ -4117,10 +4479,16 @@ for _, path in ipairs { paths[1], paths[2] } do
       bold = false,
     }]]
     with_options(path, options, function(world)
+      ---@type string[]
       local names = world:lua(names_set)
 
       expect_none(
-        vim.tbl_filter(function(name) return name:find "^Octo" or name:find "^Telescope" end, names),
+        vim.tbl_filter(
+          ---@param name string
+          ---@return integer?
+          function(name) return name:find "^Octo" or name:find "^Telescope" end,
+          names
+        ),
         "groups are set"
       )
     end)
@@ -4129,10 +4497,12 @@ for _, path in ipairs { paths[1], paths[2] } do
   test("turning a plugin off keeps the groups its patterns do not match, " .. path.label, function()
     in_world("parhelion", path, function(world)
       local todo = [[return vim.api.nvim_get_hl(0, { name = "Todo" })]]
+      ---@type vim.api.keyset.get_hl_info
       local drawn = world:lua(todo)
 
       world:lua [[require("parhelion").setup { plugins = { ["todo-comments.nvim"] = false } }]]
 
+      ---@type vim.api.keyset.get_hl_info
       local kept = world:lua(todo)
       assert(vim.deep_equal(drawn, kept), "Todo went from " .. vim.inspect(drawn) .. " to " .. vim.inspect(kept))
     end)
@@ -4140,6 +4510,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("turning fzf off leaves its colors to fzf, " .. path.label, function()
     with_options(path, [[require("parhelion").setup { plugins = { fzf = false } }]], function(world)
+      ---@type table<string, string[]>|vim.NIL|nil
       local colors = world:lua "return vim.g.fzf_colors"
 
       assert(colors == nil or colors == vim.NIL, vim.inspect(colors))
@@ -4148,6 +4519,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("turning fzf off keeps the user's fzf colors, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type table<string, string[]>
       local kept = world:lua [[
         vim.g.fzf_colors = { fg = { "fg", "Comment" } }
         require("parhelion").setup { plugins = { fzf = false } }
@@ -4159,10 +4531,16 @@ for _, path in ipairs { paths[1], paths[2] } do
   end)
 
   test("turning fzf off keeps a copy of parhelion's fzf colors set before it loads, " .. path.label, function()
+    ---@type table<string, string[]>
     local parhelions
-    in_world("parhelion", path, function(world) parhelions = world:lua "return vim.g.fzf_colors" end)
+    in_world("parhelion", path, function(world)
+      ---@type table<string, string[]>
+      local colors = world:lua "return vim.g.fzf_colors"
+      parhelions = colors
+    end)
 
     in_world("default", path, function(world)
+      ---@type table<string, string[]>
       local kept = world:lua(
         [[
           vim.g.fzf_colors = ...
@@ -4179,6 +4557,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("turning fzf off after parhelion's modules reload unsets its fzf colors, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type table<string, string[]>|vim.NIL|nil
       local colors = world:lua [[
         for name in pairs(package.loaded) do
           if name:find "^parhelion" then package.loaded[name] = nil end
@@ -4193,6 +4572,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("turning fzf off keeps fzf colors the user sets after parhelion unset its own, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type table<string, string[]>, table<string, string[]>
       local kept, parhelions = unpack(world:lua [[
         local parhelions = vim.g.fzf_colors
         require("parhelion").setup { plugins = { fzf = false } }
@@ -4211,6 +4591,7 @@ for _, path in ipairs { paths[1], paths[2] } do
       overrides = { TelescopeNormal = { link = "NormalFloat" } },
     }]]
     with_options(path, options, function(world)
+      ---@type string?
       local link = world:lua [[return vim.api.nvim_get_hl(0, { name = "TelescopeNormal" }).link]]
 
       assert(link == "NormalFloat", "TelescopeNormal links to " .. tostring(link))
@@ -4233,6 +4614,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 
   test("setup refuses a plugin it does not know, " .. path.label, function()
     in_world("parhelion", path, function(world)
+      ---@type boolean, string?
       local accepted, message =
         unpack(world:lua [[return { pcall(require("parhelion").setup, { plugins = { telescope = false } }) }]])
 

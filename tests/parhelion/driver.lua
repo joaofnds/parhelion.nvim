@@ -1,9 +1,111 @@
+---@alias driver.Value string|number|boolean|table|userdata|nil
+
+---@alias driver.GroupColors table<string, table<string, string>>
+
+---@alias driver.Unpacker fun(chunk: string, pos: integer): unknown[]?, integer
+
+---@class driver.Response
+---@field err driver.Value
+---@field result driver.Value
+
+---@class driver.Colors
+---@field fg string
+---@field bg string
+---@field sp string
+
+---@class driver.Attr: table<string, integer|boolean|string>
+---@field foreground? integer
+---@field background? integer
+---@field special? integer
+
+---@class driver.HlItem
+---@field id integer
+---@field kind string
+---@field hi_name? string
+
+---@class driver.GridCell
+---@field [1] string
+---@field [2] integer
+
+---@class driver.LineCell
+---@field [1] string
+---@field [2]? integer
+---@field [3]? integer
+
+---@class driver.DrawnWith
+---@field kind string
+---@field name? string
+---@field bg? string
+
+---@class driver.Style
+---@field fg string
+---@field bg string
+---@field sp? string
+---@field flags string
+
+---@class driver.Cell: driver.Style
+---@field text string
+---@field drawn_with driver.DrawnWith[]
+
+---@class driver.DrawnCell
+---@field text string
+---@field fg string
+---@field bg string
+---@field flags string
+
+---@class driver.Position
+---@field row integer
+---@field col integer
+
+---@class driver.Shot
+---@field rows driver.Cell[][]
+---@field defaults driver.Colors
+---@field cursor driver.Position
+---@field groups? driver.GroupColors
+---@field view? string
+---@field mode? string
+
+---@class driver.SpawnOptions
+---@field args string[]
+---@field rows integer
+---@field cols integer
+---@field cwd? string
+---@field env? table<string, string>
+
+---@class driver.SettleOptions
+---@field timeout? integer
+---@field quiet? integer
+---@field until_lua? string
+
+---@class driver.Nvim
+---@field responses table<integer, driver.Response>
+---@field next_id integer
+---@field grid table<integer, table<integer, driver.GridCell>>
+---@field attrs table<integer, driver.Attr>
+---@field items table<integer, driver.HlItem[]>
+---@field rows integer
+---@field cols integer
+---@field cursor driver.Position
+---@field last_change integer
+---@field unpacker driver.Unpacker
+---@field errors string[]
+---@field stdin uv.uv_pipe_t
+---@field stdout uv.uv_pipe_t
+---@field stderr uv.uv_pipe_t
+---@field handle uv.uv_process_t
+---@field exited? boolean
+---@field defaults driver.Colors
 local Nvim = {}
 Nvim.__index = Nvim
 
-local function hex(n) return n and string.format("#%06x", n) or nil end
+---@param n integer
+---@return string
+local function hex(n) return string.format("#%06x", n) end
 
+---@param overrides? table<string, string>
+---@return string[]
 local function environment(overrides)
+  ---@type table<string, string>
   local merged = vim.tbl_extend("force", vim.fn.environ(), overrides or {})
   local list = {}
   for k, v in pairs(merged) do
@@ -12,7 +114,12 @@ local function environment(overrides)
   return list
 end
 
+---@param opts driver.SpawnOptions
+---@return driver.Nvim
 function Nvim.spawn(opts)
+  ---@type driver.Unpacker
+  local unpacker = vim.mpack.Unpacker()
+  ---@type driver.Nvim
   local self = setmetatable({
     responses = {},
     next_id = 1,
@@ -23,11 +130,11 @@ function Nvim.spawn(opts)
     cols = opts.cols,
     cursor = { row = 0, col = 0 },
     last_change = vim.uv.now(),
-    unpacker = vim.mpack.Unpacker(),
+    unpacker = unpacker,
     errors = {},
   }, Nvim)
 
-  self.stdin, self.stdout, self.stderr = vim.uv.new_pipe(), vim.uv.new_pipe(), vim.uv.new_pipe()
+  self.stdin, self.stdout, self.stderr = assert(vim.uv.new_pipe()), assert(vim.uv.new_pipe()), assert(vim.uv.new_pipe())
   local args = vim.list_extend({ "--embed" }, opts.args)
   local handle, failure = vim.uv.spawn("nvim", {
     args = args,
@@ -64,6 +171,7 @@ function Nvim.spawn(opts)
   return self
 end
 
+---@param chunk string
 function Nvim:receive(chunk)
   local pos = 1
   while pos <= #chunk do
@@ -73,11 +181,15 @@ function Nvim:receive(chunk)
   end
 end
 
+---@param message unknown[]
 function Nvim:dispatch(message)
   if message[1] == 1 then
     self.responses[message[2]] = { err = message[3], result = message[4] }
   elseif message[1] == 2 and message[2] == "redraw" then
-    for _, batch in ipairs(message[3]) do
+    ---@type unknown[][]
+    local batches = message[3]
+    for _, batch in ipairs(batches) do
+      ---@type fun(self: driver.Nvim, ...: unknown)?
       local handler = self["on_" .. batch[1]]
       if handler then
         for i = 2, #batch do
@@ -88,13 +200,21 @@ function Nvim:dispatch(message)
   end
 end
 
+---@param fg integer
+---@param bg integer
+---@param sp integer
 function Nvim:on_default_colors_set(fg, bg, sp) self.defaults = { fg = hex(fg), bg = hex(bg), sp = hex(sp) } end
 
+---@param id integer
+---@param rgb driver.Attr
+---@param info driver.HlItem[]
 function Nvim:on_hl_attr_define(id, rgb, _, info)
   self.attrs[id] = rgb
   self.items[id] = info
 end
 
+---@param width integer
+---@param height integer
 function Nvim:on_grid_resize(_, width, height)
   self.cols, self.rows = width, height
   self:on_grid_clear()
@@ -110,6 +230,9 @@ function Nvim:on_grid_clear()
   end
 end
 
+---@param row integer
+---@param col integer
+---@param cells driver.LineCell[]
 function Nvim:on_grid_line(_, row, col, cells)
   local hl_id = 0
   for _, cell in ipairs(cells) do
@@ -125,8 +248,15 @@ function Nvim:on_grid_line(_, row, col, cells)
   end
 end
 
+---@param row integer
+---@param col integer
 function Nvim:on_grid_cursor_goto(_, row, col) self.cursor = { row = row, col = col } end
 
+---@param top integer
+---@param bot integer
+---@param left integer
+---@param right integer
+---@param rows integer
 function Nvim:on_grid_scroll(_, top, bot, left, right, rows)
   self.last_change = vim.uv.now()
   local from, to, step = top, bot - 1, 1
@@ -143,11 +273,17 @@ function Nvim:on_grid_scroll(_, top, bot, left, right, rows)
   end
 end
 
+---@param condition fun(): boolean?
+---@param timeout integer
+---@param what string
 local function wait_until(condition, timeout, what)
   local ok = vim.wait(timeout, condition, 5)
   assert(ok, "timed out waiting for " .. what)
 end
 
+---@param method string
+---@param ... unknown
+---@return unknown
 function Nvim:request(method, ...)
   local id = self.next_id
   self.next_id = id + 1
@@ -160,10 +296,14 @@ function Nvim:request(method, ...)
   return response.result
 end
 
+---@param code string
+---@param ... unknown
+---@return unknown
 function Nvim:lua(code, ...) return self:request("nvim_exec_lua", code, { ... }) end
 
 -- Quiet means the screen stopped changing. Flushes are no measure of that, because lualine refreshes
 -- every second and each refresh flushes with nothing to draw.
+---@param opts driver.SettleOptions
 function Nvim:settle(opts)
   local deadline = vim.uv.now() + (opts.timeout or 20000)
   while true do
@@ -197,22 +337,34 @@ function Nvim:wait_for_startup()
   self.last_change = vim.uv.now()
 end
 
+---@param nvim driver.Nvim
+---@param id integer
+---@return driver.DrawnWith[]
 local function drawn_with(nvim, id)
   return vim
     .iter(nvim.items[id] or {})
-    :map(function(item)
-      local own = nvim.attrs[item.id] or {}
-      return { kind = item.kind, name = item.hi_name, bg = hex(own.background) }
-    end)
+    :map(
+      ---@param item driver.HlItem
+      ---@return driver.DrawnWith
+      function(item)
+        local own = nvim.attrs[item.id] or {}
+        return { kind = item.kind, name = item.hi_name, bg = own.background and hex(own.background) }
+      end
+    )
     :totable()
 end
 
+---@param attr driver.Attr
+---@param defaults driver.Colors
+---@return driver.Style
 local function style_of(attr, defaults)
   local fg = attr.foreground and hex(attr.foreground) or defaults.fg
   local bg = attr.background and hex(attr.background) or defaults.bg
   local sp = attr.special and hex(attr.special) or nil
   local flags = {}
-  for key, value in pairs(attr) do
+  ---@type table<string, integer|boolean|string>
+  local attributes = attr
+  for key, value in pairs(attributes) do
     if key ~= "foreground" and key ~= "background" and key ~= "special" and value and value ~= 0 then
       table.insert(flags, value == true and key or (key .. "=" .. tostring(value)))
     end
@@ -221,10 +373,12 @@ local function style_of(attr, defaults)
   return { fg = fg, bg = bg, sp = sp, flags = table.concat(flags, ",") }
 end
 
+---@return driver.Shot
 function Nvim:capture()
   self:request("nvim_command", "redraw!")
   self:settle { quiet = 150 }
 
+  ---@type driver.Cell[][]
   local rows = {}
   for row = 0, self.rows - 1 do
     rows[row + 1] = {}
@@ -245,6 +399,8 @@ function Nvim:capture()
 end
 
 -- Unlike capture, it forces no redraw, so it shows what Neovim chose to draw.
+---@param row integer
+---@return driver.DrawnCell[]
 function Nvim:drawn_row(row)
   local cells = {}
   for col = 0, self.cols - 1 do

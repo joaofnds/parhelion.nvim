@@ -1,3 +1,4 @@
+---@type string, string
 local root, deps = vim.env.PARHELION_ROOT, vim.env.PARHELION_DEPS
 vim.opt.rtp:prepend(root)
 vim.opt.rtp:append(root .. "/after")
@@ -19,8 +20,13 @@ vim.g.mapleader = " "
 vim.o.background = vim.env.POPULAR_MODE
 vim.cmd.colorscheme "parhelion"
 
-local view = dofile(vim.env.POPULAR_HERE .. "/views.lua").by_name[vim.env.POPULAR_VIEW]
+---@module "popular.views"
+local views = dofile(vim.env.POPULAR_HERE .. "/views.lua")
+---@type string
+local view_name = vim.env.POPULAR_VIEW
+local view = views.by_name[view_name]
 
+---@param name string
 local function add(name)
   local dir = deps .. "/" .. name
   vim.opt.rtp:append(dir)

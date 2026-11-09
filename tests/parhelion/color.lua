@@ -17,7 +17,11 @@ local lms_to_perceptual_lab = {
 }
 local d65 = { 0.95047, 1.0, 1.08883 }
 
+---@param matrix number[][]
+---@param vector number[]
+---@return number[]
 local function times(matrix, vector)
+  ---@type number[]
   local product = {}
   for row = 1, 3 do
     product[row] = matrix[row][1] * vector[1] + matrix[row][2] * vector[2] + matrix[row][3] * vector[3]
@@ -26,6 +30,8 @@ local function times(matrix, vector)
   return product
 end
 
+---@param color string
+---@return number[]
 local function channels(color)
   return {
     tonumber(color:sub(2, 3), 16) / 255,
@@ -34,11 +40,18 @@ local function channels(color)
   }
 end
 
+---@param channel number
+---@param threshold number
+---@return number
 local function decoded(channel, threshold)
   if channel <= threshold then return channel / 12.92 end
   return ((channel + 0.055) / 1.055) ^ 2.4
 end
 
+---@param first string
+---@param second string
+---@param share number
+---@return string
 function M.mix(first, second, share)
   local a, b = channels(first), channels(second)
   local function step(index) return math.floor(255 * (a[index] + (b[index] - a[index]) * share) + 0.5) end
@@ -46,25 +59,42 @@ function M.mix(first, second, share)
   return string.format("#%02x%02x%02x", step(1), step(2), step(3))
 end
 
+---@param color string
+---@return number[]
 local function xyz(color)
-  local linear = vim.tbl_map(function(channel) return decoded(channel, 0.04045) end, channels(color))
+  local linear = vim.tbl_map(
+    ---@param channel number
+    ---@return number
+    function(channel) return decoded(channel, 0.04045) end,
+    channels(color)
+  )
   return times(srgb_to_xyz, linear)
 end
 
+---@param color string
+---@return number
 local function relative_luminance(color)
-  local rgb = vim.tbl_map(function(channel) return decoded(channel, 0.03928) end, channels(color))
+  local rgb = vim.tbl_map(
+    ---@param channel number
+    ---@return number
+    function(channel) return decoded(channel, 0.03928) end,
+    channels(color)
+  )
   return 0.2126 * rgb[1] + 0.7152 * rgb[2] + 0.0722 * rgb[3]
 end
 
+---@param a string
+---@param b string
+---@return number
 function M.contrast_ratio(a, b)
-  local lighter, darker = relative_luminance(a), relative_luminance(b)
-  if darker > lighter then
-    lighter, darker = darker, lighter
-  end
+  local first, second = relative_luminance(a), relative_luminance(b)
+  local lighter, darker = math.max(first, second), math.min(first, second)
 
   return (lighter + 0.05) / (darker + 0.05)
 end
 
+---@param color string
+---@return number
 local function screen_luminance(color)
   local rgb = channels(color)
   local y = 0.2126729 * rgb[1] ^ 2.4 + 0.7151522 * rgb[2] ^ 2.4 + 0.0721750 * rgb[3] ^ 2.4
@@ -73,6 +103,9 @@ local function screen_luminance(color)
   return y + (0.022 - y) ^ 1.414
 end
 
+---@param text string
+---@param background string
+---@return number
 function M.lightness_contrast(text, background)
   local t, b = screen_luminance(text), screen_luminance(background)
   if math.abs(b - t) < 0.0005 then return 0 end
@@ -86,7 +119,11 @@ function M.lightness_contrast(text, background)
   return contrast > -0.1 and 0 or (contrast + 0.027) * 100
 end
 
+---@param color string
+---@return number[]
 function M.lab(color)
+  ---@param t number
+  ---@return number
   local function f(t)
     if t > 216 / 24389 then return t ^ (1 / 3) end
     return (24389 / 27 * t + 16) / 116
@@ -97,15 +134,26 @@ function M.lab(color)
   return { 116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz) }
 end
 
+---@param value number
+---@return number
 local function cube_root(value)
   if value < 0 then return -((-value) ^ (1 / 3)) end
   return value ^ (1 / 3)
 end
 
+---@param sample number[]
+---@return number[]
 function M.perceptual_lab_from_xyz(sample)
   return times(lms_to_perceptual_lab, vim.tbl_map(cube_root, times(xyz_to_lms, sample)))
 end
 
+---@class color.Lch
+---@field lightness number
+---@field chroma number
+---@field hue number
+
+---@param color string
+---@return color.Lch
 function M.perceptual_lch(color)
   local lab = M.perceptual_lab_from_xyz(xyz(color))
   return {
@@ -115,17 +163,30 @@ function M.perceptual_lch(color)
   }
 end
 
+---@param degrees number
+---@return number
 local function signed(degrees) return degrees > 180 and degrees - 360 or degrees end
 
+---@param color string
+---@return number
 function M.signed_hue(color) return signed(M.perceptual_lch(color).hue) end
 
+---@param from string
+---@param to string
+---@return number
 function M.hue_shift(from, to) return signed((M.perceptual_lch(to).hue - M.perceptual_lch(from).hue) % 360) end
 
+---@param b number
+---@param a number
+---@return number
 local function hue_of(b, a)
   if a == 0 and b == 0 then return 0 end
   return math.deg(math.atan2(b, a)) % 360
 end
 
+---@param first number[]
+---@param second number[]
+---@return number
 function M.color_difference_of_labs(first, second)
   local l1, a1, b1 = first[1], first[2], first[3]
   local l2, a2, b2 = second[1], second[2], second[3]
@@ -158,6 +219,8 @@ function M.color_difference_of_labs(first, second)
     end
   end
 
+  ---@param degrees number
+  ---@return number
   local function cosine(degrees) return math.cos(math.rad(degrees)) end
 
   local t = 1
@@ -180,6 +243,9 @@ function M.color_difference_of_labs(first, second)
   return math.sqrt(dl ^ 2 + dc ^ 2 + dh ^ 2 + rotation * dc * dh)
 end
 
+---@param a string
+---@param b string
+---@return number
 function M.color_difference(a, b) return M.color_difference_of_labs(M.lab(a), M.lab(b)) end
 
 local deficiency_matrices = {
@@ -195,14 +261,24 @@ local deficiency_matrices = {
   },
 }
 
+---@param channel number
+---@return integer
 local function encoded(channel)
   local clamped = math.max(0, math.min(1, channel))
   local value = clamped <= 0.0031308 and 12.92 * clamped or 1.055 * clamped ^ (1 / 2.4) - 0.055
   return math.floor(value * 255 + 0.5)
 end
 
+---@param color string
+---@param deficiency "deuteranopia"|"protanopia"
+---@return string
 function M.simulated(color, deficiency)
-  local linear = vim.tbl_map(function(channel) return decoded(channel, 0.04045) end, channels(color))
+  local linear = vim.tbl_map(
+    ---@param channel number
+    ---@return number
+    function(channel) return decoded(channel, 0.04045) end,
+    channels(color)
+  )
   local rgb = times(deficiency_matrices[deficiency], linear)
   return string.format("#%02x%02x%02x", encoded(rgb[1]), encoded(rgb[2]), encoded(rgb[3]))
 end

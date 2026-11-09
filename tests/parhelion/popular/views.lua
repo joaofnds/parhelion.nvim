@@ -1,3 +1,24 @@
+---@class popular.View
+---@field name string
+---@field plugins string[]
+---@field drawn string[]
+---@field setup? fun()
+---@field run fun(nvim: driver.Nvim)
+---@field labels_on? string
+---@field draws_no_code? boolean
+---@field no_lualine? boolean
+
+---@class (partial) popular.ViewSpec: popular.View
+
+---@class popular.CmpWindow
+
+---@class popular.Cmp
+---@field register_source fun(name: string, source: table)
+---@field setup fun(config: table)
+---@field mapping { preset: { insert: fun(keys: table): table } }
+---@field config { window: { bordered: fun(opts: table): popular.CmpWindow } }
+
+---@type { list: popular.View[], by_name: table<string, popular.View> }
 local M = { list = {}, by_name = {} }
 local here = vim.env.POPULAR_HERE
 local nest, rich = here .. "/nest.lua", here .. "/rich.md"
@@ -14,6 +35,8 @@ local function tabline_holds(text) return string.format("%s.tabline_holds(%q)", 
 
 local shows_the_last_line = drawn .. ".shows_the_last_line()"
 
+---@param name string
+---@param spec popular.ViewSpec
 local function view(name, spec)
   assert(spec.drawn and #spec.drawn > 0, name .. " names nothing its plugin draws")
 
@@ -100,18 +123,24 @@ view("oil", {
   run = function(nvim) cmd(nvim, "Oil", 900) end,
 })
 
-local function cmp_view(name, drawn, window)
+---@param name string
+---@param drawn_checks string[]
+---@param window fun(cmp: popular.Cmp): table
+local function cmp_view(name, drawn_checks, window)
   view(name, {
     plugins = { "nvim-cmp" },
-    drawn = drawn,
+    drawn = drawn_checks,
     setup = function()
+      ---@type popular.Cmp
       local cmp = require "cmp"
       local source = {}
       source.complete = function(_, _, callback)
         local items = {}
+        ---@type table<integer, string>
+        local kind_names = vim.lsp.protocol.CompletionItemKind
         for kind = 1, 25 do
           table.insert(items, {
-            label = "item" .. vim.lsp.protocol.CompletionItemKind[kind],
+            label = "item" .. kind_names[kind],
             kind = kind,
             documentation = { kind = "markdown", value = "A **documented** entry with `code`." },
           })
@@ -128,7 +157,7 @@ local function cmp_view(name, drawn, window)
     end,
     run = function(nvim)
       edit(nvim, nest)
-      nvim:lua "vim.fn.cursor(36, 1)"
+      nvim:lua "vim.fn.cursor(48, 1)"
       nvim:request("nvim_input", "Oite")
       nvim:settle { quiet = 500 }
       nvim:lua "require('cmp').complete()"
@@ -142,14 +171,14 @@ end
 cmp_view("cmp", { shows "cmp_menu" }, function() return {} end)
 
 cmp_view("cmp-bordered", { bordered "cmp_menu" }, function(cmp)
-  local bordered = cmp.config.window.bordered { border = "rounded" }
-  return { completion = bordered, documentation = bordered }
+  local rounded = cmp.config.window.bordered { border = "rounded" }
+  return { completion = rounded, documentation = rounded }
 end)
 
-local function blink_view(name, drawn, menu)
+local function blink_view(name, drawn_checks, menu)
   view(name, {
     plugins = { "blink.cmp" },
-    drawn = drawn,
+    drawn = drawn_checks,
     setup = function()
       require("blink.cmp").setup {
         fuzzy = { implementation = "lua" },
@@ -159,7 +188,7 @@ local function blink_view(name, drawn, menu)
     end,
     run = function(nvim)
       edit(nvim, nest)
-      nvim:lua "vim.fn.cursor(36, 1)"
+      nvim:lua "vim.fn.cursor(48, 1)"
       nvim:request("nvim_input", "Ost")
       nvim:settle { quiet = 900 }
     end,
@@ -291,7 +320,7 @@ view("snacks-notifier", {
       Snacks.notify("Finished indexing", { level = "info", title = "Index", timeout = 0 })
       Snacks.notify("Resolved the path", { level = "debug", title = "Debug", timeout = 0 })
     ]]
-    nvim:lua "vim.fn.cursor(11, 12)"
+    nvim:lua "vim.fn.cursor(21, 12)"
     nvim:settle { quiet = 800 }
   end,
 })
@@ -302,7 +331,7 @@ view("indent-rainbow", {
   setup = function() require("ibl").setup {} end,
   run = function(nvim)
     edit(nvim, nest, 800)
-    nvim:lua "vim.fn.cursor(11, 12)"
+    nvim:lua "vim.fn.cursor(21, 12)"
     nvim:settle { quiet = 700 }
   end,
 })
@@ -312,7 +341,7 @@ view("illuminate-diagnostics", {
   drawn = { draws "IlluminatedWordText", draws "DiagnosticVirtualTextError" },
   run = function(nvim)
     code_with_lsp(nvim)
-    nvim:lua "vim.diagnostic.config({ virtual_text = true }); vim.fn.cursor(25, 15)"
+    nvim:lua "vim.diagnostic.config({ virtual_text = true }); vim.fn.cursor(36, 15)"
     nvim:settle { quiet = 900 }
   end,
 })
@@ -340,6 +369,7 @@ view("alpha", {
   plugins = { "alpha-nvim" },
   drawn = { shows "alpha" },
   setup = function()
+    ---@type { config: table }
     local theme = require "alpha.themes.dashboard"
     require("alpha").setup(theme.config)
   end,
@@ -394,7 +424,7 @@ view("lspsaga", {
   setup = function() require("lspsaga").setup { ui = { border = "rounded" } } end,
   run = function(nvim)
     code_with_lsp(nvim)
-    nvim:lua "vim.fn.cursor(25, 15)"
+    nvim:lua "vim.fn.cursor(36, 15)"
     cmd(nvim, "Lspsaga outline", 900)
     nvim:request("nvim_command", "wincmd p")
     cmd(nvim, "Lspsaga hover_doc", 900)
@@ -407,7 +437,7 @@ view("dap-ui", {
   setup = function() require("dapui").setup {} end,
   run = function(nvim)
     edit(nvim, nest)
-    nvim:lua "vim.fn.cursor(24, 1); require('dap').toggle_breakpoint(); vim.fn.cursor(25,1); require('dap').toggle_breakpoint('x > 1'); vim.fn.cursor(28,1); require('dap').toggle_breakpoint(nil, nil, 'log {x}'); require('dapui').open()"
+    nvim:lua "vim.fn.cursor(35, 1); require('dap').toggle_breakpoint(); vim.fn.cursor(36,1); require('dap').toggle_breakpoint('x > 1'); vim.fn.cursor(40,1); require('dap').toggle_breakpoint(nil, nil, 'log {x}'); require('dapui').open()"
     nvim:settle { quiet = 1200 }
   end,
 })
@@ -464,7 +494,7 @@ view("dropbar", {
   setup = function() require("dropbar").setup {} end,
   run = function(nvim)
     edit(nvim, nest, 700)
-    nvim:lua "vim.fn.cursor(11, 12)"
+    nvim:lua "vim.fn.cursor(21, 12)"
     nvim:settle { quiet = 800 }
     nvim:lua "require('dropbar.api').pick(3)"
     nvim:settle { quiet = 800 }
@@ -690,7 +720,7 @@ view("mini-editor", {
     require("mini.diff").setup {}
     require("mini.hipatterns").setup {
       highlighters = {
-        fixme = { pattern = "first", group = "MiniHipatternsFixme" },
+        fixme = { pattern = "core", group = "MiniHipatternsFixme" },
         hack = { pattern = "stack", group = "MiniHipatternsHack" },
         todo = { pattern = "limit", group = "MiniHipatternsTodo" },
         note = { pattern = "name", group = "MiniHipatternsNote" },
@@ -706,7 +736,7 @@ view("mini-editor", {
   run = function(nvim)
     edit(nvim, "notes.md")
     edit(nvim, nest, 700)
-    nvim:lua "vim.fn.cursor(11, 12)"
+    nvim:lua "vim.fn.cursor(21, 12)"
     nvim:settle { quiet = 500 }
     nvim:request("nvim_input", "g")
     nvim:settle { quiet = 700 }
@@ -745,10 +775,13 @@ view("mason", {
   setup = function()
     -- Mason's own registry downloads on open, and a failed download leaves an error at a hit-enter prompt that
     -- blocks every later request to the view.
-    local index = {}
-    for _, spec in ipairs(dofile(vim.env.POPULAR_HERE .. "/mason_packages.lua")) do
+    ---@type table<string, string>, table<string, fun(): table>
+    local index, preload = {}, package.preload
+    ---@module "popular.mason_packages"
+    local packages = dofile(vim.env.POPULAR_HERE .. "/mason_packages.lua")
+    for _, spec in ipairs(packages) do
       local module = "popular.mason." .. spec.name
-      package.preload[module] = function() return spec end
+      preload[module] = function() return spec end
       index[spec.name] = module
     end
     package.preload["popular.mason"] = function() return index end
@@ -763,6 +796,7 @@ view("lazy", {
   plugins = { "lazy.nvim" },
   drawn = { shows "lazy" },
   setup = function()
+    ---@type string
     local deps = vim.env.PARHELION_DEPS
     require("lazy").setup({
       { dir = deps .. "/flash.nvim", keys = { "s" } },

@@ -70,7 +70,20 @@ local families_with_label_hues = {
   "which_key",
 }
 
+---@class restraint.Finding
+---@field group string
+---@field attribute string
+---@field color string
+
+---@class restraint.TwoRoles
+---@field group string
+---@field roles string[]
+
+---@alias restraint.Families table<string, table<string, string>>
+
+---@return table<string, true>
 local function names_with_label_hues()
+  ---@type table<string, true>
   local names = {}
   for _, family_name in ipairs(families_with_label_hues) do
     for name in pairs(chrome.family_groups("dark", family_name)) do
@@ -88,8 +101,12 @@ local derived_from_labels = {
   "^RenderMarkdown_",
 }
 
+---@return table<string, true>
 local function groups_lazy_links_to_core_groups()
-  local lazy_colors = dofile(vim.env.PARHELION_DEPS .. "/lazy.nvim/lua/lazy/view/colors.lua").colors
+  ---@type { colors: table<string, string|table> }
+  local lazy_view = dofile(vim.env.PARHELION_DEPS .. "/lazy.nvim/lua/lazy/view/colors.lua")
+  local lazy_colors = lazy_view.colors
+  ---@type table<string, true>
   local names = {}
   for name, target in pairs(lazy_colors) do
     if type(target) == "string" then names["Lazy" .. name] = true end
@@ -123,6 +140,9 @@ local has_meaning = {
   "^NvimSeparator$",
 }
 
+---@param name string
+---@param patterns string[]
+---@return boolean
 local function matches_any(name, patterns)
   for _, pattern in ipairs(patterns) do
     if name:find(pattern) then return true end
@@ -238,21 +258,30 @@ local inside_the_boundary = {
   "^tk%u%l+$",
 }
 
+---@param name string
+---@return boolean
 local function crosses_the_boundary(name)
   local crosses = matches_any(name, past_the_boundary) or vim.list_contains(core_of_the_buffer, name)
 
   return crosses and not matches_any(name, inside_the_boundary)
 end
 
+---@param name string
+---@return boolean
 local function is_a_plugin_group(name)
   if neovim_own_groups[name] or crosses_the_boundary(name) then return false end
 
   return not matches_any(name, outside_the_theme_reach)
 end
 
+---@param hex string
+---@return boolean
 local function reads_as_color(hex) return color.perceptual_lch(hex).chroma > M.smallest_chroma_read_as_color end
 
+---@param steps table<string, string>
+---@return table<string, true>
 local function set_of(steps)
+  ---@type table<string, true>
   local set = {}
   for _, step in pairs(steps) do
     set[step] = true
@@ -261,12 +290,18 @@ local function set_of(steps)
   return set
 end
 
+---@param name string
+---@return boolean
 local function may_hold_a_label_hue(name) return holds_label_hues[name] or matches_any(name, derived_from_labels) end
 
+---@param background parhelion.Background
+---@param colors_by_group driver.GroupColors
+---@return restraint.Finding[]
 function M.hues_off_the_scale(background, colors_by_group)
   local on_the_scale = set_of(chrome.scale[background])
   local label_hues = set_of(chrome.label_hues[background])
   local code_hues = set_of(chrome.hues[background])
+  ---@type restraint.Finding[]
   local found = {}
   for name, colors in pairs(colors_by_group) do
     if is_a_plugin_group(name) then
@@ -284,6 +319,9 @@ function M.hues_off_the_scale(background, colors_by_group)
   return found
 end
 
+---@param shot { rows: driver.Cell[][] }
+---@param is_icon fun(text: string): boolean
+---@return number
 function M.share_of_text_in_color(shot, is_icon)
   local text, colored = 0, 0
   for _, row in ipairs(shot.rows) do
@@ -298,7 +336,11 @@ function M.share_of_text_in_color(shot, is_icon)
   return text == 0 and 0 or colored / text
 end
 
+---@param shot { rows: driver.Cell[][] }
+---@param background string
+---@return driver.Cell[]
 function M.cells_on(shot, background)
+  ---@type driver.Cell[]
   local cells = {}
   for _, row in ipairs(shot.rows) do
     for _, cell in ipairs(row) do
@@ -309,7 +351,10 @@ function M.cells_on(shot, background)
   return cells
 end
 
+---@param colors_by_group driver.GroupColors
+---@return restraint.Finding[]
 function M.colored_structure(colors_by_group)
+  ---@type restraint.Finding[]
   local found = {}
   for name, colors in pairs(colors_by_group) do
     local is_structure = matches_any(name, structure) and not holds_label_hues[name]
@@ -323,7 +368,10 @@ function M.colored_structure(colors_by_group)
   return found
 end
 
+---@param families restraint.Families
+---@return string[]
 function M.restyled_past_the_boundary(families)
+  ---@type string[]
   local found = {}
   for _, family in pairs(families) do
     for _, names in pairs(family) do
@@ -336,7 +384,10 @@ function M.restyled_past_the_boundary(families)
   return found
 end
 
+---@param families restraint.Families
+---@return restraint.TwoRoles[]
 function M.groups_in_two_roles(families)
+  ---@type table<string, string>, restraint.TwoRoles[]
   local first_role, found = {}, {}
   for _, family in pairs(families) do
     for role, names in pairs(family) do
