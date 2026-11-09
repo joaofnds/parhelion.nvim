@@ -3689,8 +3689,8 @@ end
 
 local plugins = require "parhelion.plugins"
 
-local own_groups = { "^Bold$", "^Italic$", "^Parameter$", "^Property$", "^TagAttribute$", "^TagDelimiter$" }
-vim.list_extend(own_groups, { "^TermCursorNC$", "^LspKind", "^diff", "^markdownH%d$" })
+local own_groups = { "^Bold$", "^BoldItalic$", "^Italic$", "^Parameter$", "^Property$", "^TagAttribute$" }
+vim.list_extend(own_groups, { "^TagDelimiter$", "^TermCursorNC$", "^LspKind", "^diff", "^markdownH%d$" })
 
 local plugins_with_only_a_theme_file = { "barbecue.nvim", "feline.nvim", "lualine.nvim", "reactive.nvim" }
 

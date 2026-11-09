@@ -112,7 +112,7 @@ check each one when started in dark and in light, and that they hold across a to
 
 ### Load time
 
-With no setup, a load writes the built table's 2285 groups in dark and 2284 in light. `tests/parhelion/bench.sh` times
+With no setup, a load writes the built table's 2286 groups in dark and 2285 in light. `tests/parhelion/bench.sh` times
 it against its floor, a colorscheme that only reads the same built table and writes its groups, clearing the old ones
 first on a reload. Each start puts only its own colorscheme's directory on the runtimepath, because with both there,
 the colorscheme in the second directory loaded slower, which moved a first load's ratio by 0.02 to 0.04. The script
