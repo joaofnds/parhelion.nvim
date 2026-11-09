@@ -2655,12 +2655,10 @@ local recording_searches = [[
 	package.loaded["parhelion_tests.searched"] = searched
 ]]
 
--- Compares the groups drawn with the option, which must be in force, against those drawn with the defaults, which it
--- leaves in force.
+-- Compares the groups drawn with the option, as given, against those drawn with the defaults, which must be in force.
 local kilobytes_a_copy_of_the_changed_groups_takes = kilobytes_allocated_by
 	.. [[
-	local with_the_option = vim.api.nvim_get_hl(0, {})
-	require("parhelion").setup()
+	local with_the_option = ...
 	local with_the_defaults = vim.api.nvim_get_hl(0, {})
 	local groups = require("parhelion").built(vim.o.background).groups
 	local changed = vim.tbl_filter(
@@ -2953,8 +2951,11 @@ for _, path in ipairs { paths[1], paths[2] } do
 			function()
 				with_options(path, setup_code, function(world)
 					local allocated = world:lua(kilobytes_a_reload_allocates)
+					local with_the_option = world:lua [[return vim.api.nvim_get_hl(0, {})]]
 
-					local changes = world:lua(kilobytes_a_copy_of_the_changed_groups_takes)
+					world:lua [[require("parhelion").setup()]]
+
+					local changes = world:lua(kilobytes_a_copy_of_the_changed_groups_takes, with_the_option)
 					assert(
 						allocated < reload_kilobytes_without_copies + changes.kilobytes,
 						string.format(
