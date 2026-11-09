@@ -47,7 +47,7 @@ Plugin support below for how they are checked.
 | `lua/barbecue/theme/parhelion.lua`, `lua/parhelion/bufferline.lua` | The theme files those plugins load. Barbecue's draws from the colors in the built tables, and bufferline's returns no highlights, so the groups bufferline's options name come from `chrome.lua` |
 | `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the colors, mode hues and groups in the built tables |
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries, which began as solarized.nvim's |
-| `tests/parhelion/` | The test suite |
+| `tests/parhelion/` | The test suite, the load bench, the install script CI runs and the commit lint |
 | `.github/workflows/parhelion.yml` | Runs the suite, the load bench, the format check and the commit lint in CI |
 | `Makefile` | The `test`, `bench`, `format-check` and `lintcommit` targets that CI runs, and `build` |
 | `doc/parhelion.txt` | The `:help` page |
@@ -120,7 +120,7 @@ the colorscheme in the second directory loaded slower, which moved a first load'
 takes the median of 40 fresh `nvim --clean` starts for each mode, with `vim.loader` off and on:
 
 ```sh
-bash tests/parhelion/bench.sh
+make bench
 ```
 
 On an Apple M5 Pro with Neovim 0.12.6, a first load takes about 1.7 ms with `vim.loader` off and 1.3 ms with it on,
@@ -315,7 +315,7 @@ requires `chrome.lua`, the refinement or the base tables, which take 1 to 1.7 ms
 
 `tests/parhelion/run.sh` fetches the pinned plugins and parsers through `tests/parhelion/fetch.sh`, then starts two
 embedded Neovim instances, one with the base tables and one with parhelion, and compares them. It needs `nvim` 0.12,
-`tree-sitter` 0.26.1 or later, `git`, `tar`, `curl`, `fzf`, and a C compiler.
+`tree-sitter` 0.26.1 or later, `git`, `make`, `tar`, `curl`, `fzf`, and a C compiler.
 
 The base instance loads the `base_refined` colorscheme in `tests/parhelion/base_refined`, which sets the base tables,
 applies `lua/parhelion/refinement.lua` on top, and then applies the `chrome.lua` families that frame or fill the buffers
@@ -375,6 +375,9 @@ Every comparison runs on all four load paths. The checks on query files run once
 - Every Neogit group clears the text floor once Neogit has derived its own, and the pinned look holds with each plugin
   view open.
 - The popular plugin views and the plugin side theme files, as described under Plugin support.
+- The scripts beside the suite. The bench passes or fails fake timings by its bound, the install script refuses a
+  Neovim version other than 0.12.6 or nightly, and the commit lint passes each type, fails a subject that is not a
+  Conventional Commit, and checks the range `make lintcommit` is given, or `origin/main..HEAD` when it is given none.
 
 Set `PARHELION_TEST_FILTER=<substring>` to run the tests whose name contains it. A filter that matches nothing exits
 non-zero. The whole suite takes about eight minutes on an Apple M5 Pro once the dependencies are fetched.
@@ -383,15 +386,23 @@ non-zero. The whole suite takes about eight minutes on an Apple M5 Pro once the 
 `main` and every Monday, which needs the repository hosted on GitHub. In a clone with no such remote they only run by
 hand, as `make test`, `make bench` and `make format-check`.
 
-Commit subjects follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). On a push and a pull
+Commit subjects follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). A subject starts with
+one of the types `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` and `revert`, in
+lowercase, then takes an optional scope in parentheses and an optional `!`, then a colon, a space and the summary. A
+revert is written `revert: <subject>`, since git's own `Revert "<subject>"` fails the lint. On a push and a pull
 request, the `commits` job runs `make lintcommit` over the commits that event brings, leaving out merges, and fails
 naming each subject that is not one. Run by hand, it checks the commits on `HEAD` that `origin/main` lacks, and
 `make lintcommit RANGE=<range>` checks another range.
 
 The suite job runs on Neovim 0.12.6 and on Neovim's nightly build, so a change in Neovim that breaks parhelion fails a
-run before a release ships it. `tests/parhelion/ci-install.sh` installs the version `PARHELION_NEOVIM` names, 0.12.6 by
-default, and checks each download against the checksum it pins. It installs nightly unchecked, since Neovim publishes
-no checksum for it.
+run before a release ships it. `tests/parhelion/ci-install.sh` installs Neovim 0.12.6, or the nightly build when
+`PARHELION_NEOVIM` is `nightly`, and refuses any other value. It checks each download against the checksum it pins,
+apart from the nightly build, for which Neovim publishes no checksum file.
+
+When the nightly row fails and the 0.12.6 row passes, something parhelion depends on changes in Neovim's next release,
+and the install step's log names the nightly build that ran. Where Neovim changed it on purpose, change parhelion so
+the suite passes on both versions. Where the nightly build broke something its own documentation still promises, the
+row stays red until a later nightly build fixes it, since each run installs the newest one.
 
 ### When a parser update breaks a query
 
