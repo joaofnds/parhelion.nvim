@@ -40,14 +40,14 @@ git config branch.main.remote origin
 git config branch.main.merge refs/heads/main
 git checkout -q main
 
-printf 'export function View() {\n  return <div className="new">hello there</div>;\n}\n' > src/view.tsx
+printf 'export function View() {\n  return <div className="new">hello there</div>;\n}\n' >src/view.tsx
 git add src/view.tsx
-printf 'body { color: red; }\n' > new.css
+printf 'body { color: red; }\n' >new.css
 git add new.css
 rm gone.txt
 {
   printf 'local M = { version = 2 }\n\nfunction M.add(a, b)\n\tlocal sum = a + b\n\treturn sum\nend\n\n'
   printf 'function M.mul(a, b)\n\treturn a * b\nend\n\nreturn M\n'
-} > src/app.lua
-printf 'first line\nsecond line changed\nthird line\nfourth line\n' > notes.md
-printf 'scratch\n' > untracked.txt
+} >src/app.lua
+printf 'first line\nsecond line changed\nthird line\nfourth line\n' >notes.md
+printf 'scratch\n' >untracked.txt

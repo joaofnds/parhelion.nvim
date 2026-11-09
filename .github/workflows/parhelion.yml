@@ -26,6 +26,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: 2.6.0
           args: false
+      - run: tests/parhelion/ci-install.sh
+      - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: make format-check
 
   suite:

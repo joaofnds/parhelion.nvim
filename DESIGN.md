@@ -383,9 +383,11 @@ Every comparison runs on all four load paths. The checks on query files run once
 Set `PARHELION_TEST_FILTER=<substring>` to run the tests whose name contains it. A filter that matches nothing exits
 non-zero. The whole suite takes about eight minutes on an Apple M5 Pro once the dependencies are fetched.
 
-`.github/workflows/parhelion.yml` runs the suite, the load bench and a StyLua check on a pull request, on a push to
-`main` and every Monday, which needs the repository hosted on GitHub. In a clone with no such remote they only run by
-hand, as `make test`, `make bench` and `make format-check`.
+`.github/workflows/parhelion.yml` runs the suite, the load bench and a formatting check with StyLua and shfmt on a
+pull request, on a push to `main` and every Monday, which needs the repository hosted on GitHub. In a clone with no
+such remote they only run by hand, as `make test`, `make bench` and `make format-check`. shfmt takes its indent from
+`.editorconfig`, which names the one shell script without a `.sh` extension, `tests/parhelion/fake_nvim/nvim`, so a
+new one needs a section there too, or shfmt asks for tabs.
 
 Commit subjects follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). A subject starts with
 one of the types `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` and `revert`, in
