@@ -2335,7 +2335,7 @@ for _, case in ipairs {
 end
 
 for _, path in ipairs { paths[1], paths[2] } do
-	test("the base side leaves completion menus as the base tables draw them, " .. path.label, function()
+	test("the base side gives the completion menu the base fill's refined tone, " .. path.label, function()
 		in_world("base_refined", path, function(world)
 			local base = require("parhelion.base." .. path.background).groups.Pmenu.bg
 			local want = require("parhelion.refinement").color(path.background, base):lower()
