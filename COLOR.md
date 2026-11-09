@@ -21,8 +21,8 @@ To print the tone tables under What changed from the current code:
 nvim -l tests/parhelion/color_table.lua
 ```
 
-The other tables of measurements in this document were taken once and are not rerun. The tones, the floors and the
-chrome scale are enforced, as How the suite holds this lists.
+The other tables of measurements in this document were taken once and are not rerun. The tones, the floors, the
+chrome scale and its step table are enforced, as How the suite holds this lists.
 
 ## What the specification says
 
@@ -251,6 +251,7 @@ The rules, in both modes:
 | raised | Cursor line, code blocks, menus with no border | `#073642` | 30.9 | `#eee8d5` | 93.1 |
 | selected | List selection, occurrence highlights | `#0d414e` | 34.9 | `#e2dbc7` | 89.2 |
 | hairline | Borders, separators, indent guides | `#27505b` | 40.6 | `#c9c6b6` | 82.5 |
+| ghost | Inline suggestions, inlay hints, dimmed notifications | `#71888f` | 61.1 | `#798686` | 60.9 |
 | quiet | Icons, kinds, hashes, most counts, the paths beside a file name | `#71888f` | 61.1 | `#728284` | 59.4 |
 | body | Text | `#93a1a1` | 69.8 | `#586e75` | 52.3 |
 | strong | Titles outside the label families, directories, selected text | `#c9ccc3` | 84.0 | `#2a4c55` | 39.4 |
@@ -567,6 +568,8 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
 - Each new tone stays within the difference limit, and each saturated tone within a degree of its source
   hue, with orange named as the exception. Its source color is one the base tables really use.
 - The page colors stay fixed.
+- The step table under How plugins use color gives each step's colors, and their lightness to one decimal, as
+  `chrome.lua` holds them.
 - On all four load paths, terminal colors 1 to 6 and 9 to 14 are nearest the toned accent their ANSI names give them,
   black and bright white sit at least 3 from the page, about the step between the page and the raised surface, and
   white, bright black and bright white sit at least 3 from each other.

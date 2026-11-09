@@ -3389,6 +3389,40 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
+local step_table_in_color_md, in_the_step_table = {}, false
+for line in io.lines(root .. "/COLOR.md") do
+	if line:find "^| Step |" then in_the_step_table = true end
+	if in_the_step_table and not line:find "^|" then break end
+	local step, dark, dark_lightness, light, light_lightness =
+		line:match "^| (%l+) | [^|]+ | `(#%x+)` | ([%d.]+) | `(#%x+)` | ([%d.]+) |$"
+	if in_the_step_table and step then
+		step_table_in_color_md[step] =
+			{ dark = dark, dark_lightness = dark_lightness, light = light, light_lightness = light_lightness }
+	end
+end
+
+local function lightness(hex) return string.format("%.1f", 100 * color.perceptual_lch(hex).lightness) end
+
+for _, step in ipairs { "float", "page", "raised", "selected", "hairline", "ghost", "quiet", "body", "strong" } do
+	test("the step table in COLOR.md gives " .. step .. "'s colors and lightness in both modes", function()
+		local scale = require("parhelion.chrome").scale
+		local expected = {
+			dark = scale.dark[step],
+			dark_lightness = lightness(scale.dark[step]),
+			light = scale.light[step],
+			light_lightness = lightness(scale.light[step]),
+		}
+
+		local row = step_table_in_color_md[step]
+
+		local shown = { newline = " ", indent = "" }
+		assert(
+			vim.deep_equal(row, expected),
+			string.format("the table gives %s and the scale %s", vim.inspect(row, shown), vim.inspect(expected, shown))
+		)
+	end)
+end
+
 local turned_off = [[require("parhelion").setup { plugins = { ["telescope.nvim"] = false } }]]
 
 for _, path in ipairs { paths[1], paths[2] } do
