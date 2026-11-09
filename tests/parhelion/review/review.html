@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>parhelion review</title>
+<style>
+  :root {
+    --page: #1d1d1d;
+    --panel: #2b2b2b;
+    --pressed: #454545;
+    --ink: #e8e8e8;
+    --muted: #b0b0b0;
+    --line: #4a4a4a;
+    --focus: #7cc0ff;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: grid;
+    grid-template-columns: 17rem 1fr;
+    background: var(--page);
+    color: var(--ink);
+    font: 15px/1.4 "PragmataPro Mono", ui-monospace, monospace;
+  }
+  button, textarea { font: inherit; color: var(--ink); }
+  button {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.9rem;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    cursor: pointer;
+  }
+  button[aria-pressed="true"] { background: var(--pressed); border-color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  nav { overflow-y: auto; padding: 0.5rem; border-right: 1px solid var(--line); }
+  nav button {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 2rem;
+    padding: 0.25rem 0.5rem;
+    background: none;
+    border-color: transparent;
+    text-align: left;
+  }
+  nav button[aria-current="true"] { background: var(--panel); border-color: var(--line); }
+  nav .pick { color: var(--muted); }
+  main { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; min-width: 0; }
+  header { display: flex; gap: 1rem; justify-content: space-between; padding: 0.75rem 1rem; }
+  h1 { margin: 0; font-size: 1.2rem; }
+  header p { margin: 0.25rem 0 0; color: var(--muted); }
+  #showing { flex: none; align-self: start; min-width: 13em; padding: 0.3rem 0.8rem; text-align: center; font-size: 1.4rem; font-weight: bold; border: 2px solid var(--ink); }
+  #stage { display: flex; gap: 1rem; min-height: 0; padding: 0 1rem; cursor: pointer; user-select: none; touch-action: none; }
+  figure { position: relative; flex: 1; min-width: 0; margin: 0; }
+  figure img, figure canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: top center;
+  }
+  footer { display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem 1rem; border-top: 1px solid var(--line); }
+  footer label { display: flex; flex: 1; gap: 0.5rem; align-items: center; }
+  textarea { flex: 1; height: 2.75rem; padding: 0.5rem; background: var(--panel); border: 1px solid var(--line); resize: vertical; }
+  #status { min-width: 12rem; color: var(--muted); }
+</style>
+<nav aria-label="Experiments" id="list"></nav>
+<main>
+  <header>
+    <div>
+      <h1 id="title"></h1>
+      <p id="note"></p>
+      <p id="hint">Hold the mouse on the image, or hold Space, to see today. Hold D to see where they differ.
+        Keys: 1 today is better, 2 change is better, arrows move.</p>
+    </div>
+    <div id="showing" aria-live="polite"></div>
+  </header>
+  <div id="stage"></div>
+  <footer>
+    <label>Comment <textarea id="comment"></textarea></label>
+    <button id="today" type="button" aria-pressed="false">Today is better [1]</button>
+    <button id="change" type="button" aria-pressed="false">Change is better [2]</button>
+    <button id="previous" type="button">Previous [←]</button>
+    <button id="next" type="button">Next [→]</button>
+    <span id="status" aria-live="polite"></span>
+  </footer>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const labels = { change: "SHOWING THE CHANGE", today: "SHOWING TODAY", diff: "WHERE THEY DIFFER" };
+const state = { experiments: [], picks: {}, index: 0, figures: [], mode: "change" };
+let saving = Promise.resolve();
+let commentTimer;
+
+function current() {
+  return state.experiments[state.index];
+}
+
+function shot(view, id) {
+  return `shots/${view}--${id}.png`;
+}
+
+function pickLabel(pick) {
+  if (!pick) return "";
+  if (pick.choice) return pick.choice;
+  if (pick.comment) return "note";
+  return "";
+}
+
+function renderList() {
+  const list = $("list");
+  list.replaceChildren();
+  state.experiments.forEach((experiment, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.setAttribute("aria-current", String(index === state.index));
+    const name = document.createElement("span");
+    name.textContent = `${String(experiment.number).padStart(2, "0")} ${experiment.id}`;
+    const pick = document.createElement("span");
+    pick.className = "pick";
+    pick.textContent = pickLabel(state.picks[experiment.id]);
+    button.append(name, pick);
+    button.addEventListener("click", () => show(index));
+    list.append(button);
+  });
+}
+
+function figureFor(view, id) {
+  const figure = document.createElement("figure");
+  const after = new Image();
+  after.src = shot(view, id);
+  after.alt = `${view} with the change`;
+  after.draggable = false;
+  const before = new Image();
+  before.src = shot(view, "today");
+  before.alt = `${view} today`;
+  before.draggable = false;
+  before.hidden = true;
+  const diff = document.createElement("canvas");
+  diff.hidden = true;
+  figure.append(after, before, diff);
+  return { figure, after, before, diff, drawn: false };
+}
+
+function drawDiff(entry) {
+  const { after, before, diff } = entry;
+  const width = after.naturalWidth;
+  const height = after.naturalHeight;
+  diff.width = width;
+  diff.height = height;
+  const context = diff.getContext("2d");
+  context.drawImage(before, 0, 0);
+  const old = context.getImageData(0, 0, width, height).data;
+  context.drawImage(after, 0, 0);
+  const image = context.getImageData(0, 0, width, height);
+  const pixels = image.data;
+
+  const changed = new Uint8Array(width * height);
+  for (let p = 0; p < changed.length; p++) {
+    const i = p * 4;
+    changed[p] = old[i] !== pixels[i] || old[i + 1] !== pixels[i + 1] || old[i + 2] !== pixels[i + 2] ? 1 : 0;
+  }
+  const near = dilate(changed, width, height, 5);
+
+  for (let p = 0; p < changed.length; p++) {
+    const i = p * 4;
+    if (changed[p]) continue;
+    if (near[p]) {
+      pixels[i] = 255;
+      pixels[i + 1] = 0;
+      pixels[i + 2] = 255;
+      continue;
+    }
+    pixels[i] *= 0.25;
+    pixels[i + 1] *= 0.25;
+    pixels[i + 2] *= 0.25;
+  }
+  context.putImageData(image, 0, 0);
+  entry.drawn = true;
+}
+
+function dilate(mask, width, height, radius) {
+  const across = new Uint8Array(mask.length);
+  for (let y = 0; y < height; y++) {
+    let last = -Infinity;
+    for (let x = 0; x < width; x++) {
+      if (mask[y * width + x]) last = x;
+      if (x - last <= radius) across[y * width + x] = 1;
+    }
+    last = Infinity;
+    for (let x = width - 1; x >= 0; x--) {
+      if (mask[y * width + x]) last = x;
+      if (last - x <= radius) across[y * width + x] = 1;
+    }
+  }
+  const out = new Uint8Array(mask.length);
+  for (let x = 0; x < width; x++) {
+    let last = -Infinity;
+    for (let y = 0; y < height; y++) {
+      if (across[y * width + x]) last = y;
+      if (y - last <= radius) out[y * width + x] = 1;
+    }
+    last = Infinity;
+    for (let y = height - 1; y >= 0; y--) {
+      if (across[y * width + x]) last = y;
+      if (last - y <= radius) out[y * width + x] = 1;
+    }
+  }
+  return out;
+}
+
+async function setShowing(mode) {
+  state.mode = mode;
+  if (mode === "diff") {
+    for (const entry of state.figures) {
+      if (entry.drawn) continue;
+      await Promise.all([entry.after.decode(), entry.before.decode()]);
+      drawDiff(entry);
+    }
+    if (state.mode !== mode) return;
+  }
+  for (const entry of state.figures) {
+    entry.after.hidden = mode !== "change";
+    entry.before.hidden = mode !== "today";
+    entry.diff.hidden = mode !== "diff";
+  }
+  $("showing").textContent = labels[mode];
+}
+
+function show(index) {
+  flushComment();
+  state.index = index;
+  const experiment = current();
+  $("title").textContent = `${experiment.number} / ${state.experiments.length}  ${experiment.title}`;
+  $("note").textContent = [experiment.note, experiment.alternatives].filter(Boolean).join(" ");
+  state.figures = experiment.views.map((view) => figureFor(view, experiment.id));
+  $("stage").replaceChildren(...state.figures.map((entry) => entry.figure));
+  const pick = state.picks[experiment.id] || {};
+  $("comment").value = pick.comment || "";
+  $("today").setAttribute("aria-pressed", String(pick.choice === "today"));
+  $("change").setAttribute("aria-pressed", String(pick.choice === "change"));
+  setShowing("change");
+  renderList();
+}
+
+function record(fields) {
+  const experiment = current();
+  const previous = state.picks[experiment.id] || {};
+  state.picks[experiment.id] = { ...previous, number: experiment.number, title: experiment.title, ...fields };
+  save();
+}
+
+function save() {
+  const body = JSON.stringify(state.picks, null, 2);
+  saving = saving.then(async () => {
+    try {
+      const response = await fetch("picks.json", { method: "PUT", body, headers: { "Content-Type": "application/json" } });
+      $("status").textContent = response.ok ? `Saved, ${countPicked()} of ${state.experiments.length} picked` : `NOT SAVED: ${response.status}`;
+    } catch (error) {
+      $("status").textContent = `NOT SAVED: ${error.message}`;
+    }
+  });
+}
+
+function countPicked() {
+  return Object.values(state.picks).filter((pick) => pick.choice).length;
+}
+
+function flushComment() {
+  if (commentTimer === undefined) return;
+  clearTimeout(commentTimer);
+  commentTimer = undefined;
+  record({ comment: $("comment").value });
+}
+
+function choose(choice) {
+  flushComment();
+  record({ choice, comment: $("comment").value });
+  if (state.index < state.experiments.length - 1) {
+    show(state.index + 1);
+    return;
+  }
+  show(state.index);
+}
+
+function move(step) {
+  const index = state.index + step;
+  if (index < 0 || index >= state.experiments.length) return;
+  show(index);
+}
+
+function typing(event) {
+  return event.target instanceof HTMLTextAreaElement;
+}
+
+const holdKeys = { " ": "today", d: "diff", D: "diff" };
+document.addEventListener("keydown", (event) => {
+  if (typing(event)) {
+    if (event.key === "Escape") event.target.blur();
+    return;
+  }
+  if (holdKeys[event.key]) {
+    event.preventDefault();
+    if (!event.repeat) setShowing(holdKeys[event.key]);
+    return;
+  }
+  if (event.key === "1") choose("today");
+  if (event.key === "2") choose("change");
+  if (event.key === "ArrowLeft") move(-1);
+  if (event.key === "ArrowRight") move(1);
+});
+document.addEventListener("keyup", (event) => {
+  if (holdKeys[event.key]) setShowing("change");
+});
+window.addEventListener("blur", () => setShowing("change"));
+
+const stage = $("stage");
+stage.addEventListener("pointerdown", (event) => {
+  stage.setPointerCapture(event.pointerId);
+  setShowing("today");
+});
+for (const name of ["pointerup", "pointercancel", "lostpointercapture"]) {
+  stage.addEventListener(name, () => setShowing("change"));
+}
+
+$("today").addEventListener("click", () => choose("today"));
+$("change").addEventListener("click", () => choose("change"));
+$("previous").addEventListener("click", () => move(-1));
+$("next").addEventListener("click", () => move(1));
+$("comment").addEventListener("input", () => {
+  clearTimeout(commentTimer);
+  commentTimer = setTimeout(flushComment, 500);
+});
+
+async function load() {
+  state.experiments = await (await fetch("experiments.json", { cache: "no-store" })).json();
+  const saved = await fetch("picks.json", { cache: "no-store" });
+  state.picks = saved.ok ? await saved.json() : {};
+  const unpicked = state.experiments.findIndex((experiment) => !state.picks[experiment.id]?.choice);
+  show(Math.max(unpicked, 0));
+  $("status").textContent = `${countPicked()} of ${state.experiments.length} picked`;
+}
+
+load();
+</script>
+</html>

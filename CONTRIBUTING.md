@@ -11,5 +11,8 @@ written files are stale. [Adding a plugin](DESIGN.md#adding-a-plugin) says where
 A change a user can see goes in [CHANGELOG.md](CHANGELOG.md) under its Unreleased heading, and
 [GLOSSARY.md](GLOSSARY.md) defines the terms these documents use.
 
+A change to how parhelion looks can be judged beside today's look first, as
+[Reviewing a change by eye](DESIGN.md#reviewing-a-change-by-eye) describes.
+
 Report a bug with the [bug report form](https://github.com/joaofnds/parhelion.nvim/issues/new?template=bug_report.yml).
 The reproduction it asks for is where a fix starts.

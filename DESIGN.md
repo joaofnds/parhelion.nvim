@@ -47,13 +47,13 @@ Plugin support below for how they are checked.
 | `lua/barbecue/theme/parhelion.lua`, `lua/parhelion/bufferline.lua` | The theme files those plugins load. Barbecue's draws from the colors in the built tables, and bufferline's returns no highlights, so the groups bufferline's options name come from `chrome.lua` |
 | `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the colors, mode hues and groups in the built tables |
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries, which began as solarized.nvim's |
-| `tests/parhelion/` | The test suite, the load bench, the install script CI runs and the commit lint |
+| `tests/parhelion/` | The test suite, the load bench, the install script CI runs, the commit lint, and the review of a change by eye under `review/` |
 | `.github/workflows/parhelion.yml` | Runs the suite, the load bench, the format check, the lint and the commit lint in CI |
-| `Makefile` | The `test`, `bench`, `format-check`, `lint` and `lintcommit` targets that CI runs, and `build` |
+| `Makefile` | The `test`, `bench`, `format-check`, `lint` and `lintcommit` targets that CI runs, and `build` and `review` |
 | `doc/parhelion.txt` | The `:help` page |
 | `CHANGELOG.md` | The changes a user can see |
 | `LICENSE.md` | The license |
-| `assets/*.png`, `assets/shoot/` | The README screenshots, and the script that shoots them: `assets/shoot/shoot.sh assets` re-shoots them after a color change, fetching the suite's plugins first. It needs what the suite needs, agent-browser, oxipng and the Iosevka Term SS08 font, and two runs with the same browser and font give the same images, byte for byte |
+| `assets/*.png`, `assets/shoot/` | The README screenshots, and the scripts that shoot them: `assets/shoot/shoot.sh assets` re-shoots them after a color change, fetching the suite's plugins first. It needs what the suite needs, agent-browser, oxipng and the Iosevka Term SS08 font, and two runs with the same browser and font give the same images, byte for byte |
 
 Neovim loads the extra queries whenever parhelion's `after` directory is on the runtimepath, whatever colorscheme is
 active. So they name their captures under `@parhelion`, such as `@parhelion.function`, and the base tables link each one
@@ -234,6 +234,46 @@ only the group check behind it, and nobody has looked at it.
 
 Comparing a sheet's two sides shows each kind of code, and each plugin label, in the same hue in both modes. A suite
 test holds that for every capture and standard syntax group.
+
+### Reviewing a change by eye
+
+A change to how parhelion looks is easier to judge beside the look it would replace. `make review EXPERIMENTS=file.lua`
+opens each view a file of experiments names, shoots it with today's look and with each experiment's, and serves a page
+that shows one experiment at a time. Holding the mouse or Space on it shows today's look, holding D marks where the two
+differ, and 1 or 2 records which is better, with an optional comment. Each pick is saved to `picks.json` as it is made,
+so a later run keeps it and whoever makes the change can read the verdicts.
+
+The file returns its experiments, and each names the views that show it and returns overrides from the colors an
+`overrides` function gets and the helpers in `tests/parhelion/color.lua`, such as `mix`. An experiment can also give
+lualine a theme, from today's theme table, the colors and the mode hues. `alternatives` lists experiments of which at
+most one can be kept, and the page says so. `review.Experiment` in `tests/parhelion/review/experiments.lua` names
+every field.
+
+```lua
+---@type review.File
+return {
+  experiments = {
+    {
+      id = "tab-blue-text",
+      title = "Blue text on the active tab",
+      note = "Lazy's heading and mason's current tab keep their fill, with the text in blue.",
+      views = { "lazy", "mason" },
+      groups = function(c)
+        local look = { fg = c.accent, bg = c.selected, bold = true }
+        return { LazyH1 = look, MasonHighlightBlockBold = look }
+      end,
+    },
+  },
+}
+```
+
+A view is any popular view, or any of the suite's plugin and code views, such as `neogit-status`, `diffview` and
+`code-sample.lua`, so a plugin can be reviewed as soon as it has a view. The shots are in dark mode unless
+`REVIEW_MODE=light`, and go to a directory beside the file, named after it and the mode, unless `OUT` names another.
+Every shot, today's included, follows a load of parhelion, so the two shots of a view differ only by the experiment. A
+run stops when the screen after the experiments differs from today's, since a difference between two shots would then
+not be the experiment's, and it warns about an experiment that changes nothing in a view it names. It needs what
+`assets/shoot/shoot.sh` needs apart from oxipng, and Python 3 to serve the page.
 
 ### Adding a plugin
 
