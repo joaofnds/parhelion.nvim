@@ -406,7 +406,9 @@ value the helper returns. `.luarc.json` turns on every diagnostic group, so the 
 also fails on a value whose type it cannot infer, and leaves out only the spell check, the naming check and
 lua-language-server's own formatter, since StyLua formats the code. A group takes `Any`, not `Any!`, which
 lua-language-server 3.19.2 ignores without a warning. Where lua-language-server cannot follow a value, as with a table
-loaded by a computed module name, the local that receives it declares its type.
+loaded by a computed module name, the local that receives it declares its type, and the file that returns it declares
+the same type above its `return`, so the base and built tables are checked against their class where they are
+written.
 
 Commit subjects follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). A subject starts with
 one of the types `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` and `revert`, in

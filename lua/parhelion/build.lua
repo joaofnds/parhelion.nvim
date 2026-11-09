@@ -163,6 +163,7 @@ local function source(built)
   end
   table.insert(lines, "}")
   table.insert(lines, "")
+  table.insert(lines, "---@type parhelion.Built")
   table.insert(lines, "return {")
 
   append_part(lines, "colors", fields(built.colors))

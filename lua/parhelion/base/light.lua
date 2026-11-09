@@ -1,3 +1,4 @@
+---@type parhelion.Base
 return {
   terminal = {
     "#073642",

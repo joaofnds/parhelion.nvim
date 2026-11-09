@@ -224,6 +224,7 @@ local looks = {
   { link = "StatusLine" },
 }
 
+---@type parhelion.Built
 return {
   colors = {
     accent = "#117fc5",
