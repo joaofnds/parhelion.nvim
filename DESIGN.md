@@ -348,8 +348,9 @@ Every comparison runs on all four load paths. The checks on query files run once
 - Neogit status, Neogit commit view, Neogit commit popup, diffview, and 16 sample files render the same text, fg, bg, sp
   and flags in every cell of a 130 by 50 grid, lualine and the restyled tabline included, once the families that restyle
   those screens are applied to the base side too, as [COLOR.md](COLOR.md) lists. Neogit builds its hint row in a random
-  order, so the cells of that row are sorted before they are compared. Sample files also raise the same messages, and
-  every group is compared again after each plugin view opens.
+  order, so the cells of that row are sorted before they are compared. Both sides start with the same messages, each
+  sample file opens with no other buffer and no earlier message and raises the same messages, and every group is
+  compared again after each plugin view opens.
 - The css, scss, javascript, tsx and lua samples render the same under a fake language server that marks every
   identifier as a `type` semantic token. The lua and javascript queries only change the screen when a language server is
   attached, because their priorities of 130 and 127 exist to beat semantic tokens at 125. The tsx query also changes it

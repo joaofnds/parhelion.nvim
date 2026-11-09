@@ -728,10 +728,21 @@ end
 return vim.json.encode(colors)
 ]]
 
+local function start_afresh(world)
+	world:request("nvim_command", "silent %bwipeout!")
+	world:request("nvim_command", "messages clear")
+	world:request("nvim_command", "echo ''")
+end
+
 for _, path in ipairs(paths) do
 	both_worlds("code views", path, true, function(base, parhelion)
 		base:settle { quiet = 500 }
 		parhelion:settle { quiet = 500 }
+
+		test("parhelion starts with the messages the base side starts with, " .. path.label, function()
+			local started_with = messages(parhelion)
+			assert(started_with == messages(base), "parhelion messages: " .. started_with)
+		end)
 
 		test("every Neogit group clears the text floor, " .. path.label, function()
 			local neogit_groups = vim.tbl_filter(
@@ -746,6 +757,8 @@ for _, path in ipairs(paths) do
 			local legibility_test = view.name .. " keeps its text legible, " .. path.label
 			if selected_any { render_test, legibility_test } then
 				local opened, err = xpcall(function()
+					start_afresh(base)
+					start_afresh(parhelion)
 					view.run(base)
 					view.run(parhelion)
 				end, debug.traceback)
