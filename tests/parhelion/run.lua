@@ -812,7 +812,7 @@ local colors_returned_by = [[
 		if type(value) == "string" and value:match "^#%x%x%x%x%x%x$" then table.insert(found, value:lower()) end
 		if type(value) == "table" then
 			for key, inner in pairs(value) do
-				colors_in(key == "hl" and type(inner) == "function" and inner() or inner, found)
+				colors_in((key == "hl" or key == "winhl") and type(inner) == "function" and inner() or inner, found)
 			end
 		end
 		return found
@@ -1100,6 +1100,7 @@ end
 
 local colors_by_slot = [[
 	local function flatten(value, slot, found)
+		if type(value) == "function" and (slot:match "%.hl$" or slot:match "%.winhl$") then value = value() end
 		if type(value) == "string" and value:match "^#%x%x%x%x%x%x$" then found[slot] = value:lower() end
 		if type(value) == "table" then
 			for key, inner in pairs(value) do
@@ -1125,7 +1126,45 @@ for _, preset in ipairs { "cursor", "cursorline" } do
 			end)
 		end)
 	end
+
+	for _, path in ipairs { paths[3], paths[4] } do
+		test(
+			string.format(
+				"the reactive %s preset, required before a toggle, gives the new mode's colors, %s",
+				preset,
+				path.label
+			),
+			function()
+				in_world("parhelion", path, function(world)
+					world:lua("require(...)", "reactive.presets.parhelion-" .. preset)
+					toggle_when_path_requires_it(world, "parhelion", path)
+
+					local colors = world:lua(colors_by_slot, "reactive.presets.parhelion-" .. preset)
+
+					local want = approved_presets[path.background][preset]
+					assert(vim.deep_equal(colors, want), vim.inspect { got = colors, want = want })
+				end)
+			end
+		)
+	end
 end
+
+local reactive_line_number_in_insert_mode =
+	[[return require("reactive.presets.parhelion-cursorline").modes.i.winhl().CursorLineNr]]
+
+test(
+	"the reactive cursorline preset, required before bold is turned off, leaves the line number without bold",
+	function()
+		in_world("parhelion", paths[1], function(world)
+			world:lua [[require "reactive.presets.parhelion-cursorline"]]
+			world:lua [[require("parhelion").setup { bold = false }]]
+
+			local number = world:lua(reactive_line_number_in_insert_mode)
+
+			assert(not number.bold, "the line number is bold")
+		end)
+	end
+)
 
 local function only_fills(colors_by_slot)
 	local fills = {}
@@ -2793,7 +2832,7 @@ local bold_in_theme_files = [[
 		["lualine's normal mode"] = require("lualine.themes.parhelion").normal.a.gui,
 		["barbecue's file name"] = require("barbecue.theme.parhelion").basename.bold,
 		["feline's mode name"] = statusline.active[1][1].hl().style,
-		["reactive's cursor line number"] = require("reactive.presets.parhelion-cursorline").modes.i.winhl.CursorLineNr.bold,
+		["reactive's cursor line number"] = require("reactive.presets.parhelion-cursorline").modes.i.winhl().CursorLineNr.bold,
 	}
 	local bold = {}
 	for slot, style in pairs(styles) do

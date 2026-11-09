@@ -286,20 +286,20 @@ and the fix is the group's name under a role in the `neogit` family, with its pi
 ### Theme files
 
 Lualine, barbecue, bufferline, feline and reactive load a theme file of their own, and `:help parhelion-theme-files`
-says how to point each at parhelion's. Lualine runs its theme file again on every `ColorScheme` event, and barbecue runs
-its own with `dofile` on that event, so both follow a toggle and a change to `bold`. Feline's and reactive's files read
-the mode when first required, so after a toggle they keep the earlier mode's colors until Neovim restarts. Bufferline's
-returns no highlights, because `chrome.lua` sets every group bufferline's `highlights` option names. Bufferline still
-builds the groups for its icons, for the items of its `groups` option and for its custom areas from the backgrounds it
-computes.
+says how to point each at parhelion's. Lualine runs its theme file again on every `ColorScheme` event, barbecue runs its
+own with `dofile` on that event, and reactive calls its presets' `hl` and `winhl` functions again on that event and on
+every mode change, so the three follow a toggle and a change to `bold`. Feline's file reads the mode when first
+required, so after a toggle it keeps the earlier mode's colors until Neovim restarts. Bufferline's returns no
+highlights, because `chrome.lua` sets every group bufferline's `highlights` option names. Bufferline still builds the
+groups for its icons, for the items of its `groups` option and for its custom areas from the backgrounds it computes.
 
 The lualine, barbecue, feline and reactive files read their colors from the built table for the mode, through
 `require("parhelion").built`, which hands out the table a load uses. Nothing stops a caller changing that table, and a
 change to one group's look reaches every group that shares it, so they must not change it. Reading a name the table's
 `colors` lack raises, as reading one the scale or the accents lack in `chrome.lua` does. A theme file required after a
-load takes about 0.16 to 0.27 ms. One required before any load reads the built table itself, about 1.1 ms or 0.7 ms
-with `vim.loader`, and the load then reuses it. The `<theme file> requires no other parhelion module` tests fail when
-one requires `chrome.lua`, the refinement or the base tables, which take 1 to 1.7 ms to load.
+load takes about 0.16 to 0.27 ms. One used before any load reads the built table itself when it first reads a color,
+about 1.1 ms or 0.7 ms with `vim.loader`, and the load then reuses it. The `<theme file> requires no other parhelion
+module` tests fail when one requires `chrome.lua`, the refinement or the base tables, which take 1 to 1.7 ms to load.
 
 ## The test suite
 
