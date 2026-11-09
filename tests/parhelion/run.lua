@@ -2105,8 +2105,8 @@ local function bench_with_timings(timings, settings)
 		PARHELION_BENCH_RUNS = "1",
 		PATH = root .. "/tests/parhelion/fake_nvim:" .. vim.env.PATH,
 	}, settings or {})
-	for colorscheme, first_and_reload in pairs(timings) do
-		env["PARHELION_FAKE_TIMINGS_" .. colorscheme] = first_and_reload
+	for name, first_and_reload in pairs(timings) do
+		env["PARHELION_FAKE_TIMINGS_" .. name] = first_and_reload
 	end
 
 	return vim.system({ "bash", root .. "/tests/parhelion/bench.sh" }, { env = env, text = true }):wait(60000)
@@ -2121,6 +2121,20 @@ for _, case in ipairs {
 		local bench = bench_with_timings { parhelion = case.parhelion, parhelion_floor = "2 1" }
 
 		assert(bench.code == case.code, string.format("the bench exited %d: %s", bench.code, bench.stdout))
+		assert(bench.stderr == "", bench.stderr)
+	end)
+end
+
+for _, case in ipairs {
+	{ name = "parhelion_dark_0", label = "in dark with vim.loader off" },
+	{ name = "parhelion_dark_1", label = "in dark with vim.loader on" },
+	{ name = "parhelion_light_0", label = "in light with vim.loader off" },
+	{ name = "parhelion_light_1", label = "in light with vim.loader on" },
+} do
+	test("the bench fails a load that is slow only " .. case.label, function()
+		local bench = bench_with_timings { parhelion = "1 1", parhelion_floor = "1 1", [case.name] = "1.3 1" }
+
+		assert(bench.code == 1, string.format("the bench exited %d: %s", bench.code, bench.stdout))
 		assert(bench.stderr == "", bench.stderr)
 	end)
 end
