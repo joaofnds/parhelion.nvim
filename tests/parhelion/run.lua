@@ -566,6 +566,43 @@ for _, path in ipairs(paths) do
 	end)
 end
 
+local resolved_look = [[
+	local look = vim.api.nvim_get_hl(0, { name = ..., link = false })
+	local function hex(value) return value and string.format("#%06x", value) or nil end
+
+	return { fg = hex(look.fg), bg = hex(look.bg), bold = look.bold, italic = look.italic }
+]]
+
+local screen_position_of = [[
+	local position = vim.fn.searchpos(..., "cnw")
+	local screen = vim.fn.screenpos(0, position[1], position[2])
+
+	return { row = screen.row, col = screen.col }
+]]
+
+for _, case in ipairs {
+	{ language = "lua", what = "function call", pattern = [[\<ipairs\>]], capture = "@parhelion.function" },
+	{ language = "javascript", what = "tag", pattern = [[<\zsDialog\>]], capture = "@parhelion.tag" },
+	{ language = "tsx", what = "tag", pattern = [[<\zsUiButton\>]], capture = "@parhelion.tag" },
+} do
+	for _, path in ipairs { paths[1], paths[2] } do
+		local name =
+			string.format("a %s %s keeps its color under semantic tokens, %s", case.language, case.what, path.label)
+		test(name, function()
+			in_world("parhelion", path, function(world)
+				local sample = samples .. "/" .. views.sample_for(case.language)
+				views.open_with_semantic_tokens(world, sample, semantic_server_code)
+
+				local position = world:lua(screen_position_of, case.pattern)
+				local drawn = world:capture().rows[position.row][position.col].fg
+
+				local want = world:lua(resolved_look, case.capture).fg
+				assert(drawn == want, string.format("%s is drawn %s, not %s", case.pattern, drawn, want))
+			end)
+		end)
+	end
+end
+
 for _, language in ipairs(query_languages) do
 	test("the extra " .. language .. " query parses and every pattern matches its sample", function()
 		in_world("parhelion", paths[1], function(parhelion)
@@ -2865,13 +2902,6 @@ for _, mode in ipairs { "dark", "light" } do
 		end
 	end
 end
-
-local resolved_look = [[
-	local look = vim.api.nvim_get_hl(0, { name = ..., link = false })
-	local function hex(value) return value and string.format("#%06x", value) or nil end
-
-	return { fg = hex(look.fg), bg = hex(look.bg), bold = look.bold, italic = look.italic }
-]]
 
 local styled_groups = [[
 	local style = ...

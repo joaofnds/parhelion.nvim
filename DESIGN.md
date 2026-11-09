@@ -353,7 +353,8 @@ Every comparison runs on all four load paths. The checks on query files run once
 - The css, scss, javascript, tsx and lua samples render the same under a fake language server that marks every
   identifier as a `type` semantic token. The lua and javascript queries only change the screen when a language server is
   attached, because their priorities of 130 and 127 exist to beat semantic tokens at 125. The tsx query also changes it
-  with no server.
+  with no server. Under that server a lua function call and a javascript or tsx tag draw the color their parhelion
+  capture gives, so a query whose priority falls below the tokens' fails.
 - Each extra query parses, each of its patterns matches its sample, and each capture it names draws a color.
 - Under Neovim's default colorscheme, in dark and light and under the fake language server, the css, scss, javascript,
   tsx and lua samples render the same with parhelion on the runtimepath as without it.
