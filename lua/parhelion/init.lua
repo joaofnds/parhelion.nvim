@@ -40,13 +40,6 @@ local function drawn(built, changed, name)
 	return hl
 end
 
-local function each_drawn_group(built, changed, visit)
-	for name in pairs(built.groups) do
-		local hl = drawn(built, changed, name)
-		if hl then visit(name, hl) end
-	end
-end
-
 local function with(hl, attribute, value)
 	local copy = {}
 	for key, held in pairs(hl) do
@@ -111,9 +104,10 @@ local function clear_backgrounds(built, changed)
 end
 
 local function remove_style(style, built, changed)
-	each_drawn_group(built, changed, function(name, hl)
-		if hl[style] then changed[name] = with(hl, style, false) end
-	end)
+	for name in pairs(built.groups) do
+		local hl = drawn(built, changed, name)
+		if hl and hl[style] then changed[name] = with(hl, style, false) end
+	end
 end
 
 local raises_on_a_missing_color = {
