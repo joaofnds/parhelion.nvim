@@ -393,7 +393,9 @@ lowercase, then takes an optional scope in parentheses and an optional `!`, then
 revert is written `revert: <subject>`, since git's own `Revert "<subject>"` fails the lint. On a push and a pull
 request, the `commits` job runs `make lintcommit` over the commits that event brings, leaving out merges, and fails
 naming each subject that is not one. Run by hand, it checks the commits on `HEAD` that `origin/main` lacks, and
-`make lintcommit RANGE=<range>` checks another range.
+`make lintcommit RANGE=<range>` checks another range. When a pull request with more than one commit is squash merged,
+GitHub offers the pull request's title as the subject, which the lint first sees on the push to `main`, once it has
+landed, so write that title as a Conventional Commit too.
 
 The suite job runs on Neovim 0.12.6 and on Neovim's nightly build, so a change in Neovim that breaks parhelion fails a
 run before a release ships it. `tests/parhelion/ci-install.sh` installs Neovim 0.12.6, or the nightly build when
