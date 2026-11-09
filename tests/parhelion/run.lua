@@ -626,6 +626,30 @@ for _, case in ipairs {
 	end
 end
 
+local parsers_built_from_another_revision = [[
+	local stale = {}
+	for _, language in ipairs(...) do
+		local wanted = require("nvim-treesitter.parsers")[language].install_info.revision
+		local info = require("nvim-treesitter.config").get_install_dir "parser-info" .. "/" .. language .. ".revision"
+		local built = vim.fn.filereadable(info) == 1 and vim.fn.readfile(info)[1] or "nothing"
+		if built ~= wanted then
+			table.insert(stale, string.format("%s built from %s, not %s", language, built, wanted))
+		end
+	end
+
+	return stale
+]]
+
+test("each parser is built from the revision nvim-treesitter names", function()
+	in_world("parhelion", paths[1], function(world)
+		local languages = dofile(root .. "/tests/parhelion/languages.lua")
+
+		local stale = world:lua(parsers_built_from_another_revision, languages)
+
+		expect_none(stale, "parsers are stale")
+	end)
+end)
+
 for _, language in ipairs(query_languages) do
 	test("the extra " .. language .. " query parses and every pattern matches its sample", function()
 		in_world("parhelion", paths[1], function(parhelion)

@@ -378,7 +378,7 @@ hand, the check as `stylua --check --config-path=stylua.toml .`.
 Neovim raises an error whenever it highlights a language whose query names a node or field the parser no longer has. The
 weekly `parser-drift` CI job runs the suite against the newest nvim-treesitter, while the pinned job stays green. With
 no CI, a break shows up first as an error in the editor. An editor that tracks nvim-treesitter's `main` can also hit the
-break before that job runs. To check at any time, which also reinstalls the parsers:
+break before that job runs. To check at any time, which also rebuilds each parser whose revision moved on `main`:
 
 ```sh
 PARHELION_TREESITTER_REF=main tests/parhelion/run.sh
@@ -389,9 +389,8 @@ The fix has three parts:
 1. Rename the node or field in `after/queries/<language>/highlights.scm`, keeping the capture and priority. Delete the
    pattern if the parser dropped the node with no replacement. The file's test prints its new checksum, which goes in
    `tests/parhelion/approved_files.lua`.
-2. Move the `nvim-treesitter` commit in `tests/parhelion/deps.txt` to one that has the new parser, then delete the
-   directory `PARHELION_DEPS` points at, by default `${XDG_CACHE_HOME:-$HOME/.cache}/parhelion-test-deps`, because
-   installed parsers are kept otherwise.
+2. Move the `nvim-treesitter` commit in `tests/parhelion/deps.txt` to one that has the new parser. The next run
+   rebuilds each parser whose revision that commit changed.
 3. Run `tests/parhelion/run.sh` with no overrides.
 
 GitHub turns scheduled workflows off in a public repository after 60 days with no activity. That stops this job without
