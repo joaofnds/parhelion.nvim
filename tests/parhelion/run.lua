@@ -2139,19 +2139,36 @@ for _, case in ipairs {
 	end)
 end
 
-test("the bench fails a slow load that a slower second start would hide", function()
-	local starts = vim.fn.tempname()
-	vim.fn.mkdir(starts, "p")
+for _, slower_starts in ipairs { "odd", "even" } do
+	local function bench_with_slower_starts(parhelion)
+		local starts = vim.fn.tempname()
+		vim.fn.mkdir(starts, "p")
 
-	local bench = bench_with_timings({ parhelion = "1.4 1", parhelion_floor = "1 1" }, {
-		PARHELION_BENCH_RUNS = "2",
-		PARHELION_FAKE_SECOND_SLOWER = "0.3",
-		PARHELION_FAKE_STARTS = starts,
-	})
+		return bench_with_timings({ parhelion = parhelion, parhelion_floor = "1 1" }, {
+			PARHELION_BENCH_RUNS = "2",
+			PARHELION_FAKE_SLOWER_BY = "0.3",
+			PARHELION_FAKE_SLOWER_STARTS = slower_starts,
+			PARHELION_FAKE_STARTS = starts,
+		})
+	end
 
-	assert(bench.code == 1, string.format("the bench exited %d: %s", bench.code, bench.stdout))
-	assert(bench.stderr == "", bench.stderr)
-end)
+	test(string.format("the bench fails a slow load when its %s starts are slower", slower_starts), function()
+		local bench = bench_with_slower_starts "1.4 1"
+
+		assert(bench.code == 1, string.format("the bench exited %d: %s", bench.code, bench.stdout))
+		assert(bench.stderr == "", bench.stderr)
+	end)
+
+	test(
+		string.format("the bench passes a load within its bound when its %s starts are slower", slower_starts),
+		function()
+			local bench = bench_with_slower_starts "1.2 1"
+
+			assert(bench.code == 0, string.format("the bench exited %d: %s", bench.code, bench.stdout))
+			assert(bench.stderr == "", bench.stderr)
+		end
+	)
+end
 
 local modules_a_theme_file_requires = [[
 	local theme_file = ...

@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 # Stands in for nvim in the bench's tests, printing the first load and reload timings that
 # PARHELION_FAKE_TIMINGS_<colorscheme>_<background>_<loader> holds for that one case, or else
-# PARHELION_FAKE_TIMINGS_<colorscheme>. When PARHELION_FAKE_SECOND_SLOWER is set, every second start of a case takes
-# that many ms longer, counted in the directory PARHELION_FAKE_STARTS.
+# PARHELION_FAKE_TIMINGS_<colorscheme>. When PARHELION_FAKE_SLOWER_STARTS is odd or even, each such start of a case
+# takes PARHELION_FAKE_SLOWER_BY ms longer, counted in the directory PARHELION_FAKE_STARTS.
 set -euo pipefail
 timings=PARHELION_FAKE_TIMINGS_$PARHELION_BENCH_COLORSCHEME
 case_timings=${timings}_${PARHELION_BENCH_BACKGROUND}_$PARHELION_BENCH_LOADER
 slower=0
-if [ -n "${PARHELION_FAKE_SECOND_SLOWER:-}" ]; then
+if [ -n "${PARHELION_FAKE_SLOWER_STARTS:-}" ]; then
   starts=$PARHELION_FAKE_STARTS/$PARHELION_BENCH_BACKGROUND-$PARHELION_BENCH_LOADER
   echo >>"$starts"
-  if (($(wc -l <"$starts") % 2 == 0)); then slower=$PARHELION_FAKE_SECOND_SLOWER; fi
+  parities=(even odd)
+  if [ "${parities[$(wc -l <"$starts") % 2]}" = "$PARHELION_FAKE_SLOWER_STARTS" ]; then
+    slower=$PARHELION_FAKE_SLOWER_BY
+  fi
 fi
 awk -v timings="${!case_timings:-${!timings}}" -v slower="$slower" \
   'BEGIN { split(timings, t, " "); print t[1] + slower, t[2] + slower }'
