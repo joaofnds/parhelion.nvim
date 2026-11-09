@@ -383,7 +383,7 @@ color, so code keeps its syntax. `DiffText`, Neogit's inline groups, gitsigns' a
 word wash with strong text. Each word wash differs from its row by a color difference of 10.3 to 14.7, and strong text
 reads at 4.52:1 to 6.01:1 on it. That costs a changed word its syntax colors. On a word wash the accents reach 2.20:1 to
 2.75:1 in dark and 2.34:1 to 3.40:1 in light, body text 2.75:1 to 3.48:1 and the keyword monotone at most 4.23:1.
-Neogit's inline words are bold and `DiffText` is not. `DiffTextAdd`, the text a changed line gains, takes the added word
+No word wash is bold. `DiffTextAdd`, the text a changed line gains, takes the added word
 wash, which differs from the changed row by 15.7 to 32.4. Light's changed row is nearly neutral, a cool tint at hue 202
 and chroma 0.015, because a faint blend of blue over the cream page passes through gray, and a bluer row falls outside
 the theme's colors. `DiffDelete` draws only the filler rows of a diff window, as quiet dashes on its wash. `DiffChange`

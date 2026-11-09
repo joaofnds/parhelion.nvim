@@ -28,6 +28,8 @@ The changes a user can see, newest release first. A change not yet released goes
 - Neogit's branch and remote names and the labels that say what happened to a file, such as modified and deleted,
   keep their hue and lose their bold.
 - Neogit's hunk headers are quiet on the raised step instead of blue, and the focused one is body text instead of blue.
+- The changed words inside a diff line in Neogit and gitsigns keep their word wash and lose their bold, as `DiffText`
+  already had.
 
 ### Removed
 
