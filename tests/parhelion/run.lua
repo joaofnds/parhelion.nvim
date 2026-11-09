@@ -3423,6 +3423,114 @@ for _, step in ipairs { "float", "page", "raised", "selected", "hairline", "ghos
 	end)
 end
 
+local design_notes = (table.concat(vim.fn.readfile(root .. "/DESIGN.md"), " "):gsub("%s+", " "))
+
+local function expect_design_notes_say(sentence)
+	assert(design_notes:find(sentence, 1, true), "DESIGN.md does not say: " .. sentence)
+end
+
+local function from_a_clean_neovim(code, background)
+	local result
+	closing(
+		Nvim.spawn { args = { "--clean", "-n" }, cwd = fixture, rows = 10, cols = 40 },
+		function(nvim) result = nvim:lua(code, root, background) end
+	)
+
+	return result
+end
+
+local function colors_in(groups)
+	local colors = {}
+	for _, hl in pairs(groups) do
+		for _, key in ipairs { "fg", "bg", "sp" } do
+			if hl[key] and hl[key] ~= "NONE" then colors[hl[key]:lower()] = true end
+		end
+	end
+
+	return vim.tbl_count(colors)
+end
+
+test("DESIGN.md gives the number of groups the base tables hold and of colors they use", function()
+	local dark, light = base_tables.dark.groups, base_tables.light.groups
+
+	expect_design_notes_say(
+		string.format(
+			"The base tables hold %d groups in dark and %d in light, from %d and %d colors.",
+			vim.tbl_count(dark),
+			vim.tbl_count(light),
+			colors_in(dark),
+			colors_in(light)
+		)
+	)
+end)
+
+local counts_with_the_base_tables_set_alone = [=[
+	local root, background = ...
+	vim.o.background = background
+	for name, hl in pairs(dofile(root .. "/lua/parhelion/base/" .. background .. ".lua").groups) do
+		vim.api.nvim_set_hl(0, name, hl)
+	end
+
+	local groups, colors = vim.api.nvim_get_hl(0, {}), {}
+	for _, hl in pairs(groups) do
+		for _, key in ipairs { "fg", "bg", "sp" } do
+			if hl[key] then colors[hl[key]] = true end
+		end
+	end
+
+	return {
+		groups = vim.tbl_count(groups),
+		colors = vim.tbl_count(colors),
+		fg = string.format("#%06x", groups.Normal.fg),
+		bg = string.format("#%06x", groups.Normal.bg),
+	}
+]=]
+
+test("DESIGN.md gives what nvim_get_hl lists with the base tables set alone", function()
+	local dark = from_a_clean_neovim(counts_with_the_base_tables_set_alone, "dark")
+	local light = from_a_clean_neovim(counts_with_the_base_tables_set_alone, "light")
+
+	expect_design_notes_say(
+		string.format(
+			"Set alone on Neovim %s with `--clean`, `nvim_get_hl` lists %d and %d groups, from %d and %d colors, because"
+				.. " it includes the groups Neovim defines itself. In them `Normal` is `%s` on `%s` and `%s` on `%s`.",
+			tostring(vim.version()),
+			dark.groups,
+			light.groups,
+			dark.colors,
+			light.colors,
+			dark.fg,
+			dark.bg,
+			light.fg,
+			light.bg
+		)
+	)
+end)
+
+local counts_with_parhelion_loaded_alone = [[
+	local root, background = ...
+	local neovim_own = vim.tbl_count(vim.api.nvim_get_hl(0, {}))
+	vim.opt.rtp:prepend(root)
+	vim.o.background = background
+	vim.cmd.colorscheme "parhelion"
+
+	return { neovim_own = neovim_own, groups = vim.tbl_count(vim.api.nvim_get_hl(0, {})) }
+]]
+
+test("DESIGN.md gives the number of groups a load leaves defined", function()
+	local dark = from_a_clean_neovim(counts_with_parhelion_loaded_alone, "dark")
+	local light = from_a_clean_neovim(counts_with_parhelion_loaded_alone, "light")
+
+	expect_design_notes_say(
+		string.format(
+			"A load leaves %d groups defined in dark and %d in light, %d of them Neovim's own.",
+			dark.groups,
+			light.groups,
+			dark.neovim_own
+		)
+	)
+end)
+
 local turned_off = [[require("parhelion").setup { plugins = { ["telescope.nvim"] = false } }]]
 
 for _, path in ipairs { paths[1], paths[2] } do

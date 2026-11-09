@@ -112,11 +112,11 @@ check each one when started in dark and in light, and that they hold across a to
 
 ### Load time
 
-A load leaves about 2450 groups defined, 384 of them Neovim's own. `tests/parhelion/bench.sh` times it against its
-floor, a colorscheme that only reads the same built table and writes its groups, clearing the old ones first on a
-reload. Each start puts only its own colorscheme's directory on the runtimepath, because with both there, the
-colorscheme in the second directory loaded slower, which moved a first load's ratio by 0.02 to 0.04. The script takes
-the median of 40 fresh `nvim --clean` starts for each mode, with `vim.loader` off and on:
+A load leaves 2470 groups defined in dark and 2469 in light, 384 of them Neovim's own. `tests/parhelion/bench.sh`
+times it against its floor, a colorscheme that only reads the same built table and writes its groups, clearing the old
+ones first on a reload. Each start puts only its own colorscheme's directory on the runtimepath, because with both
+there, the colorscheme in the second directory loaded slower, which moved a first load's ratio by 0.02 to 0.04. The
+script takes the median of 40 fresh `nvim --clean` starts for each mode, with `vim.loader` off and on:
 
 ```sh
 bash tests/parhelion/bench.sh
