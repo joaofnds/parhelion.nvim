@@ -3,21 +3,21 @@ local parhelion = require "parhelion"
 local function built() return parhelion.built(vim.o.background) end
 
 local modes = {
-	n = { name = "NORMAL", hue = "normal" },
-	no = { name = "OPERATOR", hue = "normal" },
-	v = { name = "VISUAL", hue = "visual" },
-	V = { name = "VISUAL LINE", hue = "visual" },
-	["\22"] = { name = "VISUAL BLOCK", hue = "visual" },
-	s = { name = "SELECT", hue = "visual" },
-	S = { name = "SELECT LINE", hue = "visual" },
-	["\19"] = { name = "SELECT BLOCK", hue = "visual" },
-	i = { name = "INSERT", hue = "insert" },
-	t = { name = "TERMINAL", hue = "insert" },
-	R = { name = "REPLACE", hue = "replace" },
-	Rv = { name = "VREPLACE", hue = "replace" },
-	c = { name = "COMMAND", hue = "command" },
-	r = { name = "PROMPT", hue = "command" },
-	["!"] = { name = "SHELL", hue = "command" },
+	n = { name = "NORMAL", colored_as = "normal" },
+	no = { name = "OPERATOR", colored_as = "normal" },
+	v = { name = "VISUAL", colored_as = "visual" },
+	V = { name = "VISUAL LINE", colored_as = "visual" },
+	["\22"] = { name = "VISUAL BLOCK", colored_as = "visual" },
+	s = { name = "SELECT", colored_as = "visual" },
+	S = { name = "SELECT LINE", colored_as = "visual" },
+	["\19"] = { name = "SELECT BLOCK", colored_as = "visual" },
+	i = { name = "INSERT", colored_as = "insert" },
+	t = { name = "TERMINAL", colored_as = "insert" },
+	R = { name = "REPLACE", colored_as = "replace" },
+	Rv = { name = "VREPLACE", colored_as = "replace" },
+	c = { name = "COMMAND", colored_as = "command" },
+	r = { name = "PROMPT", colored_as = "command" },
+	["!"] = { name = "SHELL", colored_as = "command" },
 }
 
 local function current_mode()
@@ -83,7 +83,7 @@ local function mode_block()
 	local current = built()
 	return {
 		fg = current.colors.page,
-		bg = current.mode_hues[current_mode().hue],
+		bg = current.mode_hues[current_mode().colored_as],
 		style = parhelion.draws_bold() and "bold" or nil,
 	}
 end
