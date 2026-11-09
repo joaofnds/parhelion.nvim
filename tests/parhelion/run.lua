@@ -1281,6 +1281,31 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
+for _, path in ipairs { paths[3], paths[4] } do
+	test("the feline statusline, built before a toggle, gives the new mode's colors, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			world:lua("_G.statusline = loadstring(...)()", feline_statusline)
+			toggle_when_path_requires_it(world, "parhelion", path)
+
+			local colors = world:lua(feline_colors_by_slot, "return _G.statusline")
+
+			local want = approved_presets[path.background].feline
+			assert(vim.deep_equal(colors, want), vim.inspect { got = colors, want = want })
+		end)
+	end)
+end
+
+test("the feline statusline, built before bold is turned off, writes its mode without bold", function()
+	in_world("parhelion", paths[1], function(world)
+		world:lua("_G.statusline = loadstring(...)()", feline_statusline)
+		world:lua [[require("parhelion").setup { bold = false }]]
+
+		local cell = world:lua "return _G.statusline.active[1][1].hl()"
+
+		assert(cell.style == nil, "the mode is written in " .. tostring(cell.style))
+	end)
+end)
+
 local feline_draws_parhelions_statusline_in_every_buffer = [[
 	vim.opt.rtp:append(vim.env.PARHELION_DEPS .. "/feline.nvim")
 	require("feline").setup {

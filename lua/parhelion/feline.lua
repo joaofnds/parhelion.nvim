@@ -1,24 +1,23 @@
 local parhelion = require "parhelion"
 
-local built = parhelion.built(vim.o.background)
-local colors, groups, hues = built.colors, built.groups, built.mode_hues
+local function built() return parhelion.built(vim.o.background) end
 
 local modes = {
-	n = { name = "NORMAL", hue = hues.normal },
-	no = { name = "OPERATOR", hue = hues.normal },
-	v = { name = "VISUAL", hue = hues.visual },
-	V = { name = "VISUAL LINE", hue = hues.visual },
-	["\22"] = { name = "VISUAL BLOCK", hue = hues.visual },
-	s = { name = "SELECT", hue = hues.visual },
-	S = { name = "SELECT LINE", hue = hues.visual },
-	["\19"] = { name = "SELECT BLOCK", hue = hues.visual },
-	i = { name = "INSERT", hue = hues.insert },
-	t = { name = "TERMINAL", hue = hues.insert },
-	R = { name = "REPLACE", hue = hues.replace },
-	Rv = { name = "VREPLACE", hue = hues.replace },
-	c = { name = "COMMAND", hue = hues.command },
-	r = { name = "PROMPT", hue = hues.command },
-	["!"] = { name = "SHELL", hue = hues.command },
+	n = { name = "NORMAL", hue = "normal" },
+	no = { name = "OPERATOR", hue = "normal" },
+	v = { name = "VISUAL", hue = "visual" },
+	V = { name = "VISUAL LINE", hue = "visual" },
+	["\22"] = { name = "VISUAL BLOCK", hue = "visual" },
+	s = { name = "SELECT", hue = "visual" },
+	S = { name = "SELECT LINE", hue = "visual" },
+	["\19"] = { name = "SELECT BLOCK", hue = "visual" },
+	i = { name = "INSERT", hue = "insert" },
+	t = { name = "TERMINAL", hue = "insert" },
+	R = { name = "REPLACE", hue = "replace" },
+	Rv = { name = "VREPLACE", hue = "replace" },
+	c = { name = "COMMAND", hue = "command" },
+	r = { name = "PROMPT", hue = "command" },
+	["!"] = { name = "SHELL", hue = "command" },
 }
 
 local function current_mode()
@@ -27,9 +26,20 @@ local function current_mode()
 	return modes[mode:sub(1, 2)] or modes[mode:sub(1, 1)]
 end
 
-local bar = { fg = groups.StatusLine.fg, bg = colors.raised }
-local block = { fg = colors.raised, bg = groups.StatusLine.fg }
-local inactive_bar = { fg = groups.StatusLineNC.fg, bg = groups.StatusLineNC.bg }
+local function bar()
+	local current = built()
+	return { fg = current.groups.StatusLine.fg, bg = current.colors.raised }
+end
+
+local function block()
+	local current = built()
+	return { fg = current.colors.raised, bg = current.groups.StatusLine.fg }
+end
+
+local function inactive_bar()
+	local inactive = built().groups.StatusLineNC
+	return { fg = inactive.fg, bg = inactive.bg }
+end
 
 local function space(hl) return { str = " ", hl = hl } end
 
@@ -55,7 +65,10 @@ local function in_a_block(provider)
 end
 
 local function diagnostic_count(provider, group, letter)
-	local hl = { fg = groups[group].fg, bg = colors.raised }
+	local function hl()
+		local current = built()
+		return { fg = current.groups[group].fg, bg = current.colors.raised }
+	end
 
 	return { provider = provider, icon = letter .. ":", hl = hl, right_sep = space(hl) }
 end
@@ -67,7 +80,12 @@ end
 local function mode_name() return " " .. current_mode().name .. " " end
 
 local function mode_block()
-	return { fg = colors.page, bg = current_mode().hue, style = parhelion.draws_bold() and "bold" or nil }
+	local current = built()
+	return {
+		fg = current.colors.page,
+		bg = current.mode_hues[current_mode().hue],
+		style = parhelion.draws_bold() and "bold" or nil,
+	}
 end
 
 local function redraw_when_an_operator_starts_or_ends()

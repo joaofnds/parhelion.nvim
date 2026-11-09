@@ -37,6 +37,8 @@ The changes a user can see, newest release first. A change not yet released goes
 - The reactive cursorline keeps the line number's color in normal mode, where it used to drop it.
 - The reactive presets follow a change to 'background' and to `bold`. They used to keep the colors and the bold of the
   mode they were first loaded in until Neovim restarted.
+- The feline statusline follows a change to 'background'. It used to keep the colors of the mode it was built in until
+  Neovim restarted.
 - Bufferline's slanted and sloped separators, its pick labels, its group separator and a visible tab's diagnostics draw
   in parhelion's colors instead of in shades bufferline derives, such as a near black edge on the slant. The selected
   tab draws its indicator, and the name and count of a buffer with an error, on the page instead of on the tab bar's
