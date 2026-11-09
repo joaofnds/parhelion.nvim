@@ -142,8 +142,9 @@ The script fails when a load fails or when a first load or a reload takes more t
 parhelion writes its groups, not how many it writes, since the floor writes the same built table, so a table that grows
 makes both sides slower and passes.
 
-CI runs the script beside the suite, but no GitHub runner has been measured. In an Ubuntu container held to four CPUs of
-the same machine, running Neovim's x86 release under emulation, a first load took 1.08 to 1.23 times its floor and a
+CI runs the script beside the suite. Its first run on GitHub's `ubuntu-latest` runner, Ubuntu 24.04, took a first load
+at 1.06 to 1.14 times its floor and a reload at 0.92 to 1.01. In an Ubuntu container held to four CPUs of the same
+Apple M5 Pro, running Neovim's x86 release under emulation, a first load took 1.08 to 1.23 times its floor and a
 reload 1.08 to 1.18, both idle and with another container keeping those four CPUs busy, so a noisy runner could take a
 load past the bound. When the Load time job fails, run it again, then run the script locally on the change and on its
 parent. A ratio that rises from the parent to the change is the change's, and one that does not is the runner's.
