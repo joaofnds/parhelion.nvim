@@ -605,8 +605,12 @@ local screen_position_of = [[
 
 for _, case in ipairs {
 	{ language = "lua", what = "function call", pattern = [[\<ipairs\>]], capture = "@parhelion.function" },
-	{ language = "javascript", what = "tag", pattern = [[<\zsDialog\>]], capture = "@parhelion.tag" },
-	{ language = "tsx", what = "tag", pattern = [[<\zsUiButton\>]], capture = "@parhelion.tag" },
+	{ language = "javascript", what = "opening tag", pattern = [[<\zsDialog\>]], capture = "@parhelion.tag" },
+	{ language = "javascript", what = "closing tag", pattern = [[</\zsDialog\>]], capture = "@parhelion.tag" },
+	{ language = "javascript", what = "self-closing tag", pattern = [[<\zsClose\>]], capture = "@parhelion.tag" },
+	{ language = "tsx", what = "opening tag", pattern = [[<\zsh1\>]], capture = "@parhelion.tag" },
+	{ language = "tsx", what = "closing tag", pattern = [[</\zsh1\>]], capture = "@parhelion.tag" },
+	{ language = "tsx", what = "self-closing tag", pattern = [[<\zsUiButton\>]], capture = "@parhelion.tag" },
 } do
 	for _, path in ipairs { paths[1], paths[2] } do
 		local name =
