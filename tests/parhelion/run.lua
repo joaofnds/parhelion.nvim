@@ -754,14 +754,30 @@ for _, path in ipairs { paths[1], paths[2] } do
 end
 
 local group_colors_code = [[
+local own = vim.api.nvim_get_hl(0, {})
+
+local function effective(hl)
+	local followed = {}
+	while hl.link do
+		if followed[hl.link] then return {} end
+
+		followed[hl.link] = true
+		hl = own[hl.link] or {}
+	end
+
+	return hl
+end
+
 local colors = {}
-for name in pairs(vim.api.nvim_get_hl(0, {})) do
-	local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
+for name, hl in pairs(own) do
+	local definition = effective(hl)
+
 	colors[name] = vim.empty_dict()
 	for _, attribute in ipairs { "fg", "bg" } do
-		if hl[attribute] then colors[name][attribute] = string.format("#%06x", hl[attribute]) end
+		if definition[attribute] then colors[name][attribute] = string.format("#%06x", definition[attribute]) end
 	end
 end
+
 return vim.json.encode(colors)
 ]]
 
@@ -1996,6 +2012,66 @@ test("a command a plugin defines after a slow start is ready once the screen set
 	nvim:close()
 
 	assert(ok, err)
+end)
+
+local function group_colors_beside_a_focused_float(definitions, winhighlight)
+	local nvim = Nvim.spawn { args = { "-u", "NONE", "-i", "NONE", "-n" }, cwd = fixture, rows = 10, cols = 40 }
+
+	local ok, groups = pcall(function()
+		nvim:lua(
+			[[
+				local definitions, winhighlight = ...
+				for name, definition in pairs(definitions) do
+					vim.api.nvim_set_hl(0, name, definition)
+				end
+
+				local float = vim.api.nvim_open_win(
+					vim.api.nvim_create_buf(false, true),
+					true,
+					{ relative = "editor", row = 1, col = 1, width = 10, height = 2 }
+				)
+				vim.wo[float].winhighlight = winhighlight
+			]],
+			definitions,
+			winhighlight
+		)
+		nvim:settle { quiet = 200 }
+		return vim.json.decode(nvim:lua(group_colors_code))
+	end)
+	nvim:close()
+	assert(ok, groups)
+
+	return groups
+end
+
+test("a view's group colors give a group a focused window remaps its own color", function()
+	local definitions = { CursorLine = { bg = "#073642" }, Band = { bg = "#2c4e56" } }
+
+	local groups = group_colors_beside_a_focused_float(definitions, "CursorLine:Band")
+
+	assert(groups.CursorLine.bg == "#073642", vim.inspect(groups.CursorLine))
+end)
+
+test("a view's group colors give a linked group the color of the group it links to", function()
+	local definitions = { CursorLine = { bg = "#073642" }, Band = { bg = "#2c4e56" }, Linked = { link = "CursorLine" } }
+
+	local groups = group_colors_beside_a_focused_float(definitions, "CursorLine:Band")
+
+	assert(groups.Linked.bg == "#073642", vim.inspect(groups.Linked))
+end)
+
+test("a view's group colors give a group linked to an undefined group no color", function()
+	local groups = group_colors_beside_a_focused_float({ ToNowhere = { link = "Undefined" } }, "")
+
+	assert(next(groups.ToNowhere) == nil, vim.inspect(groups.ToNowhere))
+end)
+
+test("a view's group colors give a group in a link cycle no color", function()
+	local definitions = { WithAFill = { link = "LinksBack", bg = "#2c4e56" }, LinksBack = { link = "WithAFill" } }
+
+	local groups = group_colors_beside_a_focused_float(definitions, "")
+
+	assert(next(groups.WithAFill) == nil, vim.inspect(groups.WithAFill))
 end)
 
 test("the scale check leaves a plugin's own derived line highlight alone", function()
