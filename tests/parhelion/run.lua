@@ -2627,6 +2627,15 @@ local one_option_each = {
 	plugins = [[require("parhelion").setup { plugins = { ["telescope.nvim"] = false } }]],
 }
 
+local lua_a_reload_may_run_with = {
+	transparent = 1.7,
+	dim_inactive = 1.55,
+	bold = 3.9,
+	italic = 3.65,
+	overrides = 1.55,
+	plugins = 2.6,
+}
+
 local modules_that_build_the_groups = [[
 	local building = { ["parhelion.build"] = true, ["parhelion.chrome"] = true, ["parhelion.refinement"] = true }
 	local names = vim.tbl_filter(
@@ -2954,6 +2963,26 @@ for _, path in ipairs { paths[1], paths[2] } do
 							changes.count,
 							changes.kilobytes
 						)
+					)
+				end)
+			end
+		)
+
+		local bound = lua_a_reload_may_run_with[option]
+		test(
+			string.format(
+				"a reload with the %s option runs at most %.2f times the Lua of writing its groups, %s",
+				option,
+				bound,
+				path.label
+			),
+			function()
+				with_options(path, setup_code, function(world)
+					local ratio = world:lua(lua_a_reload_runs_per_instruction_of_its_floor)
+
+					assert(
+						ratio <= bound,
+						string.format("a reload runs %.2f times the Lua of writing its groups", ratio)
 					)
 				end)
 			end

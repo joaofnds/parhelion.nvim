@@ -155,6 +155,12 @@ are the same on every machine:
 - `a reload with the default options runs little more Lua than writing its groups` counts the Lua VM instructions of a
   reload through `:colorscheme parhelion` with the JIT off, and fails at 1.25 times those of a loop that only writes
   the groups. A reload runs 1.03 times as many.
+- `a reload with the <option> option runs at most <bound> times the Lua of writing its groups` counts the same way with
+  one option, and its bound is about 1.2 times what that option runs: 1.42 times the loop for `transparent`, 1.28 for
+  `dim_inactive`, 1.29 for an override, 2.18 for a plugin turned off, 3.04 for `italic = false` and 3.24 for
+  `bold = false`, the last three because they read every group. Searching every group for the groups `transparent`
+  clears ran 4.33 times, a plugin turned off ran 5.90 times before the load tested each group's first letter, and
+  `bold = false` ran 4.00 times when it handed each group to a callback.
 
 None of them sees work Neovim does in C, such as a second `hi clear`, which only the script catches. Time a load under
 `-c luafile`, never `-l`, since `-l` turns on 'verbose', which makes every `nvim_set_hl` many times slower.
@@ -315,7 +321,9 @@ Every comparison runs on all four load paths. The checks on query files run once
 - Plugin-only groups listed in `tests/parhelion/roles.lua` take the color of their nearest equivalent, which catches a
   group given the wrong role. The list is a sample, so a role it leaves out goes unchecked.
 - A load sets no Lua global and, with the defaults or any one option, requires nothing that builds the groups. A reload
-  copies no groups and runs little more Lua than writing them, and the built tables are what the sources build.
+  with the defaults copies no groups and runs little more Lua than writing them, a reload with any one option copies
+  only the groups it changes and runs no more Lua than its bound allows, and the built tables are what the sources
+  build.
   `chrome.groups` raises when a family names a role `chrome.lua` lacks or a link names a group a family sets.
 - The terminal themes in `extras/` are what the built tables give, and every file git tracks there is one of them.
   The Ghostty theme's page, text, cursor, selection and terminal colors are the ones Neovim shows, so a theme that
