@@ -130,8 +130,8 @@ nothing has required it yet, since a `require` would search the runtimepath firs
 stores the module where a later `require("parhelion")` finds it. `init.lua` reads `plugins.lua` the same way the first
 time `setup` or a load needs the plugin list.
 
-The built tables ship as Lua source. The dark table as stripped LuaJIT bytecode reads in about 0.24 ms against 0.68 ms
-for the source, the median of 25 fresh starts with `vim.loader` off, but `vim.loader` already keeps the source's
+The built tables ship as Lua source. Read on its own, the dark table as stripped LuaJIT bytecode takes about 0.24 ms
+against 0.68 ms for the source, the median of 25 fresh starts with `vim.loader` off, but `vim.loader` already keeps the source's
 bytecode in its cache, which brings the source to 0.39 ms against 0.37 ms. The bytecode would also be a binary file,
 125 KB against the source's 97 KB, that no one can review in a diff, and a Neovim built with PUC Lua, which
 `:h lua-luajit` says a plugin cannot rule out, refuses to read it.
@@ -142,8 +142,8 @@ are the same on every machine:
 
 - `a load with the default options requires no module but parhelion` and `a load with the <option> option requires
   nothing that builds the groups` fail when a load builds the groups again, which takes 2.6 to 2.8 times the floor.
-- `setup with the defaults written out requires no module but parhelion` fails when a `setup` call that turns no plugin
-  off reads the plugin list, which takes about 0.04 ms here the first time, or 0.05 ms without `vim.loader`.
+- `setup with the defaults written out requires no module but parhelion` fails when a `setup` call that names no plugin
+  reads the plugin list, which takes about 0.04 ms here the first time, or 0.05 ms without `vim.loader`.
 - `a load with the <option> option searches for none of parhelion's modules` fails when a load finds one of parhelion's
   files through a `require` search, which doubles what reading the plugin list costs.
 - `a reload with the default options copies no groups` fails when a reload through `:colorscheme parhelion`, the path
@@ -151,7 +151,7 @@ are the same on every machine:
   group takes about 100 KB.
 - `a reload with the <option> option copies only the groups it changes` fails when a reload with that option allocates
   more than 32 KB past a copy of the groups it changes. A reload with `bold = false`, which changes about 180 groups,
-  allocates about 39 KB, where a copy of every group takes about 500 KB.
+  allocates about 39 KB, where a copy of every group takes about 350 KB.
 - `a reload with the default options runs little more Lua than writing its groups` counts the Lua VM instructions of a
   reload through `:colorscheme parhelion` with the JIT off, and fails at 1.25 times those of a loop that only writes
   the groups. A reload runs 1.03 times as many.
