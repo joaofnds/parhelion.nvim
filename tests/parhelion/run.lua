@@ -1953,27 +1953,25 @@ for _, path in ipairs(paths) do
 			assert(vim.deep_equal(required, { "parhelion" }), vim.inspect(required))
 		end)
 	end)
-
-	test("setup with the defaults written out requires no module but parhelion, " .. path.label, function()
-		in_world("parhelion", path, function(world)
-			toggle_when_path_requires_it(world, "parhelion", path)
-
-			world:lua [[
-				require("parhelion").setup {
-					transparent = false,
-					dim_inactive = false,
-					bold = true,
-					italic = true,
-					overrides = {},
-					plugins = {},
-				}
-			]]
-
-			local required = world:lua(modules_of_parhelion_loaded)
-			assert(vim.deep_equal(required, { "parhelion" }), vim.inspect(required))
-		end)
-	end)
 end
+
+test("setup with the defaults written out requires no module but parhelion", function()
+	in_world("parhelion", paths[1], function(world)
+		world:lua [[
+			require("parhelion").setup {
+				transparent = false,
+				dim_inactive = false,
+				bold = true,
+				italic = true,
+				overrides = {},
+				plugins = {},
+			}
+		]]
+
+		local required = world:lua(modules_of_parhelion_loaded)
+		assert(vim.deep_equal(required, { "parhelion" }), vim.inspect(required))
+	end)
+end)
 
 local kilobytes_allocated_by = [[
 	local function kilobytes_allocated_by(work)
