@@ -5,11 +5,13 @@
 # Exits 2 when PARHELION_BENCH_RUNS is not a whole number above 0.
 set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+bound=1.25
 runs=${PARHELION_BENCH_RUNS:-40}
 if ! [[ $runs =~ ^0*[1-9][0-9]*$ ]]; then
   printf 'PARHELION_BENCH_RUNS must be a whole number above 0, not "%s"\n' "$runs" >&2
   exit 2
 fi
+
 cache=$(mktemp -d)
 trap 'rm -rf "$cache"' EXIT
 
@@ -54,7 +56,7 @@ ratio() { # time floor
 }
 
 over_the_bound() { # ratio
-  awk -v ratio="$1" 'BEGIN { exit !(ratio > 1.25) }'
+  awk -v ratio="$1" -v bound="$bound" 'BEGIN { exit !(ratio > bound) }'
 }
 
 slow=0
@@ -83,6 +85,6 @@ for background in dark light; do
 done
 
 if [ "$slow" = 1 ]; then
-  echo "a first load or a reload takes more than 1.25 times its floor"
+  echo "a first load or a reload takes more than $bound times its floor"
   exit 1
 fi
