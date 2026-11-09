@@ -263,11 +263,13 @@ function M.setup(user_options)
 	end
 end
 
+---@private
 function M.draws_bold() return options.bold end
 
 local built_directory = directory .. "built/"
 local built_tables = {}
 
+---@private
 function M.built(background)
 	if not built_tables[background] then
 		local built = assert(loadfile(built_directory .. background .. ".lua"))()
@@ -278,6 +280,7 @@ function M.built(background)
 	return built_tables[background]
 end
 
+---@private
 function M.load()
 	local built = M.built(vim.o.background)
 	local changed = changes(built)
