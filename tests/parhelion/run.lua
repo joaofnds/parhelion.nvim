@@ -2086,6 +2086,20 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
+for _, runs in ipairs { "0", "-1", "1.5", "forty" } do
+	test(string.format("the bench refuses %s runs", runs), function()
+		local command = { "bash", root .. "/tests/parhelion/bench.sh" }
+
+		local bench = vim.system(command, { env = { PARHELION_BENCH_RUNS = runs }, text = true }):wait(60000)
+
+		assert(bench.code == 2, string.format("the bench exited %d: %s%s", bench.code, bench.stdout, bench.stderr))
+		assert(
+			bench.stderr == string.format('PARHELION_BENCH_RUNS must be a whole number above 0, not "%s"\n', runs),
+			bench.stderr
+		)
+	end)
+end
+
 local modules_a_theme_file_requires = [[
 	local theme_file = ...
 	require(theme_file)

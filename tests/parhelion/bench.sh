@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # Times a load of parhelion against its floor, a colorscheme that only writes the same built groups, as the median of
 # PARHELION_BENCH_RUNS fresh starts. Fails when a load fails, or when a first load takes more than 1.25 times its floor.
+# Exits 2 when PARHELION_BENCH_RUNS is not a whole number above 0.
 set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 runs=${PARHELION_BENCH_RUNS:-40}
+if ! [[ $runs =~ ^[1-9][0-9]*$ ]]; then
+  printf 'PARHELION_BENCH_RUNS must be a whole number above 0, not "%s"\n' "$runs" >&2
+  exit 2
+fi
 cache=$(mktemp -d)
 trap 'rm -rf "$cache"' EXIT
 
