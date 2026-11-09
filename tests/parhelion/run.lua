@@ -56,8 +56,17 @@ local function record_failure(name, err)
 	report("FAIL " .. name .. "\n" .. tostring(err))
 end
 
+local named = {}
+
 local function test(name, body)
 	if not selected(name) then return end
+
+	if named[name] then
+		record_failure(name, "another test has this name, so neither a filter nor a failure can tell them apart")
+		return
+	end
+
+	named[name] = true
 
 	local ok, err = xpcall(body, debug.traceback)
 	if ok then
@@ -2085,7 +2094,7 @@ test("the structure check lets a severity color a notification border", function
 end)
 
 for _, case in ipairs {
-	{ name = "a diagnostic", group = "DiagnosticVirtualTextError", found = true },
+	{ name = "a diagnostic's virtual text", group = "DiagnosticVirtualTextError", found = true },
 	{ name = "a gutter sign", group = "GitSignsChange", found = true },
 	{ name = "a gutter number", group = "GitSignsAddNr", found = true },
 	{ name = "Neogit's gutter number", group = "NeogitCursorLineNr", found = true },
