@@ -4,8 +4,8 @@
 # which states its own authorship.
 set -euo pipefail
 dir=$1
-mkdir -p "$dir/src" "$dir/test"
-cd "$dir"
+mkdir -p "${dir}/src" "${dir}/test"
+cd "${dir}"
 git init -q -b main
 
 cat >package.json <<'EOF'
@@ -126,10 +126,11 @@ committed=(package.json README.md tsconfig.json src/units.ts src/cache.ts src/re
   printf 'author Ada Example <ada@example.com> 1730000000 +0000\n'
   printf 'committer Ada Example <ada@example.com> 1730000000 +0000\n'
   message='fetch the day forecast'
-  printf 'data %d\n%s\n' "${#message}" "$message"
+  printf 'data %d\n%s\n' "${#message}" "${message}"
   for path in "${committed[@]}"; do
-    printf 'M 100644 inline %s\ndata %d\n' "$path" "$(wc -c <"$path")"
-    cat "$path"
+    size=$(wc -c <"${path}")
+    printf 'M 100644 inline %s\ndata %d\n' "${path}" "${size}"
+    cat "${path}"
     printf '\n'
   done
 } | git fast-import --quiet
@@ -184,7 +185,10 @@ test("gives up after the last attempt", async () => {
 });
 EOF
 
-printf '\nInstall it with `npm install forecast`.\n' >>README.md
+cat >>README.md <<'EOF'
+
+Install it with `npm install forecast`.
+EOF
 git add README.md
 
 git status --porcelain --untracked-files=all | awk '

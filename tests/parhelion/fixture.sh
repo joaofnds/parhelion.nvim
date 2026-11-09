@@ -3,9 +3,9 @@
 # History comes from a fast-import stream, which states its own authorship.
 set -euo pipefail
 dir=$1
-rm -rf "$dir"
-mkdir -p "$dir"
-cd "$dir"
+rm -rf "${dir}"
+mkdir -p "${dir}"
+cd "${dir}"
 git init -q -b main
 
 blob() { printf 'data %d\n%s\n' "${#1}" "$1"; }
@@ -26,11 +26,11 @@ notes_v1=$'first line\nsecond line\nthird line'
 gone_v1=$'to be removed'
 
 {
-  commit 1 1577836800 "add application module" src/app.lua "$app_v1"
-  commit 2 1577923200 "add view component" src/view.tsx "$view_v1"
-  commit 3 1578009600 "add notes" notes.md "$notes_v1"
-  commit 4 1578096000 "add file that goes away" gone.txt "$gone_v1"
-  commit 5 1578182400 $'bump application version\n\nThe module now reports the version it exports.' src/app.lua "$app_v2"
+  commit 1 1577836800 "add application module" src/app.lua "${app_v1}"
+  commit 2 1577923200 "add view component" src/view.tsx "${view_v1}"
+  commit 3 1578009600 "add notes" notes.md "${notes_v1}"
+  commit 4 1578096000 "add file that goes away" gone.txt "${gone_v1}"
+  commit 5 1578182400 $'bump application version\n\nThe module now reports the version it exports.' src/app.lua "${app_v2}"
   printf 'reset refs/remotes/origin/main\nfrom :4\n\n'
   printf 'reset refs/tags/v1.0.0\nfrom :3\n\n'
 } | git fast-import --quiet

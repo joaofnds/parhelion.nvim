@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   format:
-    name: Formatting
+    name: Formatting and lint
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -28,7 +28,7 @@ jobs:
           args: false
       - run: tests/parhelion/ci-install.sh
       - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - run: make format-check
+      - run: make format-check lint
 
   suite:
     name: Test suite on Neovim ${{ matrix.neovim }}

@@ -48,8 +48,8 @@ Plugin support below for how they are checked.
 | `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the colors, mode hues and groups in the built tables |
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries, which began as solarized.nvim's |
 | `tests/parhelion/` | The test suite, the load bench, the install script CI runs and the commit lint |
-| `.github/workflows/parhelion.yml` | Runs the suite, the load bench, the format check and the commit lint in CI |
-| `Makefile` | The `test`, `bench`, `format-check` and `lintcommit` targets that CI runs, and `build` |
+| `.github/workflows/parhelion.yml` | Runs the suite, the load bench, the format check, the lint and the commit lint in CI |
+| `Makefile` | The `test`, `bench`, `format-check`, `lint` and `lintcommit` targets that CI runs, and `build` |
 | `doc/parhelion.txt` | The `:help` page |
 | `CHANGELOG.md` | The changes a user can see |
 | `LICENSE.md` | The license |
@@ -383,11 +383,12 @@ Every comparison runs on all four load paths. The checks on query files run once
 Set `PARHELION_TEST_FILTER=<substring>` to run the tests whose name contains it. A filter that matches nothing exits
 non-zero. The whole suite takes about eight minutes on an Apple M5 Pro once the dependencies are fetched.
 
-`.github/workflows/parhelion.yml` runs the suite, the load bench and a formatting check with StyLua and shfmt on a
-pull request, on a push to `main` and every Monday, which needs the repository hosted on GitHub. In a clone with no
-such remote they only run by hand, as `make test`, `make bench` and `make format-check`. shfmt takes its indent from
-`.editorconfig`, which names the one shell script without a `.sh` extension, `tests/parhelion/fake_nvim/nvim`, so a
-new one needs a section there too, or shfmt asks for tabs.
+`.github/workflows/parhelion.yml` runs the suite, the load bench, a formatting check with StyLua and shfmt and a
+ShellCheck lint on a pull request, on a push to `main` and every Monday, which needs the repository hosted on GitHub.
+In a clone with no such remote they only run by hand, as `make test`, `make bench`, `make format-check` and
+`make lint`. `.shellcheckrc` turns on every optional check, so ShellCheck also asks for braces around each variable
+and for `[[` in place of `[`. shfmt takes its indent from `.editorconfig`, which names the one shell script without a
+`.sh` extension, `tests/parhelion/fake_nvim/nvim`, so a new one needs a section there too, or shfmt asks for tabs.
 
 Commit subjects follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). A subject starts with
 one of the types `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` and `revert`, in

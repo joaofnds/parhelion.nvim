@@ -7,19 +7,19 @@ set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 bound=1.25
 runs=${PARHELION_BENCH_RUNS:-40}
-if ! [[ $runs =~ ^0*[1-9][0-9]*$ ]]; then
-  printf 'PARHELION_BENCH_RUNS must be a whole number above 0, not "%s"\n' "$runs" >&2
+if ! [[ ${runs} =~ ^0*[1-9][0-9]*$ ]]; then
+  printf 'PARHELION_BENCH_RUNS must be a whole number above 0, not "%s"\n' "${runs}" >&2
   exit 2
 fi
 
 cache=$(mktemp -d)
 trap 'rm -rf "$cache"' EXIT
 
-lua_root=$(printf '%s' "$root" | sed 's/[\\"]/\\&/g')
-mkdir -p "$cache/floor/colors"
-cat >"$cache/floor/colors/parhelion_floor.lua" <<EOF
+lua_root=$(printf '%s' "${root}" | sed 's/[\\"]/\\&/g')
+mkdir -p "${cache}/floor/colors"
+cat >"${cache}/floor/colors/parhelion_floor.lua" <<EOF
 local groups = package.loaded.parhelion_floor
-  or loadfile("$lua_root/lua/parhelion/built/" .. vim.o.background .. ".lua")().groups
+  or loadfile("${lua_root}/lua/parhelion/built/" .. vim.o.background .. ".lua")().groups
 package.loaded.parhelion_floor = groups
 if vim.g.colors_name then
   vim.cmd "hi clear"
@@ -31,19 +31,19 @@ end
 EOF
 
 once() { # colorscheme background loader
-  local runtime=$root timings
-  if [ "$1" = parhelion_floor ]; then runtime=$cache/floor; fi
+  local runtime=${root} timings
+  if [[ "$1" = parhelion_floor ]]; then runtime=${cache}/floor; fi
 
   timings=$(PARHELION_BENCH_COLORSCHEME=$1 PARHELION_BENCH_BACKGROUND=$2 PARHELION_BENCH_LOADER=$3 \
-    PARHELION_BENCH_ROOT=$root PARHELION_BENCH_RUNTIME=$runtime XDG_CACHE_HOME=$cache nvim --headless --clean \
+    PARHELION_BENCH_ROOT=${root} PARHELION_BENCH_RUNTIME=${runtime} XDG_CACHE_HOME=${cache} nvim --headless --clean \
     --cmd "lua vim.opt.rtp:prepend(vim.env.PARHELION_BENCH_RUNTIME)" \
     -c "lua dofile(vim.env.PARHELION_BENCH_ROOT .. '/tests/parhelion/bench.lua')" -c "qa!")
-  if ! awk 'NF == 2 && $1 > 0 && $2 > 0 { ok = 1 } END { exit !ok }' <<<"$timings"; then
-    printf "\n%s gave no timings in %s with vim.loader %s: %s\n" "$1" "$2" "$3" "$timings" >&2
+  if ! awk 'NF == 2 && $1 > 0 && $2 > 0 { ok = 1 } END { exit !ok }' <<<"${timings}"; then
+    printf "\n%s gave no timings in %s with vim.loader %s: %s\n" "$1" "$2" "$3" "${timings}" >&2
     return 1
   fi
 
-  echo "$timings"
+  echo "${timings}"
 }
 
 median() { # colorscheme column file
@@ -55,40 +55,44 @@ ratio() { # time floor
   awk -v time="$1" -v floor="$2" 'BEGIN { printf "%.17g", time / floor }'
 }
 
-within_the_bound() { # ratio load
-  if awk -v ratio="$1" -v bound="$bound" 'BEGIN { exit !(ratio > bound) }'; then
-    printf '  the %s takes more than %s times its floor\n' "$2" "$bound"
-    return 1
+mark_if_slow() { # ratio load
+  if awk -v ratio="$1" -v bound="${bound}" 'BEGIN { exit !(ratio > bound) }'; then
+    printf '  the %s takes more than %s times its floor\n' "$2" "${bound}"
+    slow=1
   fi
 }
 
 slow=0
 for background in dark light; do
   for loader in 0 1; do
-    times=$cache/$background-$loader
-    once parhelion "$background" "$loader" >/dev/null
-    once parhelion_floor "$background" "$loader" >/dev/null
-    for round in $(seq "$runs"); do
+    times=${cache}/${background}-${loader}
+    once parhelion "${background}" "${loader}" >/dev/null
+    once parhelion_floor "${background}" "${loader}" >/dev/null
+    for round in $(seq "${runs}"); do
       order="parhelion parhelion_floor"
       if ((round % 2 == 0)); then order="parhelion_floor parhelion"; fi
-      for colorscheme in $order; do
-        timings=$(once "$colorscheme" "$background" "$loader")
-        echo "$colorscheme $timings"
+      for colorscheme in ${order}; do
+        timings=$(once "${colorscheme}" "${background}" "${loader}")
+        echo "${colorscheme} ${timings}"
       done
-    done >"$times"
+    done >"${times}"
 
-    first=$(median parhelion 2 "$times") floor_first=$(median parhelion_floor 2 "$times")
-    reload=$(median parhelion 3 "$times") floor_reload=$(median parhelion_floor 3 "$times")
-    first_ratio=$(ratio "$first" "$floor_first") reload_ratio=$(ratio "$reload" "$floor_reload")
+    first=$(median parhelion 2 "${times}")
+    floor_first=$(median parhelion_floor 2 "${times}")
+    reload=$(median parhelion 3 "${times}")
+    floor_reload=$(median parhelion_floor 3 "${times}")
+    first_ratio=$(ratio "${first}" "${floor_first}")
+    reload_ratio=$(ratio "${reload}" "${floor_reload}")
+    if [[ "${loader}" = 1 ]]; then loader_state=on; else loader_state=off; fi
     printf "%-5s loader %-3s first load %.2f ms, floor %.2f ms, %.3fx | reload %.2f ms, floor %.2f ms, %.3fx\n" \
-      "$background" "$([ "$loader" = 1 ] && echo on || echo off)" "$first" "$floor_first" "$first_ratio" \
-      "$reload" "$floor_reload" "$reload_ratio"
-    within_the_bound "$first_ratio" "first load" || slow=1
-    within_the_bound "$reload_ratio" reload || slow=1
+      "${background}" "${loader_state}" "${first}" "${floor_first}" "${first_ratio}" \
+      "${reload}" "${floor_reload}" "${reload_ratio}"
+    mark_if_slow "${first_ratio}" "first load"
+    mark_if_slow "${reload_ratio}" reload
   done
 done
 
-if [ "$slow" = 1 ]; then
-  echo "a first load or a reload takes more than $bound times its floor"
+if [[ "${slow}" = 1 ]]; then
+  echo "a first load or a reload takes more than ${bound} times its floor"
   exit 1
 fi

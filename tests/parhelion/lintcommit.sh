@@ -6,10 +6,10 @@ conventional='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(
 
 status=0
 while read -r hash subject; do
-  if ! [[ $subject =~ $conventional ]]; then
-    printf '%s is not a Conventional Commit: %s\n' "$hash" "$subject" >&2
+  if ! [[ ${subject} =~ ${conventional} ]]; then
+    printf '%s is not a Conventional Commit: %s\n' "${hash}" "${subject}" >&2
     status=1
   fi
 done
 
-exit "$status"
+exit "${status}"
