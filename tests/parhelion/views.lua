@@ -94,8 +94,8 @@ function M.code_views(samples_dir)
 end
 
 local first_identifier_has_semantic_token = [[
-	local position = vim.fn.searchpos([=[\h]=], "cnw")
-	return #vim.inspect_pos(0, position[1] - 1, position[2] - 1).semantic_tokens > 0
+  local position = vim.fn.searchpos([=[\h]=], "cnw")
+  return #vim.inspect_pos(0, position[1] - 1, position[2] - 1).semantic_tokens > 0
 ]]
 
 function M.open_with_semantic_tokens(nvim, path, server_code)

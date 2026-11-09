@@ -16,34 +16,34 @@ local function editor(nvim)
   wait_for(
     nvim,
     [[vim.iter(vim.api.nvim_buf_get_extmarks(vim.fn.bufnr "NvimTree_1", -1, 0, -1, { details = true })):any(
-			function(mark) return tostring(mark[4].hl_group):find "^NvimTreeGit" ~= nil end
-		)]]
+      function(mark) return tostring(mark[4].hl_group):find "^NvimTreeGit" ~= nil end
+    )]]
   )
 
   nvim:lua [[
-		local namespace = vim.api.nvim_create_namespace "shoot"
-		local line = vim.fn.search("const body", "n") - 1
-		vim.diagnostic.set(namespace, 0, {
-			{
-				lnum = line,
-				col = 8,
-				end_col = 12,
-				severity = vim.diagnostic.severity.WARN,
-				source = "eslint",
-				message = "Unsafe assignment of an `any` value.",
-			},
-		})
+    local namespace = vim.api.nvim_create_namespace "shoot"
+    local line = vim.fn.search("const body", "n") - 1
+    vim.diagnostic.set(namespace, 0, {
+      {
+        lnum = line,
+        col = 8,
+        end_col = 12,
+        severity = vim.diagnostic.severity.WARN,
+        source = "eslint",
+        message = "Unsafe assignment of an `any` value.",
+      },
+    })
 
-		vim.fn.search "convert("
-	]]
+    vim.fn.search "convert("
+  ]]
   nvim:lua [[
-		vim.lsp.util.open_floating_preview({
-			"```typescript",
-			"function convert(celsius: number, unit: Unit): number",
-			"```",
-			"Converts a temperature in degrees Celsius to the given unit.",
-		}, "markdown", { border = "rounded", focus = false, close_events = {} })
-	]]
+    vim.lsp.util.open_floating_preview({
+      "```typescript",
+      "function convert(celsius: number, unit: Unit): number",
+      "```",
+      "Converts a temperature in degrees Celsius to the given unit.",
+    }, "markdown", { border = "rounded", focus = false, close_events = {} })
+  ]]
 end
 
 local function diff(nvim)
@@ -169,10 +169,10 @@ for _, scene in ipairs(scenes) do
       scene.run(nvim)
       local shot = nvim:capture()
       local cursor = nvim:lua [[
-				local hl = vim.api.nvim_get_hl(0, { name = "Cursor", link = false })
-				local function hex(n) return n and string.format("#%06x", n) or nil end
-				return { fg = hex(hl.fg), bg = hex(hl.bg) }
-			]]
+        local hl = vim.api.nvim_get_hl(0, { name = "Cursor", link = false })
+        local function hex(n) return n and string.format("#%06x", n) or nil end
+        return { fg = hex(hl.fg), bg = hex(hl.bg) }
+      ]]
       local path = string.format("%s/%s-%s.html", out, scene.name, mode)
       vim.fn.writefile({ page(shot, cursor) }, path)
       print(path)

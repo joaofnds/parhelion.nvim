@@ -19,14 +19,14 @@ lua_root=$(printf '%s' "$root" | sed 's/[\\"]/\\&/g')
 mkdir -p "$cache/floor/colors"
 cat >"$cache/floor/colors/parhelion_floor.lua" <<EOF
 local groups = package.loaded.parhelion_floor
-	or loadfile("$lua_root/lua/parhelion/built/" .. vim.o.background .. ".lua")().groups
+  or loadfile("$lua_root/lua/parhelion/built/" .. vim.o.background .. ".lua")().groups
 package.loaded.parhelion_floor = groups
 if vim.g.colors_name then
-	vim.cmd "hi clear"
+  vim.cmd "hi clear"
 end
 vim.g.colors_name = "parhelion_floor"
 for name, hl in pairs(groups) do
-	vim.api.nvim_set_hl(0, name, hl)
+  vim.api.nvim_set_hl(0, name, hl)
 end
 EOF
 

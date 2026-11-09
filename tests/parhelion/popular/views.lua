@@ -531,14 +531,14 @@ view("bufferline-diagnostics", {
     local function edit_with_one_diagnostic_of_each_severity(path)
       edit(nvim, path)
       nvim:lua [[
-				local severities = vim.diagnostic.severity
-				vim.diagnostic.set(vim.api.nvim_create_namespace "view", 0, {
-					{ lnum = 0, col = 0, severity = severities.ERROR, message = "error" },
-					{ lnum = 0, col = 0, severity = severities.WARN, message = "warning" },
-					{ lnum = 0, col = 0, severity = severities.INFO, message = "info" },
-					{ lnum = 0, col = 0, severity = severities.HINT, message = "hint" },
-				})
-			]]
+        local severities = vim.diagnostic.severity
+        vim.diagnostic.set(vim.api.nvim_create_namespace "view", 0, {
+          { lnum = 0, col = 0, severity = severities.ERROR, message = "error" },
+          { lnum = 0, col = 0, severity = severities.WARN, message = "warning" },
+          { lnum = 0, col = 0, severity = severities.INFO, message = "info" },
+          { lnum = 0, col = 0, severity = severities.HINT, message = "hint" },
+        })
+      ]]
     end
 
     edit_with_one_diagnostic_of_each_severity "notes.md"

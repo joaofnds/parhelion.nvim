@@ -177,12 +177,12 @@ function Nvim:settle(opts)
           opts.until_lua or "",
           vim.uv.now() - self.last_change,
           self:lua [[return vim.inspect({
-						filetype = vim.bo.filetype,
-						lines = vim.api.nvim_buf_line_count(0),
-						mode = vim.api.nvim_get_mode(),
-						windows = vim.tbl_map(function(w) return vim.bo[vim.api.nvim_win_get_buf(w)].filetype end, vim.api.nvim_list_wins()),
-						messages = vim.api.nvim_exec2("messages", { output = true }).output,
-					}, { newline = " ", indent = "" })]]
+            filetype = vim.bo.filetype,
+            lines = vim.api.nvim_buf_line_count(0),
+            mode = vim.api.nvim_get_mode(),
+            windows = vim.tbl_map(function(w) return vim.bo[vim.api.nvim_win_get_buf(w)].filetype end, vim.api.nvim_list_wins()),
+            messages = vim.api.nvim_exec2("messages", { output = true }).output,
+          }, { newline = " ", indent = "" })]]
         ),
         0
       )
