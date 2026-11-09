@@ -6,7 +6,7 @@
 set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 runs=${PARHELION_BENCH_RUNS:-40}
-if ! [[ $runs =~ ^[1-9][0-9]*$ ]]; then
+if ! [[ $runs =~ ^0*[1-9][0-9]*$ ]]; then
   printf 'PARHELION_BENCH_RUNS must be a whole number above 0, not "%s"\n' "$runs" >&2
   exit 2
 fi

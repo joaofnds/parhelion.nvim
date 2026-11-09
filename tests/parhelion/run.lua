@@ -2110,6 +2110,12 @@ for _, runs in ipairs { "0", "-1", "1.5", "forty" } do
 	end)
 end
 
+test("the bench takes a run count written with leading zeros", function()
+	local bench = bench_with_timings({ parhelion = "1 1", parhelion_floor = "1 1" }, { PARHELION_BENCH_RUNS = "01" })
+
+	assert(bench.code == 0, string.format("the bench exited %d: %s%s", bench.code, bench.stdout, bench.stderr))
+end)
+
 for _, case in ipairs {
 	{ verdict = "fails", load = "a first load at 1.2549", parhelion = "2.5098 1", code = 1 },
 	{ verdict = "fails", load = "a reload at 1.2549", parhelion = "2 1.2549", code = 1 },
