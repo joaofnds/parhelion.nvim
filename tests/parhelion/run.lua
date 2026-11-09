@@ -2100,8 +2100,11 @@ for _, runs in ipairs { "0", "-1", "1.5", "forty" } do
 	end)
 end
 
-local function bench_with_timings(timings)
-	local env = { PARHELION_BENCH_RUNS = "1", PATH = root .. "/tests/parhelion/fake_nvim:" .. vim.env.PATH }
+local function bench_with_timings(timings, settings)
+	local env = vim.tbl_extend("force", {
+		PARHELION_BENCH_RUNS = "1",
+		PATH = root .. "/tests/parhelion/fake_nvim:" .. vim.env.PATH,
+	}, settings or {})
 	for colorscheme, first_and_reload in pairs(timings) do
 		env["PARHELION_FAKE_TIMINGS_" .. colorscheme] = first_and_reload
 	end
@@ -2121,6 +2124,20 @@ for _, case in ipairs {
 		assert(bench.stderr == "", bench.stderr)
 	end)
 end
+
+test("the bench fails a slow load that a slower second start would hide", function()
+	local starts = vim.fn.tempname()
+	vim.fn.mkdir(starts, "p")
+
+	local bench = bench_with_timings({ parhelion = "1.4 1", parhelion_floor = "1 1" }, {
+		PARHELION_BENCH_RUNS = "2",
+		PARHELION_FAKE_SECOND_SLOWER = "0.3",
+		PARHELION_FAKE_STARTS = starts,
+	})
+
+	assert(bench.code == 1, string.format("the bench exited %d: %s", bench.code, bench.stdout))
+	assert(bench.stderr == "", bench.stderr)
+end)
 
 local modules_a_theme_file_requires = [[
 	local theme_file = ...

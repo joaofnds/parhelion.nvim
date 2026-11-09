@@ -120,8 +120,8 @@ reload, as the median of 40 fresh `nvim --clean` starts for each mode, with `vim
 bash tests/parhelion/bench.sh
 ```
 
-On an Apple M5 Pro with Neovim 0.12.6, a first load takes about 1.65 ms with `vim.loader` off and 1.3 ms with it on,
-1.08 to 1.15 times its floor, and loading again in the same mode takes about 0.65 ms. Timing each step in a copy of
+On an Apple M5 Pro with Neovim 0.12.6, a first load takes about 1.7 ms with `vim.loader` off and 1.3 ms with it on,
+1.10 to 1.16 times its floor, and loading again in the same mode takes about 0.65 ms. Timing each step in a copy of
 the code puts reading the built table at about 0.75 ms, or 0.4 ms with `vim.loader`, and writing the groups at another
 0.73 ms, both of which the floor pays too. What the floor does not pay is reading `init.lua`, about 0.13 ms or 0.08 ms
 with `vim.loader`, `syntax reset`, 0.07 ms, and the terminal and fzf colors, 0.02 ms. Taking those timings costs a

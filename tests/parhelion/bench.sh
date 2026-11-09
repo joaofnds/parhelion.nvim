@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Times a load of parhelion against its floor, a colorscheme that only writes the same built groups and clears the old
-# ones first on a reload, as the median of PARHELION_BENCH_RUNS fresh starts. Fails when a load fails, or when a first
-# load or a reload takes more than 1.25 times its floor.
+# ones first on a reload, as the median of PARHELION_BENCH_RUNS fresh starts of each, in rounds that alternate which of
+# the two starts first. Fails when a load fails, or when a first load or a reload takes more than 1.25 times its floor.
 # Exits 2 when PARHELION_BENCH_RUNS is not a whole number above 0.
 set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -60,8 +60,10 @@ for background in dark light; do
     times=$cache/$background-$loader
     once parhelion "$background" "$loader" >/dev/null
     once parhelion_floor "$background" "$loader" >/dev/null
-    for _ in $(seq "$runs"); do
-      for colorscheme in parhelion parhelion_floor; do
+    for round in $(seq "$runs"); do
+      order="parhelion parhelion_floor"
+      if ((round % 2 == 0)); then order="parhelion_floor parhelion"; fi
+      for colorscheme in $order; do
         timings=$(once "$colorscheme" "$background" "$loader")
         echo "$colorscheme $timings"
       done

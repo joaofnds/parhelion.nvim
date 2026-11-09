@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # Stands in for nvim in the bench's tests, printing the first load and reload timings that
-# PARHELION_FAKE_TIMINGS_<colorscheme> holds.
+# PARHELION_FAKE_TIMINGS_<colorscheme> holds. When PARHELION_FAKE_SECOND_SLOWER is set, every second start of a case
+# takes that many ms longer, counted in the directory PARHELION_FAKE_STARTS.
 set -euo pipefail
 timings=PARHELION_FAKE_TIMINGS_$PARHELION_BENCH_COLORSCHEME
-echo "${!timings}"
+slower=0
+if [ -n "${PARHELION_FAKE_SECOND_SLOWER:-}" ]; then
+  starts=$PARHELION_FAKE_STARTS/$PARHELION_BENCH_BACKGROUND-$PARHELION_BENCH_LOADER
+  echo >>"$starts"
+  if (($(wc -l <"$starts") % 2 == 0)); then slower=$PARHELION_FAKE_SECOND_SLOWER; fi
+fi
+awk -v timings="${!timings}" -v slower="$slower" 'BEGIN { split(timings, t, " "); print t[1] + slower, t[2] + slower }'
