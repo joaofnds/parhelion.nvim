@@ -1,16 +1,15 @@
 # Contributing
 
-`make test` runs the suite, which needs the tools [DESIGN.md](DESIGN.md#the-test-suite) lists and fetches the pinned
-plugins and parsers it compares. `make format-check` and `make lint` run the formatting, shell and type checks CI runs,
-with the StyLua, shfmt, ShellCheck and lua-language-server on your `PATH`. CI's versions are pinned in
-`tests/parhelion/ci-install-lint.sh` and, for StyLua, in `.github/workflows/parhelion.yml`.
+`make test` runs the suite. The README's [Tests](README.md#tests) section names the other checks, and
+[The test suite](DESIGN.md#the-test-suite) in DESIGN.md says what the suite needs, what it compares and how CI runs it,
+commit subjects included.
 
-After a change to the base tables, `refinement.lua` or `chrome.lua`, run `make build` and commit the built tables and
-terminal themes it writes with the change. The suite fails until they match their sources.
+A load reads the tables `make build` writes, so a change to what they are built from needs `make build` and a commit of
+what it writes. [How a load works](DESIGN.md#how-a-load-works) names those sources, and the suite fails while the
+written files are stale. [Adding a plugin](DESIGN.md#adding-a-plugin) says where a plugin's groups go.
 
-[DESIGN.md](DESIGN.md) says how a load works, how to add a plugin and what the suite compares, and
-[GLOSSARY.md](GLOSSARY.md) defines the terms they use. Commit subjects follow Conventional Commits, as DESIGN.md says,
-and `make lintcommit` checks the commits on `HEAD` that `origin/main` lacks.
+A change a user can see goes in [CHANGELOG.md](CHANGELOG.md) under its Unreleased heading, and
+[GLOSSARY.md](GLOSSARY.md) defines the terms these documents use.
 
-Report a bug with the bug report form. The reproduction it asks for, which `nvim --clean -u repro.lua` runs, is where a
-fix starts.
+Report a bug with the [bug report form](https://github.com/joaofnds/parhelion.nvim/issues/new?template=bug_report.yml).
+The reproduction it asks for is where a fix starts.
