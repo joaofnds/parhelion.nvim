@@ -2031,6 +2031,13 @@ for _, case in ipairs {
 		drawn_with = { "RenderMarkdownH6Bg" },
 		found = 1,
 	},
+	{
+		name = "reports a quiet word on the selection's fill drawn by a group only a window's namespace defines",
+		fg = "#71888f",
+		groups = { Visual = { bg = "#2c4e56" } },
+		drawn_with = { "OnlyInAWindowNamespace" },
+		found = 1,
+	},
 } do
 	test("the floor check " .. case.name, function()
 		local cell = { text = "x", fg = case.fg, bg = "#2c4e56", flags = "", drawn_with = case.drawn_with }

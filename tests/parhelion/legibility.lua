@@ -101,7 +101,7 @@ local function is_over_the_selection(cell, background, groups)
 	if background ~= selection or #cell.drawn_with == 0 then return false end
 
 	for _, name in ipairs(cell.drawn_with) do
-		if name ~= "Visual" and groups[name].bg == background then return false end
+		if name ~= "Visual" and (groups[name] == nil or groups[name].bg == background) then return false end
 	end
 
 	return true
