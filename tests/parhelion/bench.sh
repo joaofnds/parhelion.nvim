@@ -29,15 +29,18 @@ end
 EOF
 
 once() { # colorscheme background loader
-  local timings
+  local runtime=$root timings
+  if [ "$1" = parhelion_floor ]; then runtime=$cache/floor; fi
+
   timings=$(PARHELION_BENCH_COLORSCHEME=$1 PARHELION_BENCH_BACKGROUND=$2 PARHELION_BENCH_LOADER=$3 \
-    PARHELION_BENCH_ROOT=$root PARHELION_BENCH_FLOOR=$cache/floor XDG_CACHE_HOME=$cache nvim --headless --clean \
-    --cmd "lua vim.opt.rtp:prepend { vim.env.PARHELION_BENCH_ROOT, vim.env.PARHELION_BENCH_FLOOR }" \
+    PARHELION_BENCH_ROOT=$root PARHELION_BENCH_RUNTIME=$runtime XDG_CACHE_HOME=$cache nvim --headless --clean \
+    --cmd "lua vim.opt.rtp:prepend(vim.env.PARHELION_BENCH_RUNTIME)" \
     -c "lua dofile(vim.env.PARHELION_BENCH_ROOT .. '/tests/parhelion/bench.lua')" -c "qa!")
   if ! awk 'NF == 2 && $1 > 0 && $2 > 0 { ok = 1 } END { exit !ok }' <<<"$timings"; then
     printf "\n%s gave no timings in %s with vim.loader %s: %s\n" "$1" "$2" "$3" "$timings" >&2
     return 1
   fi
+
   echo "$timings"
 }
 

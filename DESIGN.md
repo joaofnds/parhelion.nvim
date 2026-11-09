@@ -114,14 +114,16 @@ check each one when started in dark and in light, and that they hold across a to
 
 A load leaves about 2450 groups defined, 384 of them Neovim's own. `tests/parhelion/bench.sh` times it against its
 floor, a colorscheme that only reads the same built table and writes its groups, clearing the old ones first on a
-reload, as the median of 40 fresh `nvim --clean` starts for each mode, with `vim.loader` off and on:
+reload. Each start puts only its own colorscheme's directory on the runtimepath, because with both there, the
+colorscheme in the second directory loaded slower, which moved a first load's ratio by 0.02 to 0.04. The script takes
+the median of 40 fresh `nvim --clean` starts for each mode, with `vim.loader` off and on:
 
 ```sh
 bash tests/parhelion/bench.sh
 ```
 
 On an Apple M5 Pro with Neovim 0.12.6, a first load takes about 1.7 ms with `vim.loader` off and 1.3 ms with it on,
-1.10 to 1.16 times its floor, and loading again in the same mode takes about 0.65 ms. Timing each step in a copy of
+1.13 to 1.20 times its floor, and loading again in the same mode takes about 0.65 ms. Timing each step in a copy of
 the code puts reading the built table at about 0.75 ms, or 0.4 ms with `vim.loader`, and writing the groups at another
 0.73 ms, both of which the floor pays too. What the floor does not pay is reading `init.lua`, about 0.13 ms or 0.08 ms
 with `vim.loader`, `syntax reset`, 0.07 ms, and the terminal and fzf colors, 0.02 ms. Taking those timings costs a
@@ -138,7 +140,7 @@ lua-luajit` says a plugin cannot rule out, refuses to read it.
 
 The script fails when a load fails or when a first load or a reload takes more than 1.25 times its floor. CI runs it
 beside the suite. In an Ubuntu container held to four CPUs of the same machine, running Neovim's x86 release under
-emulation, a first load took 1.07 to 1.20 times its floor and a reload 1.01 to 1.15, both idle and with another
+emulation, a first load took 1.08 to 1.23 times its floor and a reload 1.08 to 1.18, both idle and with another
 container keeping those four CPUs busy. The suite's guards count rather than time, so their results are the same on
 every machine:
 
