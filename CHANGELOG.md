@@ -45,6 +45,8 @@ The changes a user can see, newest release first. A change not yet released goes
   Neovim does not know, and a group name with a character Neovim does not accept. These used to pass `setup` while
   another colorscheme was loaded, and raise at the next `:colorscheme parhelion`. An overrides function whose table has
   such a key raises the same message when parhelion loads.
+- The shadows of floats and of the popup menu draw in parhelion's backdrop instead of in Neovim's gray, and keep the
+  blends Neovim gives them. Deprecated code is struck through in parhelion's error red instead of in Neovim's.
 
 ## 1.0.0 - 2026-11-08
 
