@@ -386,11 +386,12 @@ reads at 4.52:1 to 6.01:1 on it. That costs a changed word its syntax colors. On
 word wash is bold. `DiffTextAdd`, the text a changed line gains, takes the added word wash, which differs from the
 changed row by 15.7 to 32.4. Light's changed row is nearly neutral, a cool tint at hue 202 and chroma 0.015, because a
 faint blend of blue over the cream page passes through gray, and a bluer row falls outside the theme's colors.
-`DiffDelete` draws only the filler rows of a diff window, as quiet dashes on its wash. `DiffChange` needs its own wash
-and not the raised step, which is the cursor line's, because a changed line does not always hold a changed word:
-undotree, gitsigns' line highlights and `diffopt` `inline:none` draw the row alone. Neogit's hunks, gitsigns' previews
-and deleted lines, mini.diff's deleted overlay and Snacks' diffs use the same washes with no text color, so a change
-looks the same in each. Neogit's cursor brightens the text on a tinted row and steps up to selected on a context row.
+`DiffDelete` draws only the filler rows of a diff window, which hold no code, so they are quiet dashes on the page with
+no wash. `DiffChange` needs its own wash and not the raised step, which is the cursor line's, because a changed line
+does not always hold a changed word: undotree, gitsigns' line highlights and `diffopt` `inline:none` draw the row alone.
+Neogit's hunks, gitsigns' previews and deleted lines, mini.diff's deleted overlay and Snacks' diffs use the same washes
+with no text color, so a change looks the same in each. Neogit's cursor brightens the text on a tinted row and steps up
+to selected on a context row.
 
 | Wash | Dark | On page | Light | On page |
 | --- | --- | --- | --- | --- |
@@ -514,8 +515,8 @@ Departs:
   - fidget draws its finished mark with `Constant`, so it is violet.
   - Neogit draws a commit's age with `Special` and a commit view's file count with `Number`. Both are code groups, so
     the age is violet in both modes.
-  - Diffview derives `DiffviewDiffAddAsDelete` from `DiffDelete` when `enhanced_diff_hl` is on, so the old side of an
-    added block draws in quiet gray at Lc 31.0 with its syntax gone.
+  - Diffview derives `DiffviewDiffAddAsDelete` from `DiffDelete` when `enhanced_diff_hl` is on, so the lines a change
+    removed draw on the page in quiet gray, at Lc 33.3 in dark and 62.1 in light, with no wash and their syntax gone.
   - `LineNr`, `SignColumn` and `DiagnosticSign*` keep the base tables' raised gutter, so a float that turns on line
     numbers or draws a sign shows a short raised strip.
   - `Visual` keeps the base tables' fill, which is gray in dark and pink in light, so a selection changes hue between
