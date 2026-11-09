@@ -38,6 +38,18 @@ jobs:
       - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: tests/parhelion/run.sh
 
+  load-time:
+    name: Load time
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - run: tests/parhelion/ci-install.sh
+      - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: tests/parhelion/bench.sh
+
   parser-drift:
     name: Extra queries survive the newest parsers
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'

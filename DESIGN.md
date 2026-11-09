@@ -48,7 +48,7 @@ Plugin support below for how they are checked.
 | `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the colors, mode hues and groups in the built tables |
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries, which began as solarized.nvim's |
 | `tests/parhelion/` | The test suite |
-| `.github/workflows/parhelion.yml` | Runs the suite and the format check in CI |
+| `.github/workflows/parhelion.yml` | Runs the suite, the load bench and the format check in CI |
 | `doc/parhelion.txt` | The `:help` page |
 | `CHANGELOG.md` | The changes a user can see |
 | `LICENSE.md` | The license |
@@ -136,9 +136,11 @@ source's bytecode in its cache, which brings the source to 0.39 ms against 0.37 
 file, 125 KB against the source's 97 KB, that no one can review in a diff, and a Neovim built with PUC Lua, which `:h
 lua-luajit` says a plugin cannot rule out, refuses to read it.
 
-The script fails when a load fails or when a first load or a reload takes more than 1.25 times its floor. CI does not
-run it, so run it after a change to the load or to the built tables. The suite's guards count rather than time, so their
-results are the same on every machine:
+The script fails when a load fails or when a first load or a reload takes more than 1.25 times its floor. CI runs it
+beside the suite. In an Ubuntu container held to four CPUs of the same machine, running Neovim's x86 release under
+emulation, a first load took 1.07 to 1.20 times its floor and a reload 1.01 to 1.15, both idle and with another
+container keeping those four CPUs busy. The suite's guards count rather than time, so their results are the same on
+every machine:
 
 - `a load with the default options requires no module but parhelion` and `a load with the <option> option requires
   nothing that builds the groups` fail when a load builds the groups again, which takes 2.6 to 2.8 times the floor.
@@ -354,9 +356,9 @@ Every comparison runs on all four load paths. The checks on query files run once
 Set `PARHELION_TEST_FILTER=<substring>` to run the tests whose name contains it. A filter that matches nothing exits
 non-zero. The whole suite takes about seven minutes.
 
-`.github/workflows/parhelion.yml` runs the suite and a StyLua check on a pull request and on a push to `main`, which
-needs the repository hosted on GitHub. In a clone with no such remote they only run by hand, the check as `stylua
---check --config-path=stylua.toml .`.
+`.github/workflows/parhelion.yml` runs the suite, the load bench and a StyLua check on a pull request and on a push to
+`main`, which needs the repository hosted on GitHub. In a clone with no such remote they only run by hand, the check as
+`stylua --check --config-path=stylua.toml .`.
 
 ### When a parser update breaks a query
 
