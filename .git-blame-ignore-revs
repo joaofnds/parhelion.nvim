@@ -3,3 +3,6 @@
 
 # style: indent Lua with two spaces
 3daa50167bf886e51653b40642115cd8514d7e4d
+
+# style: indent the Lua the tests run from strings with two spaces
+8769d6836255b07305e0b1d9e83a8b85c3b56b6a
