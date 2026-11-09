@@ -1350,6 +1350,36 @@ test("the feline statusline draws a branch name as text", function()
 	end)
 end)
 
+local barbecue_runs_its_theme_file =
+	[[return dofile(vim.api.nvim_get_runtime_file("lua/barbecue/theme/parhelion.lua", false)[1])]]
+
+for _, path in ipairs { paths[3], paths[4] } do
+	test(
+		"the barbecue theme, run again on the ColorScheme event, writes text in the body color, " .. path.label,
+		function()
+			in_world("parhelion", path, function(world)
+				world:lua(barbecue_runs_its_theme_file)
+				toggle_when_path_requires_it(world, "parhelion", path)
+
+				local text = world:lua(barbecue_runs_its_theme_file).normal.fg
+
+				assert(text == snapshot(world).groups.Normal.fg, "text is " .. text)
+			end)
+		end
+	)
+end
+
+test("the barbecue theme, run again after bold is turned off, leaves the file name without bold", function()
+	in_world("parhelion", paths[1], function(world)
+		world:lua(barbecue_runs_its_theme_file)
+		world:lua [[require("parhelion").setup { bold = false }]]
+
+		local bold = world:lua(barbecue_runs_its_theme_file).basename.bold
+
+		assert(not bold, "the file name is bold")
+	end)
+end)
+
 for _, path in ipairs { paths[1], paths[2] } do
 	test("the barbecue theme writes text in the body color, " .. path.label, function()
 		in_world("parhelion", path, function(world)

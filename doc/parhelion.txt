@@ -243,10 +243,12 @@ reactive.nvim ~
     removed-line fill in replace mode. In every other mode both look as
     parhelion draws them.
 
-The barbecue, feline and reactive files read 'background' when they are
-first required, so after a toggle they keep the earlier mode's colors until
-Neovim restarts. These files and lualine's take parhelion's colors before
-|parhelion-overrides| apply, so an override does not change them.
+Barbecue runs the barbecue file again on every |ColorScheme| event, so it
+follows a toggle and a change to `bold`. The feline and reactive files read
+'background' when they are first required, so after a toggle they keep the
+earlier mode's colors until Neovim restarts. These files and lualine's take
+parhelion's colors before |parhelion-overrides| apply, so an override does
+not change them.
 
 ==============================================================================
 6. TERMINAL THEMES                                 *parhelion-terminal-themes*
