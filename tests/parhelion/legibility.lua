@@ -96,8 +96,18 @@ local function text_and_background(cell)
 	return cell.fg, cell.bg
 end
 
+local function is_over_the_selection(cell, background, groups)
+	local selection = groups and groups.Visual and groups.Visual.bg
+	if background ~= selection or #cell.drawn_with == 0 then return false end
+
+	for _, name in ipairs(cell.drawn_with) do
+		if name ~= "Visual" and groups[name].bg == background then return false end
+	end
+
+	return true
+end
+
 function M.illegible_text(shot, is_exempt)
-	local selection = shot.groups and shot.groups.Visual and shot.groups.Visual.bg
 	local found, seen = {}, {}
 	for _, row in ipairs(shot.rows) do
 		for _, cell in ipairs(row) do
@@ -105,7 +115,8 @@ function M.illegible_text(shot, is_exempt)
 				local text, background = text_and_background(cell)
 				local key = text .. background
 				local lightness = math.abs(color.lightness_contrast(text, background))
-				local floor = background == selection and M.floor_over_a_selection or M.text_floor
+				local over_the_selection = is_over_the_selection(cell, background, shot.groups)
+				local floor = over_the_selection and M.floor_over_a_selection or M.text_floor
 				if not seen[key] and lightness < floor then
 					seen[key] = true
 					table.insert(found, {

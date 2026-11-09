@@ -1979,24 +1979,55 @@ for _, case in ipairs {
 		name = "accepts a quiet word over a selection",
 		fg = "#71888f",
 		groups = { Visual = { bg = "#2c4e56" } },
+		drawn_with = { "Visual" },
 		found = 0,
 	},
-	{ name = "reports a quiet word when nothing is selected", fg = "#71888f", groups = {}, found = 1 },
+	{
+		name = "accepts a quiet word on a cursor line its window draws in the selection's fill",
+		fg = "#71888f",
+		groups = { Visual = { bg = "#2c4e56" }, CursorLine = { bg = "#073642" } },
+		drawn_with = { "CursorLine" },
+		found = 0,
+	},
+	{
+		name = "reports a quiet word when nothing is selected",
+		fg = "#71888f",
+		groups = {},
+		drawn_with = {},
+		found = 1,
+	},
 	{
 		name = "reports a quiet word on a fill that is not the selection",
 		fg = "#71888f",
 		groups = { Visual = { bg = "#0d414e" } },
+		drawn_with = {},
 		found = 1,
 	},
 	{
 		name = "reports a word that vanishes into a selection",
 		fg = "#3a5c64",
 		groups = { Visual = { bg = "#2c4e56" } },
+		drawn_with = { "Visual" },
+		found = 1,
+	},
+	{
+		name = "reports a quiet word on the selection's fill when the screen names no group for it",
+		fg = "#71888f",
+		groups = { Visual = { bg = "#2c4e56" } },
+		drawn_with = {},
+		found = 1,
+	},
+	{
+		name = "reports a quiet word on a band that shares the selection's color",
+		fg = "#71888f",
+		groups = { Visual = { bg = "#2c4e56" }, RenderMarkdownH6Bg = { bg = "#2c4e56" } },
+		drawn_with = { "RenderMarkdownH6Bg" },
 		found = 1,
 	},
 } do
 	test("the floor check " .. case.name, function()
-		local shot = { rows = { { { text = "x", fg = case.fg, bg = "#2c4e56", flags = "" } } }, groups = case.groups }
+		local cell = { text = "x", fg = case.fg, bg = "#2c4e56", flags = "", drawn_with = case.drawn_with }
+		local shot = { rows = { { cell } }, groups = case.groups }
 
 		local found = legibility.illegible_text(shot, legibility.is_line_art_or_icon)
 

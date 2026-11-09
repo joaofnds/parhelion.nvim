@@ -18,6 +18,7 @@ function Nvim.spawn(opts)
 		next_id = 1,
 		grid = {},
 		attrs = {},
+		drawn_with = {},
 		rows = opts.rows,
 		cols = opts.cols,
 		cursor = { row = 0, col = 0 },
@@ -44,7 +45,7 @@ function Nvim.spawn(opts)
 	end)
 
 	local started, err = xpcall(function()
-		self:request("nvim_ui_attach", self.cols, self.rows, { rgb = true, ext_linegrid = true })
+		self:request("nvim_ui_attach", self.cols, self.rows, { rgb = true, ext_linegrid = true, ext_hlstate = true })
 		self:wait_for_startup()
 	end, debug.traceback)
 	if not started then
@@ -81,7 +82,10 @@ end
 
 function Nvim:on_default_colors_set(fg, bg, sp) self.defaults = { fg = hex(fg), bg = hex(bg), sp = hex(sp) } end
 
-function Nvim:on_hl_attr_define(id, rgb) self.attrs[id] = rgb end
+function Nvim:on_hl_attr_define(id, rgb, _, info)
+	self.attrs[id] = rgb
+	self.drawn_with[id] = vim.iter(info):map(function(item) return item.hi_name end):totable()
+end
 
 function Nvim:on_grid_resize(_, width, height)
 	self.cols, self.rows = width, height
@@ -209,8 +213,14 @@ function Nvim:capture()
 		for col = 0, self.cols - 1 do
 			local cell = self.grid[row][col]
 			local style = style_of(self.attrs[cell[2]] or {}, self.defaults)
-			rows[row + 1][col + 1] =
-				{ text = cell[1], fg = style.fg, bg = style.bg, sp = style.sp, flags = style.flags }
+			rows[row + 1][col + 1] = {
+				text = cell[1],
+				fg = style.fg,
+				bg = style.bg,
+				sp = style.sp,
+				flags = style.flags,
+				drawn_with = self.drawn_with[cell[2]] or {},
+			}
 		end
 	end
 	return { rows = rows, defaults = self.defaults, cursor = { row = self.cursor.row + 1, col = self.cursor.col + 1 } }

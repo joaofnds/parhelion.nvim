@@ -590,7 +590,9 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
 - Every text cell in the views of `tests/parhelion/popular` clears Lc 30 in both modes. Box drawing, block
   elements and icon glyphs are exempt there, since plugins draw lines with them and pick icon colors
   themselves. A cell over the selection's fill clears Lc 20 instead, because the selection keeps the text's own color
-  and quiet text reads at Lc 23.9 on it in dark. nvim-cmp's bordered menu draws its selected row that way.
+  and quiet text reads at Lc 23.9 on it in dark. nvim-cmp's bordered menu draws its selected row that way. A band
+  of another group in the same color, such as render-markdown's level six heading in light, keeps Lc 30, since Neovim
+  reports the groups that draw each cell.
 - Every color those views draw, and every group each view leaves defined, sits within 4 units of straight line CIELAB
   distance of a mix of two theme colors, because plugins derive shades by mixing and a color a
   plugin hard codes lands further out. It is a straight line distance because each color is compared against every mix.
