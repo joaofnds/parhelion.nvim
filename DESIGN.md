@@ -286,12 +286,12 @@ and the fix is the group's name under a role in the `neogit` family, with its pi
 ### Theme files
 
 Lualine, barbecue, bufferline, feline and reactive load a theme file of their own, and `:help parhelion-theme-files`
-says how to point each at parhelion's. Lualine runs its theme file again on every `ColorScheme` event, and barbecue
-runs its own with `dofile` on that event, so both follow a toggle, and barbecue's file name follows a change to `bold`.
-Feline's and reactive's files read the mode when first required, so after a toggle they keep the earlier mode's colors
-until Neovim restarts. Bufferline's returns no highlights, because `chrome.lua` sets every group bufferline's
-`highlights` option names. Bufferline still builds the groups for its icons, for the items of its `groups` option and
-for its custom areas from the backgrounds it computes.
+says how to point each at parhelion's. Lualine runs its theme file again on every `ColorScheme` event, and barbecue runs
+its own with `dofile` on that event, so both follow a toggle and a change to `bold`. Feline's and reactive's files read
+the mode when first required, so after a toggle they keep the earlier mode's colors until Neovim restarts. Bufferline's
+returns no highlights, because `chrome.lua` sets every group bufferline's `highlights` option names. Bufferline still
+builds the groups for its icons, for the items of its `groups` option and for its custom areas from the backgrounds it
+computes.
 
 The lualine, barbecue, feline and reactive files read their colors from the built table for the mode, through
 `require("parhelion").built`, which hands out the table a load uses. Nothing stops a caller changing that table, and a

@@ -1175,6 +1175,36 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
+local lualine_runs_its_theme_file =
+	[[return dofile(vim.api.nvim_get_runtime_file("lua/lualine/themes/parhelion.lua", false)[1])]]
+
+for _, path in ipairs { paths[3], paths[4] } do
+	test(
+		"the lualine theme, run again after a toggle, writes the bar's text as the status line does, " .. path.label,
+		function()
+			in_world("parhelion", path, function(world)
+				world:lua(lualine_runs_its_theme_file)
+				toggle_when_path_requires_it(world, "parhelion", path)
+
+				local text = world:lua(lualine_runs_its_theme_file).normal.c.fg
+
+				assert(text == snapshot(world).groups.StatusLine.fg, "text is " .. tostring(text))
+			end)
+		end
+	)
+end
+
+test("the lualine theme, run again after bold is turned off, leaves the normal mode's label without bold", function()
+	in_world("parhelion", paths[1], function(world)
+		world:lua(lualine_runs_its_theme_file)
+		world:lua [[require("parhelion").setup { bold = false }]]
+
+		local style = world:lua(lualine_runs_its_theme_file).normal.a.gui
+
+		assert(style == nil, "the label is " .. tostring(style))
+	end)
+end)
+
 local feline_colors_by_slot = [[
 	local function flatten(value, slot, found)
 		if type(value) == "function" and slot:match "%.hl$" then value = value() end
