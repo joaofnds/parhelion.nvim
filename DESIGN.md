@@ -421,9 +421,10 @@ GitHub offers the pull request's title as the subject, which the lint first sees
 landed, so write that title as a Conventional Commit too.
 
 The suite job runs on Neovim 0.12.6 and on Neovim's nightly build, so a change in Neovim that breaks parhelion fails a
-run before a release ships it. `tests/parhelion/ci-install.sh` installs Neovim 0.12.6, or the nightly build when
-`PARHELION_NEOVIM` is `nightly`, and refuses any other value. It checks each download against the checksum it pins,
-apart from the nightly build, for which Neovim publishes no checksum file.
+run before a release ships it. `tests/parhelion/ci-install.sh` installs the tree-sitter and fzf the suite runs with, and
+Neovim 0.12.6, or the nightly build when `PARHELION_NEOVIM` is `nightly`. It refuses any other value of
+`PARHELION_NEOVIM`, and checks each download against the checksum it pins, apart from the nightly build, for which
+Neovim publishes no checksum file.
 
 When the nightly row fails and the 0.12.6 row passes, something parhelion depends on changes in Neovim's next release,
 and the install step's log names the nightly build that ran. Where Neovim changed it on purpose, change parhelion so
