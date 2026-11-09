@@ -112,11 +112,11 @@ check each one when started in dark and in light, and that they hold across a to
 
 ### Load time
 
-A load leaves 2470 groups defined in dark and 2469 in light, 384 of them Neovim's own. `tests/parhelion/bench.sh`
-times it against its floor, a colorscheme that only reads the same built table and writes its groups, clearing the old
-ones first on a reload. Each start puts only its own colorscheme's directory on the runtimepath, because with both
-there, the colorscheme in the second directory loaded slower, which moved a first load's ratio by 0.02 to 0.04. The
-script takes the median of 40 fresh `nvim --clean` starts for each mode, with `vim.loader` off and on:
+With no setup, a load writes the built table's 2285 groups in dark and 2284 in light. `tests/parhelion/bench.sh` times
+it against its floor, a colorscheme that only reads the same built table and writes its groups, clearing the old ones
+first on a reload. Each start puts only its own colorscheme's directory on the runtimepath, because with both there,
+the colorscheme in the second directory loaded slower, which moved a first load's ratio by 0.02 to 0.04. The script
+takes the median of 40 fresh `nvim --clean` starts for each mode, with `vim.loader` off and on:
 
 ```sh
 bash tests/parhelion/bench.sh
@@ -319,9 +319,9 @@ pins what it produces, `tests/parhelion/approved_files.lua` holds a checksum of 
 and `tests/parhelion/approved_presets.lua` pins the theme files' colors, so changing one means changing its pin on
 purpose. The tests that judge `refinement.lua` and `chrome.lua` are listed in [COLOR.md](COLOR.md).
 
-The base tables hold 517 groups in dark and 515 in light, from 25 and 24 colors. Set alone on Neovim 0.12.6 with
-`--clean`, `nvim_get_hl` lists 719 and 717 groups, from 32 and 31 colors, because it includes the groups Neovim defines
-itself. In them `Normal` is `#839496` on `#002b36` and `#657b83` on `#fdf6e3`.
+The base tables hold 517 groups in dark and 515 in light, from 25 and 24 colors, and in them `Normal` is `#839496` on
+`#002b36` and `#657b83` on `#fdf6e3`. Set alone with `--clean`, `nvim_get_hl` lists more groups and colors than that,
+because it includes the groups Neovim defines itself.
 
 Every comparison runs on all four load paths. The checks on query files run once, since no load path affects them.
 
