@@ -1779,7 +1779,9 @@ for _, background in ipairs { "dark", "light" } do
 	test("a changed line differs from an unchanged one in " .. background, function()
 		local changed = require("parhelion.chrome").groups(background).DiffChange
 
-		assert(changed.bg == scale.changed_wash, vim.inspect(changed))
+		local difference = color.color_difference(changed.bg, scale.page)
+
+		assert(difference >= legibility.smallest_neutral_step, string.format("the difference is %.2f", difference))
 	end)
 
 	for _, case in ipairs {
@@ -2079,11 +2081,13 @@ end
 for _, path in ipairs { paths[1], paths[2] } do
 	test("the base side leaves completion menus as the base tables draw them, " .. path.label, function()
 		in_world("base_refined", path, function(world)
+			local base = require("parhelion.base." .. path.background).groups.Pmenu.bg
+			local want = require("parhelion.refinement").color(path.background, base):lower()
+
 			local menu =
 				world:lua [[return string.format("#%06x", vim.api.nvim_get_hl(0, { name = "Pmenu", link = false }).bg)]]
-			local restyled = require("parhelion.chrome").groups(path.background).Pmenu.bg
 
-			assert(menu ~= restyled, menu)
+			assert(menu == want, string.format("the menu is %s, not %s", menu, want))
 		end)
 	end)
 end
