@@ -3223,6 +3223,18 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
+	test("turning a plugin off keeps the groups its patterns do not match, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			local todo = [[return vim.api.nvim_get_hl(0, { name = "Todo" })]]
+			local drawn = world:lua(todo)
+
+			world:lua [[require("parhelion").setup { plugins = { ["todo-comments.nvim"] = false } }]]
+
+			local kept = world:lua(todo)
+			assert(vim.deep_equal(drawn, kept), "Todo went from " .. vim.inspect(drawn) .. " to " .. vim.inspect(kept))
+		end)
+	end)
+
 	test("turning fzf off leaves its colors to fzf, " .. path.label, function()
 		with_options(path, [[require("parhelion").setup { plugins = { fzf = false } }]], function(world)
 			local colors = world:lua "return vim.g.fzf_colors"
