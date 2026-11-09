@@ -2329,14 +2329,34 @@ local modules_a_theme_file_requires = [[
 	return names
 ]]
 
+local theme_files = {
+	"barbecue.theme.parhelion",
+	"lualine.themes.parhelion",
+	"parhelion.feline",
+	"reactive.presets.parhelion-cursor",
+	"reactive.presets.parhelion-cursorline",
+}
+
+local requiring = [[
+	local loaded, message = pcall(require, ...)
+
+	return { loaded = loaded, message = tostring(message) }
+]]
+
 for _, path in ipairs { paths[1], paths[2] } do
-	for _, theme_file in ipairs {
-		"barbecue.theme.parhelion",
-		"lualine.themes.parhelion",
-		"parhelion.feline",
-		"reactive.presets.parhelion-cursor",
-		"reactive.presets.parhelion-cursorline",
-	} do
+	for _, theme_file in ipairs(theme_files) do
+		test(string.format("%s loads without raising, %s", theme_file, path.label), function()
+			in_world("parhelion", path, function(world)
+				local required = world:lua(requiring, theme_file)
+
+				assert(required.loaded, required.message)
+			end)
+		end)
+	end
+end
+
+for _, path in ipairs { paths[1], paths[2] } do
+	for _, theme_file in ipairs(theme_files) do
 		test(string.format("%s requires no other parhelion module, %s", theme_file, path.label), function()
 			in_world("parhelion", path, function(world)
 				local required = world:lua(modules_a_theme_file_requires, theme_file)
@@ -2645,7 +2665,7 @@ end
 for _, mode in ipairs { "dark", "light" } do
 	for _, view in ipairs(popular_views) do
 		local legible_test = view.name .. " keeps its text legible in " .. mode
-		local errors_test = view.name .. " raises no error in " .. mode
+		local errors_test = view.name .. " leaves no error code in its messages in " .. mode
 		local theme_test = view.name .. " stays inside the theme's colors in " .. mode
 		local theme_groups_test = view.name .. " stays inside the theme's colors, by group, in " .. mode
 		local scale_test = view.name .. " groups stay on the scale in " .. mode
@@ -2692,7 +2712,9 @@ for _, mode in ipairs { "dark", "light" } do
 
 				test(
 					errors_test,
-					function() assert(not messages(nvim):find "E%d+:", "raised an error: " .. messages(nvim)) end
+					function()
+						assert(not messages(nvim):find "E%d+:", "the messages hold an error code: " .. messages(nvim))
+					end
 				)
 
 				test(
