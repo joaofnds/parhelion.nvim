@@ -25,6 +25,8 @@ The changes a user can see, newest release first. A change not yet released goes
 - lazy.nvim's home heading and mason's title are strong and bold on the raised step instead of solid yellow and
   violet, and mason's current tab is strong and bold on the selected step instead of solid blue, with the other tabs
   quiet on raised instead of solid gray.
+- Neogit's branch and remote names and the labels that say what happened to a file, such as modified and deleted,
+  keep their hue and lose their bold.
 
 ### Removed
 

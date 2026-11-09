@@ -352,8 +352,8 @@ tabstops and `VisualNOS` to the selection, a reference's target to the reference
 deprecated strike, so those follow.
 
 Neogit's kinds of label hold hue, and two kinds can share one. A section header is violet and bold with a body count, a
-branch orange and bold, the checked out branch underlined as well, a remote green and bold, a tag yellow, its distance
-blue, and a file's path in a diff or commit view blue. A file's label says what happened to it, in bold: deleted is red,
+branch orange, the checked out branch underlined as well, a remote green, a tag yellow, its distance blue, and a file's
+path in a diff or commit view blue. A file's label says what happened to it in hue alone, without bold: deleted is red,
 modified and unmerged yellow, new the added color, renamed violet, updated orange and copied magenta. A popup's titles
 are blue and bold, its keys violet, and what is switched on blue. An author is violet, which matches the commit age
 Neogit draws with `Special`. Hashes take the comment color. A hunk header is blue on the raised step, and the focused
