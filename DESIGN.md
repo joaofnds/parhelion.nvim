@@ -82,8 +82,8 @@ from also being named in `chrome.groups`. A failure there, such as a family nami
 when the built tables are written, so it never reaches a load. Groups with the same look share one table in the built
 tables, which makes them faster to read, so nothing may change a group's table in place.
 
-After a change to the base tables, `refinement.lua` or `chrome.lua`, write the built tables and the terminal themes
-again from the repository's root:
+After a change to the base tables, `refinement.lua`, `chrome.lua`, `extras.lua` or `build.lua` itself, write the built
+tables and the terminal themes again from the repository's root:
 
 ```sh
 make build
