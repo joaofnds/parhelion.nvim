@@ -1,5 +1,5 @@
--- Draws the screen a Neovim under the suite's UI driver shows as an HTML page, in the font it is given, for a browser
--- to turn into an image.
+-- Draws the screen a Neovim under the suite's UI driver shows as an HTML page, for a browser to turn into an image. The
+-- page names the font it is given, or the one the README's screenshots use.
 ---@class shoot.Cursor
 ---@field fg? string
 ---@field bg? string
@@ -97,10 +97,13 @@ local function row_html(cells, cursor_col, cursor)
   return '<div class="r">' .. table.concat(parts) .. "</div>"
 end
 
+local readme_font = "Iosevka Term SS08"
+
 ---@param nvim driver.Nvim
----@param font string
+---@param font? string
 ---@return string
 return function(nvim, font)
+  font = font or readme_font
   local shot = nvim:capture()
   ---@type shoot.Cursor
   local cursor = nvim:lua [[

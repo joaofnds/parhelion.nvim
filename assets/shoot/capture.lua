@@ -1,11 +1,11 @@
 -- Drives a sandboxed Neovim through the suite's UI driver and writes each screen the README shows as an HTML page.
 ---@type string, string, string
 local root, deps, project = vim.env.PARHELION_ROOT, vim.env.PARHELION_DEPS, vim.env.SHOOT_PROJECT
----@type string, string
+---@type string, string?
 local out, font = arg[1], vim.env.SHOOT_FONT
 ---@module "driver"
 local Nvim = dofile(root .. "/tests/parhelion/driver.lua")
----@type fun(nvim: driver.Nvim, font: string): string
+---@type fun(nvim: driver.Nvim, font?: string): string
 local page = dofile(root .. "/assets/shoot/page.lua")
 
 local function command(nvim, text) nvim:request("nvim_command", text) end

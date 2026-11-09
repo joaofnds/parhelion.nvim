@@ -7,7 +7,6 @@ set -euo pipefail
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 root=$(cd "${here}/../.." && pwd)
 out=$(mkdir -p "$1" && cd "$1" && pwd)
-font=${SHOOT_FONT:-Iosevka Term SS08}
 local_env_vars=$(git rev-parse --local-env-vars)
 while read -r variable; do
   unset "${variable}"
@@ -21,7 +20,7 @@ trap 'rm -rf "$sandbox"' EXIT
 "${here}/project.sh" "${sandbox}/forecast"
 XDG_CONFIG_HOME=${sandbox}/config XDG_DATA_HOME=${sandbox}/data XDG_STATE_HOME=${sandbox}/state XDG_CACHE_HOME=${sandbox}/cache \
   XDG_CONFIG_DIRS=${sandbox}/config XDG_DATA_DIRS=${sandbox}/data \
-  PARHELION_ROOT=${root} PARHELION_DEPS=${deps} SHOOT_PROJECT=${sandbox}/forecast SHOOT_FONT=${font} \
+  PARHELION_ROOT=${root} PARHELION_DEPS=${deps} SHOOT_PROJECT=${sandbox}/forecast \
   nvim --clean -l "${here}/capture.lua" "${sandbox}/pages"
 
 "${here}/screenshot.sh" "${sandbox}/pages" "${sandbox}/shots" >/dev/null
