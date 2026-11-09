@@ -4254,7 +4254,7 @@ test("the help page's defaults name each option the help page documents", functi
   )
 end)
 
-local reproduction_placeholder = "/path/to/parhelion.nvim"
+local reproduction_placeholder = '"/path/to/parhelion.nvim"'
 
 local reproduction_in_form = [=[
 local form = ...
@@ -4305,30 +4305,48 @@ local function reproduction_on_this_checkout()
   assert(#parts == 2, "the reproduction does not name " .. reproduction_placeholder .. " once")
 
   local path = vim.fn.tempname() .. ".lua"
-  vim.fn.writefile(vim.split(table.concat(parts, root), "\n"), path)
+  vim.fn.writefile(vim.split(table.concat(parts, string.format("%q", root)), "\n"), path)
 
   return path
 end
 
-test("the bug report form's reproduction, run as written on this checkout, loads parhelion", function()
+---@param command string
+---@return vim.SystemCompleted
+local function run_reproduction(command)
   local reproduction, xdg = reproduction_on_this_checkout(), vim.fn.tempname()
 
-  local started = vim
-    .system({
-      "nvim",
-      "--clean",
-      "--headless",
-      "-u",
-      reproduction,
-      "+lua io.write(vim.g.colors_name or 'no colorscheme', ' [', vim.v.errmsg, ']')",
-      "+qa!",
-    }, {
+  return vim
+    .system({ "nvim", "--clean", "--headless", "-u", reproduction, "+" .. command, "+qa!" }, {
       env = { XDG_CONFIG_HOME = xdg, XDG_DATA_HOME = xdg, XDG_STATE_HOME = xdg, XDG_CACHE_HOME = xdg },
       text = true,
     })
     :wait(10000)
+end
+
+test("the bug report form's reproduction, run as written on this checkout, loads parhelion", function()
+  local started = run_reproduction "lua io.write(vim.g.colors_name or 'no colorscheme', ' [', vim.v.errmsg, ']')"
 
   assert(started.stdout == "parhelion []", string.format("nvim wrote %q and %q", started.stdout, started.stderr))
+end)
+
+test("the bug report form's reproduction, run as written on this checkout, finds parhelion's extra queries", function()
+  local started =
+    run_reproduction "lua io.write(table.concat(vim.api.nvim_get_runtime_file('queries/*/*.scm', true), '\\n'))"
+
+  local found = vim.tbl_filter(
+    ---@param file string
+    ---@return boolean
+    function(file) return vim.startswith(file, root .. "/") end,
+    vim.split(started.stdout, "\n")
+  )
+  local queries = vim.fn.glob(root .. "/after/queries/*/*.scm", false, true)
+  table.sort(found)
+  table.sort(queries)
+
+  assert(
+    vim.deep_equal(found, queries),
+    string.format("nvim found %s and wrote %q", vim.inspect(found), started.stderr)
+  )
 end)
 
 test("every plugin's patterns fix the letter the names they match start with", function()

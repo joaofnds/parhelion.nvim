@@ -13,10 +13,12 @@ body:
     id: background
     attributes:
       label: Background
+      description: Neovim's 'background' when the problem shows.
       options:
         - dark
         - light
         - both
+        - only after switching from one to the other
     validations:
       required: true
   - type: textarea
@@ -24,12 +26,15 @@ body:
     attributes:
       label: Minimal reproduction
       description: >-
-        Save this as repro.lua, set the path to a clone of parhelion.nvim, put each plugin the problem needs on the
-        runtimepath the same way and set it up as your config does, then check that `nvim --clean -u repro.lua` shows
-        the problem.
+        Save this as repro.lua, set `parhelion` to the path of a clone of parhelion.nvim and the background to the one
+        the problem shows in. Put each plugin the problem needs on the runtimepath the same way, its after directory
+        included, and set it up as your config does. Then check that `nvim --clean -u repro.lua` shows the problem.
       render: lua
       value: |
-        vim.opt.runtimepath:prepend "/path/to/parhelion.nvim"
+        local parhelion = "/path/to/parhelion.nvim"
+        vim.opt.runtimepath:prepend(parhelion)
+        vim.opt.runtimepath:append(parhelion .. "/after")
+        vim.o.background = "dark"
         require("parhelion").setup {}
         vim.cmd.colorscheme "parhelion"
     validations:
