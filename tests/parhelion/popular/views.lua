@@ -473,7 +473,7 @@ view("dropbar", {
 
 view("barbar", {
 	plugins = { "barbar.nvim" },
-	drawn = { draws "BufferCurrent" },
+	drawn = { draws "BufferCurrentSign" },
 	setup = function()
 		vim.g.barbar_auto_setup = false
 		require("barbar").setup {}
