@@ -370,9 +370,54 @@ for file, digest in pairs(approved_files) do
 	end)
 end
 
+-- Each group Neovim's help names for colorschemes, by its *hl-* tag or a capture listed in treesitter.txt or lsp.txt,
+-- that resolves to a color of Neovim's own palette, with the attribute and the palette's name for it.
+local documented_groups_drawing_neovims_palette = [=[
+	local palette = {}
+	for name, value in pairs(vim.api.nvim_get_color_map()) do
+		if name:match "^Nvim" and (palette[value] == nil or name < palette[value]) then palette[value] = name end
+	end
+
+	local names = {}
+	for _, path in ipairs(vim.fn.globpath(vim.env.VIMRUNTIME, "doc/*.txt", false, true)) do
+		local capture_list = path:match "treesitter%.txt$" or path:match "lsp%.txt$"
+		for line in io.lines(path) do
+			for name in line:gmatch "%*hl%-([^%*%s]+)%*" do
+				if not name:find("..", 1, true) then names[name] = true end
+			end
+			local capture = capture_list and line:match "^(@[%w%._]+)%s"
+			if capture then names[capture] = true end
+		end
+	end
+
+	local drawn = {}
+	for spelled in pairs(names) do
+		local name = vim.fn.synIDattr(vim.fn.hlID(spelled), "name")
+		local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
+		for _, attribute in ipairs { "fg", "bg", "sp" } do
+			if palette[hl[attribute]] then
+				table.insert(drawn, string.format("%s %s %s", name, attribute, palette[hl[attribute]]))
+			end
+		end
+	end
+	table.sort(drawn)
+
+	return drawn
+]=]
+
 for _, path in ipairs(paths) do
 	both_worlds("worlds without plugins", path, false, function(base_world, parhelion_world)
 		local base, parhelion = snapshot(base_world), snapshot(parhelion_world)
+
+		test(
+			"no group Neovim's help names for colorschemes draws Neovim's palette, " .. path.label,
+			function()
+				expect_none(
+					parhelion_world:lua(documented_groups_drawing_neovims_palette),
+					"groups draw Neovim's palette"
+				)
+			end
+		)
 
 		for name, look in pairs(approved[path.background]) do
 			test(

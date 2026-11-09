@@ -15,6 +15,8 @@ local groups_out_of_the_theme_reach = {
 	"^RedrawDebug",
 	"^SagaActionTitle$",
 	"Backdrop",
+	"^FloatShadow",
+	"^PmenuShadow",
 }
 
 local function theme_colors()

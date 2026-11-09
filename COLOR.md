@@ -292,16 +292,18 @@ and 14.0 from the published one, which is further than a tone may go, as rule 5 
 A backdrop dims what sits behind a float. fzf-lua, lazy.nvim and mason default to black at 40%, which suits a dark page,
 taking it to `#001a20` at 1.20:1. On a light page the same black gives `#989488` at 2.81:1, a muddy gray larger than the
 window it frames. So light mode's backdrop is `#a39c87`, which dims the page to `#d9d2be` at 1.40:1 and keeps its
-warmth.
+warmth. Neovim's float shadows take the backdrop too, at Neovim's own blends of 80 for `FloatShadow` and 100 for
+`FloatShadowThrough`, where Neovim draws them in grays of its own palette, `#4f5258` in dark and `#9b9ea4` in light.
+`PmenuShadow`, `PmenuShadowThrough` and snacks.nvim's `SnacksBackdrop` link to them.
 
 Every group `chrome.lua` names may differ from the base tables, and that file is the complete list. It takes in the
 plugins the base tables style, such as telescope, nvim-tree, neo-tree, nvim-notify and noice, the plugins that draw from
 core groups, such as which-key, blink.cmp, trouble, flash, fzf-lua and grug-far, and some core groups: `Directory`,
-`Title`, `FloatBorder`, `FloatTitle`, `FloatFooter`, `Pmenu*`, `PreInsert`, `WinBar`, `WildMenu`, the tab line, window
-separators in every window, the diff lines, `Added`, `@diff.plus`, markdown's Vim syntax headings, `markdownH1` to
-`markdownH6`, and the command line's expression groups `NvimFigureBrace`, `NvimInternalError`,
-`NvimInvalidSingleQuotedUnknownEscape` and `NvimSingleQuotedUnknownEscape`. A plugin whose default links to one of those
-core groups follows it, and gets a family when the result needs a role.
+`Title`, `FloatBorder`, `FloatTitle`, `FloatFooter`, `FloatShadow`, `FloatShadowThrough`, `Pmenu*`, `PreInsert`,
+`WinBar`, `WildMenu`, the tab line, window separators in every window, the diff lines, `Added`, `@diff.plus`, markdown's
+Vim syntax headings, `markdownH1` to `markdownH6`, and the command line's expression groups `NvimFigureBrace`,
+`NvimInternalError`, `NvimInvalidSingleQuotedUnknownEscape` and `NvimSingleQuotedUnknownEscape`. A plugin whose default
+links to one of those core groups follows it, and gets a family when the result needs a role.
 
 Code syntax, `Normal`, `NormalFloat`, `Comment`, diagnostics, the cursor line and column, the gutter and fold column,
 `MatchParen`, `Conceal`, the status line, lualine and the gutter's signs do not differ, apart from the text overlays
@@ -314,9 +316,9 @@ enough to set them apart would put them under the text floor. A check in `tests/
 family names one of them, a group Neogit or Diffview uses to stand in for one of them, or a group from a Vim syntax
 file. The exceptions are `Added`, `@diff.plus`, `GitSignsAdd`, `GitGutterAdd` and `GitGutterAddLineNr`, which rule 4
 colors, the `GitSignsStaged` signs, the text overlays `Visual`, `Search`, `IncSearch`, `LspReferenceRead`,
-`LspReferenceText`, `LspReferenceWrite` and the `DiagnosticUnderline` groups, `Todo`, `markdownH1` to `markdownH6`,
-`LspKind*`, lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7` and telekasten's `tk` groups.
-render-markdown's heading bands count as the base tables'.
+`LspReferenceText`, `LspReferenceWrite`, `DiagnosticDeprecated` and the `DiagnosticUnderline` groups, `Todo`,
+`markdownH1` to `markdownH6`, `LspKind*`, lspsaga's `DiagnosticText`, nvim-ts-rainbow's `rainbowcol1` to `rainbowcol7`
+and telekasten's `tk` groups. render-markdown's heading bands count as the base tables'.
 
 mini.cursorword marks each other instance of the word under the cursor. The base tables recolor those instances teal in
 dark and bold magenta on pink in light, which spends the page's strongest color wherever the cursor happens to rest. It
@@ -331,18 +333,20 @@ selection keeps the base tables' fill, `#2c4e56` in dark and the pink `#f8e2d9` 
 the base tables also set body text in dark and bold magenta in light. On those fills the accents read at 2.70:1 to
 3.25:1 in dark and 3.47:1 to 4.23:1 in light, body at 3.37:1 and 4.32:1, and comments at 2.41:1 and 3.03:1. A search
 match takes strong text on a warm fill, toned yellow blended over the light page and toned orange over the dark page,
-since yellow over the dark page turns olive. The text reads at 5.18:1 in dark and 5.64:1 in light,
-where the base tables draw a dark match as a bold selection. The current match is page text on solid yellow and bold, at
-5.42:1 and 4.01:1, so it stands out from the others, and `CurSearch` and `Substitute` follow it. Inside a selection
-Neovim draws the selection's fill under a match and keeps the match's text color, so the match still shows in strong
-text. A reference to the symbol under the cursor takes the selected step alone, as vim-illuminate's references do, since
-a language server marks symbols and never the inside of a comment. A diagnostic underlines its text in the signal color
-and leaves the text's own color. A misspelling has a red undercurl, a capitalization hint a violet one, a word from
-another region a yellow one and a rare word a cyan one, as Solarized publishes them, where the base tables strike a
-misspelling through and color the other three's text. The current quickfix entry takes the selected step with strong
-text, where the base tables draw it like every other entry. `Todo`, which is syntax and not an overlay, is magenta and
-bold, Solarized's own mark, where the base tables give it the blue of a variable. Neovim links the active signature
-parameter, snippet tabstops and `VisualNOS` to the selection and a reference's target to the reference, so those follow.
+since yellow over the dark page turns olive. The text reads at 5.18:1 in dark and 5.64:1 in light, where the base tables
+draw a dark match as a bold selection. The current match is page text on solid yellow and bold, at 5.42:1 and 4.01:1, so
+it stands out from the others, and `CurSearch` and `Substitute` follow it. Inside a selection Neovim draws the
+selection's fill under a match and keeps the match's text color, so the match still shows in strong text. A reference to
+the symbol under the cursor takes the selected step alone, as vim-illuminate's references do, since a language server
+marks symbols and never the inside of a comment. A diagnostic underlines its text in the signal color and leaves the
+text's own color, and a deprecated symbol is struck through in red, where Neovim strikes it through in `#ffc0b9` in dark
+and `#590008` in light. A misspelling has a red undercurl, a capitalization hint a violet one, a word from another
+region a yellow one and a rare word a cyan one, as Solarized publishes them, where the base tables strike a misspelling
+through and color the other three's text. The current quickfix entry takes the selected step with strong text, where the
+base tables draw it like every other entry. `Todo`, which is syntax and not an overlay, is magenta and bold, Solarized's
+own mark, where the base tables give it the blue of a variable. Neovim links the active signature parameter, snippet
+tabstops and `VisualNOS` to the selection, a reference's target to the reference and `@lsp.mod.deprecated` to the
+deprecated strike, so those follow.
 
 Neogit's kinds of label hold hue, and two kinds can share one. A section header is violet and bold with a body count, a
 branch orange and bold, the checked out branch underlined as well, a remote green and bold, a tag yellow, its distance
@@ -554,9 +558,9 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   unless it is a step of the chrome scale or a label hue.
 - No family names a group that holds code, a Vim syntax file's group, a diagnostic, an LSP reference, the gutter, the
   fold column, the status line or lualine, or a Neogit or Diffview group that stands in for the page, cursor line,
-  gutter or status line, apart from the added syntax groups and gutter signs, gitsigns' staged signs, markdown's Vim
-  syntax headings, completion kinds, lspsaga's `DiagnosticText`, nvim-ts-rainbow's columns and telekasten's syntax
-  groups. render-markdown's heading bands count as the base tables' too.
+  gutter or status line, apart from the text overlays, the added syntax groups and gutter signs, gitsigns' staged signs,
+  markdown's Vim syntax headings, completion kinds, lspsaga's `DiagnosticText`, nvim-ts-rainbow's columns and
+  telekasten's syntax groups. render-markdown's heading bands count as the base tables' too.
 - Each new tone stays within the difference limit, and each saturated tone within a degree of its source
   hue, with orange named as the exception. Its source color is one the base tables really use.
 - The page colors stay fixed.
@@ -588,8 +592,8 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   `#888888` at 1.71, and the next check is what catches a hue among them.
   `tests/parhelion/theme_colors.lua` names the groups the theme cannot reach: barbar's fallback target groups, which are
   never drawn because the theme sets the groups they fall back from, the groups lspsaga sets whatever the theme says,
-  file icons, Neovim's own debug groups and `Diagnostic*Reverse` groups, and backdrops,
-  which are shades under a blended window.
+  file icons, Neovim's own debug groups and `Diagnostic*Reverse` groups, and backdrops
+  and shadows, which are shades Neovim blends with what lies under them.
 - In those views, no plugin group holds a color with perceptual chroma over 0.07 unless the color is a step of the
   chrome scale, a label hue on a group of Neogit, Diffview, which-key, mini.clue, mason, todo-comments, mini.hipatterns,
   headlines, markview, render-markdown or markdown's headings, or on a sign render-markdown combines from one of those,
@@ -610,6 +614,8 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   boundary check and the pins on its families hold it.
 - No plugin group is assigned two roles in any letter case, which would otherwise leave its color to table order.
 - fzf-lua's, lazy.nvim's and mason's backdrops dim the page by under 1.5:1 at those plugins' stock 40%, in both modes.
+- On all four load paths, no group Neovim's help names for colorschemes, by its `hl-` tag or a capture `treesitter.txt`
+  or `lsp.txt` lists, resolves to a color of Neovim's own palette.
 - An error, warning or info toast's title holds the strong step, in nvim-notify and in snacks, so severity stays on the
   icon.
 - Every `g:fzf_colors` key paints the step it means, and still resolves under another colorscheme.

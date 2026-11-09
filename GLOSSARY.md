@@ -50,6 +50,9 @@ differences between kinds of text, and quiet text recedes.
 **Semantic token**: a language server's classification of a piece of source text, which
 Neovim highlights through `@lsp.*` groups at a priority above treesitter's.
 
+**Shadow**: the translucent edge Neovim draws to the right of and below a float or the popup menu whose border is
+`shadow`.
+
 **Signal color**: an accent that holds one meaning wherever it marks a state: red for errors and removals, yellow for
 warnings, conflicts and a change among unchanged things, green for success and added things.
 

@@ -218,6 +218,7 @@ local core_of_the_buffer = {
 local inside_the_boundary = {
 	"^@diff%.plus$",
 	"^Added$",
+	"^DiagnosticDeprecated$",
 	"^DiagnosticText$",
 	"^DiagnosticUnderline%u%l+$",
 	"^GitGutterAdd$",
