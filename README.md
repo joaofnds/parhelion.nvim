@@ -169,6 +169,7 @@ Highlight groups ship for these plugins:
 ## Documents
 
 - [DESIGN.md](DESIGN.md): how a load works, plugin support and the test suite.
+- [CONTRIBUTING.md](CONTRIBUTING.md): the checks to run and what to commit with a change.
 - [COLOR.md](COLOR.md): the color theory behind the palette, and every color parhelion changes.
 - [GLOSSARY.md](GLOSSARY.md): the terms these documents use.
 - [CHANGELOG.md](CHANGELOG.md): the changes a user can see.
