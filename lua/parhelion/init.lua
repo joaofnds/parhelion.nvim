@@ -76,6 +76,15 @@ local function patterns_turned_off()
 	return patterns
 end
 
+local function bytes_after_the_caret(patterns)
+	local bytes = {}
+	for _, pattern in ipairs(patterns) do
+		bytes[pattern:byte(2)] = true
+	end
+
+	return bytes
+end
+
 local function matches_any(name, patterns)
 	for _, pattern in ipairs(patterns) do
 		if name:find(pattern) then return true end
@@ -86,9 +95,12 @@ end
 
 local function turn_off_plugins(built, changed)
 	local patterns = patterns_turned_off()
-	each_drawn_group(built, changed, function(name)
-		if matches_any(name, patterns) then changed[name] = false end
-	end)
+	local first_bytes = bytes_after_the_caret(patterns)
+	-- Searching every group with the patterns, or through a callback, stops LuaJIT compiling this loop and adds about
+	-- 0.05 ms to a first load.
+	for name in pairs(built.groups) do
+		if first_bytes[name:byte()] and matches_any(name, patterns) then changed[name] = false end
+	end
 end
 
 local function clear_backgrounds(built, changed)

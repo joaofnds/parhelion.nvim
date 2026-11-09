@@ -3155,6 +3155,19 @@ test("the help page names every plugin that can be turned off", function()
 	assert(vim.deep_equal(named, names), "the help names " .. table.concat(named, " "))
 end)
 
+test("every plugin's patterns fix the letter the names they match start with", function()
+	local loose = {}
+	for plugin, patterns in pairs(plugins) do
+		for _, pattern in ipairs(patterns) do
+			if not pattern:find "^%^%w" or pattern:find "^%^%w[*?%-]" then
+				table.insert(loose, plugin .. " " .. pattern)
+			end
+		end
+	end
+
+	expect_none(loose, "patterns leave the first letter open")
+end)
+
 local colors_in_the_help, in_the_table = {}, false
 for line in io.lines(root .. "/doc/parhelion.txt") do
 	if line:find "The table it gets holds:" then in_the_table = true end

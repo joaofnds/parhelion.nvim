@@ -245,10 +245,11 @@ To check it by eye, add the plugin's pinned commit to `tests/parhelion/deps.txt`
 plugin to the list in `README.md`.
 
 Add the plugin's repository name to `lua/parhelion/plugins.lua` with the patterns its group names match, and the name to
-the list under Plugins in `doc/parhelion.txt`, so the `plugins` option can turn it off. The test
-`every group parhelion sets is Neovim's, its own or one plugin's` fails on a group no plugin claims or two claim, and
-three more fail on a pattern that matches nothing, on a README plugin with no entry, and on a help list that differs
-from the entries.
+the list under Plugins in `doc/parhelion.txt`, so the `plugins` option can turn it off. Each pattern starts with `^` and
+the letter its names start with, since a load that turns a plugin off searches only the groups that start with one of
+those letters. The test `every group parhelion sets is Neovim's, its own or one plugin's` fails on a group no plugin
+claims or two claim, and four more fail on a pattern that matches nothing, on a pattern that leaves the first letter
+open, on a README plugin with no entry, and on a help list that differs from the entries.
 
 Every name in a family needs a look pinned in `tests/parhelion/approved.lua` for the diff lines, the diff marks,
 Diffview, gitsigns, headlines, lazy.nvim, markdown text, markview, mason, mini.clue, mini.diff, Neogit, render-markdown
