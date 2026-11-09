@@ -32,8 +32,9 @@ The changes a user can see, newest release first. A change not yet released goes
 
 ### Fixed
 
-- With `bold` or `italic` set to false, the `BoldItalic` group that Neovim's nightly build defines drops its bold or
-  italic like every other group, where it used to stay bold and italic.
+- With `bold` or `italic` set to false, `BoldItalic` drops its bold or italic like every other group, where on
+  Neovim's nightly build it used to stay bold and italic. Parhelion now sets `BoldItalic` itself, so the group also
+  exists on Neovim 0.12, which defines none.
 - The feline statusline names operator-pending mode while an operator waits for its motion, and normal mode again once
   the operator ends, instead of normal mode throughout.
 - The reactive cursorline keeps the line number's color in normal mode, where it used to drop it.
