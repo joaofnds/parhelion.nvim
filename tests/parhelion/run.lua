@@ -2843,6 +2843,14 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
+	test("bold off restyles a group as transparent left it, " .. path.label, function()
+		with_options(path, [[require("parhelion").setup { transparent = true, bold = false }]], function(world)
+			local tab = world:lua(resolved_look, "TabLineSel")
+
+			assert(tab.bg == nil and not tab.bold, "TabLineSel is " .. vim.inspect(tab))
+		end)
+	end)
+
 	test("setup reloads parhelion when it is the colorscheme, " .. path.label, function()
 		in_world("parhelion", path, function(world)
 			world:lua [[require("parhelion").setup { transparent = true }]]
@@ -3258,6 +3266,22 @@ for _, path in ipairs { paths[1], paths[2] } do
 
 			expect_none(vim.tbl_filter(function(name) return name:find "^Telescope" end, names), "groups are set")
 			assert(vim.list_contains(names, "GitSignsAdd"), "gitsigns lost its groups")
+		end)
+	end)
+
+	test("turning a plugin off holds with transparent on and bold off, " .. path.label, function()
+		local options = [[require("parhelion").setup {
+			plugins = { ["octo.nvim"] = false, ["telescope.nvim"] = false },
+			transparent = true,
+			bold = false,
+		}]]
+		with_options(path, options, function(world)
+			local names = world:lua(names_set)
+
+			expect_none(
+				vim.tbl_filter(function(name) return name:find "^Octo" or name:find "^Telescope" end, names),
+				"groups are set"
+			)
 		end)
 	end)
 
