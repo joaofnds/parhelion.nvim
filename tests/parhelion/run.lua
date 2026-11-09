@@ -2111,6 +2111,7 @@ end
 
 for _, case in ipairs {
 	{ verdict = "fails", load = "a first load at 1.2549", parhelion = "1.2549 1", code = 1 },
+	{ verdict = "fails", load = "a reload at 1.2549", parhelion = "1 1.2549", code = 1 },
 	{ verdict = "passes", load = "a load at 1.25", parhelion = "1.25 1.25", code = 0 },
 } do
 	test(string.format("the bench %s %s times its floor", case.verdict, case.load), function()

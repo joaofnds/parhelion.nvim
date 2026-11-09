@@ -113,8 +113,8 @@ check each one when started in dark and in light, and that they hold across a to
 ### Load time
 
 A load leaves about 2450 groups defined, 384 of them Neovim's own. `tests/parhelion/bench.sh` times it against its
-floor, a colorscheme that only reads the same built table and writes its groups, as the median of 40 fresh
-`nvim --clean` starts for each mode, with `vim.loader` off and on:
+floor, a colorscheme that only reads the same built table and writes its groups, clearing the old ones first on a
+reload, as the median of 40 fresh `nvim --clean` starts for each mode, with `vim.loader` off and on:
 
 ```sh
 bash tests/parhelion/bench.sh
@@ -131,14 +131,14 @@ stores the module where a later `require("parhelion")` finds it. `init.lua` read
 time `setup` or a load needs the plugin list.
 
 The built tables ship as Lua source. Read on its own, the dark table as stripped LuaJIT bytecode takes about 0.24 ms
-against 0.68 ms for the source, the median of 25 fresh starts with `vim.loader` off, but `vim.loader` already keeps the source's
-bytecode in its cache, which brings the source to 0.39 ms against 0.37 ms. The bytecode would also be a binary file,
-125 KB against the source's 97 KB, that no one can review in a diff, and a Neovim built with PUC Lua, which
-`:h lua-luajit` says a plugin cannot rule out, refuses to read it.
+against 0.68 ms for the source, the median of 25 fresh starts with `vim.loader` off, but `vim.loader` already keeps the
+source's bytecode in its cache, which brings the source to 0.39 ms against 0.37 ms. The bytecode would also be a binary
+file, 125 KB against the source's 97 KB, that no one can review in a diff, and a Neovim built with PUC Lua, which `:h
+lua-luajit` says a plugin cannot rule out, refuses to read it.
 
-The script fails when a load fails or when a first load takes more than 1.25 times its floor. CI does not run it, so
-run it after a change to the load or to the built tables. The suite's guards count rather than time, so their results
-are the same on every machine:
+The script fails when a load fails or when a first load or a reload takes more than 1.25 times its floor. CI does not
+run it, so run it after a change to the load or to the built tables. The suite's guards count rather than time, so their
+results are the same on every machine:
 
 - `a load with the default options requires no module but parhelion` and `a load with the <option> option requires
   nothing that builds the groups` fail when a load builds the groups again, which takes 2.6 to 2.8 times the floor.
@@ -162,8 +162,9 @@ are the same on every machine:
   clears ran 4.33 times, a plugin turned off ran 5.90 times before the load tested each group's first letter, and
   `bold = false` ran 4.00 times when it handed each group to a callback.
 
-None of them sees work Neovim does in C, such as a second `hi clear`, which only the script catches. Time a load under
-`-c luafile`, never `-l`, since `-l` turns on 'verbose', which makes every `nvim_set_hl` many times slower.
+None of them sees work Neovim does in C, which the script catches only when it takes a load past 1.25 times its floor.
+Time a load under `-c luafile`, never `-l`, since `-l` turns on 'verbose', which makes every `nvim_set_hl` many times
+slower.
 
 ## Plugin support
 
