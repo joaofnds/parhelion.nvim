@@ -5,7 +5,8 @@ SHELL_SCRIPTS = $(shell git ls-files -z | xargs -0 shfmt -f)
 .PHONY: build test bench format-check lint lintcommit
 
 build:
-	nvim --headless --clean --cmd "set rtp^=." -c "lua require('parhelion.build').write()" -c "qa!"
+	nvim --headless --clean --cmd "set rtp^=." -c "lua require('parhelion.build').write()" \
+		-c "if v:errmsg != '' | cquit | endif" -c "qa!"
 
 test:
 	tests/parhelion/run.sh

@@ -2955,6 +2955,45 @@ for _, background in ipairs { "dark", "light" } do
   end)
 end
 
+---@return string
+local function copy_of_the_build()
+  local copy = vim.fn.tempname()
+  vim.fn.mkdir(copy, "p")
+  local copied = vim.system({ "cp", "-R", root .. "/Makefile", root .. "/lua", copy }):wait()
+  assert(copied.code == 0, copied.stderr)
+
+  return copy
+end
+
+---@param directory string
+---@return vim.SystemCompleted
+local function make_build(directory)
+  return vim.system({ "make", "-C", directory, "build" }, { text = true }):wait(10000)
+end
+
+test("make build fails when the build raises", function()
+  local copy = copy_of_the_build()
+  vim.fn.writefile({ "return {}" }, copy .. "/lua/parhelion/base/dark.lua")
+
+  local built = make_build(copy)
+
+  assert(built.code == 2, string.format("make exited %d: %s", built.code, built.stderr))
+  assert(built.stderr:find("build.lua", 1, true), built.stderr)
+end)
+
+test("make build writes the built tables the sources give", function()
+  local copy = copy_of_the_build()
+  vim.fn.delete(copy .. "/lua/parhelion/built", "rf")
+
+  local built = make_build(copy)
+
+  assert(built.code == 0, string.format("make exited %d: %s", built.code, built.stderr))
+  for _, background in ipairs { "dark", "light" } do
+    local path = "/lua/parhelion/built/" .. background .. ".lua"
+    assert(vim.deep_equal(vim.fn.readfile(copy .. path, "b"), vim.fn.readfile(root .. path, "b")), path)
+  end
+end)
+
 ---@param background parhelion.Background
 ---@return table<string, string>
 local function terminal_themes(background)
