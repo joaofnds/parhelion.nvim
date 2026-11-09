@@ -356,8 +356,8 @@ branch orange, the checked out branch underlined as well, a remote green, a tag 
 path in a diff or commit view blue. A file's label says what happened to it in hue alone, without bold: deleted is red,
 modified and unmerged yellow, new the added color, renamed violet, updated orange and copied magenta. A popup's titles
 are blue and bold, its keys violet, and what is switched on blue. An author is violet, which matches the commit age
-Neogit draws with `Special`. Hashes take the comment color. A hunk header is blue on the raised step, and the focused
-one is bold on selected. A bad or revoked signature is red, and an expired or unknown one is yellow.
+Neogit draws with `Special`. Hashes take the comment color. A hunk header is quiet on the raised step, and the focused
+one is body and bold on selected. A bad or revoked signature is red, and an expired or unknown one is yellow.
 
 Diffview's panel does the same. Its title and folders are blue and bold, the root path violet and bold, its keys blue,
 and the status letters yellow for a modification, a rename or a copy, red for a deletion and the added color for an
