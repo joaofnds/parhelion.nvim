@@ -370,8 +370,6 @@ for file, digest in pairs(approved_files) do
 	end)
 end
 
--- Each group Neovim's help names for colorschemes, by its *hl-* tag or a capture listed in treesitter.txt or lsp.txt,
--- that resolves to a color of Neovim's own palette, with the attribute and the palette's name for it.
 local documented_groups_drawing_neovims_palette = [=[
 	local palette = {}
 	for name, value in pairs(vim.api.nvim_get_color_map()) do
@@ -402,22 +400,20 @@ local documented_groups_drawing_neovims_palette = [=[
 	end
 	table.sort(drawn)
 
-	return drawn
+	return { documented = vim.tbl_count(names), palette_colors = vim.tbl_count(palette), drawn = drawn }
 ]=]
 
 for _, path in ipairs(paths) do
 	both_worlds("worlds without plugins", path, false, function(base_world, parhelion_world)
 		local base, parhelion = snapshot(base_world), snapshot(parhelion_world)
 
-		test(
-			"no group Neovim's help names for colorschemes draws Neovim's palette, " .. path.label,
-			function()
-				expect_none(
-					parhelion_world:lua(documented_groups_drawing_neovims_palette),
-					"groups draw Neovim's palette"
-				)
-			end
-		)
+		test("no group Neovim's help names for colorschemes draws Neovim's palette, " .. path.label, function()
+			local groups = parhelion_world:lua(documented_groups_drawing_neovims_palette)
+
+			assert(groups.documented >= 200, string.format("Neovim's help names %d groups, fewer than 200", groups.documented))
+			assert(groups.palette_colors > 0, "Neovim's palette has no colors")
+			expect_none(groups.drawn, "groups draw Neovim's palette")
+		end)
 
 		for name, look in pairs(approved[path.background]) do
 			test(
