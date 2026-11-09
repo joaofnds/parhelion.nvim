@@ -49,6 +49,7 @@ Plugin support below for how they are checked.
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries, which began as solarized.nvim's |
 | `tests/parhelion/` | The test suite |
 | `.github/workflows/parhelion.yml` | Runs the suite, the load bench and the format check in CI |
+| `Makefile` | The `test`, `bench` and `format-check` targets that CI runs |
 | `doc/parhelion.txt` | The `:help` page |
 | `CHANGELOG.md` | The changes a user can see |
 | `LICENSE.md` | The license |
@@ -380,7 +381,7 @@ non-zero. The whole suite takes about eight minutes on an Apple M5 Pro once the 
 
 `.github/workflows/parhelion.yml` runs the suite, the load bench and a StyLua check on a pull request, on a push to
 `main` and every Monday, which needs the repository hosted on GitHub. In a clone with no such remote they only run by
-hand, the check as `stylua --check --config-path=stylua.toml .`.
+hand, as `make test`, `make bench` and `make format-check`.
 
 The suite job runs on Neovim 0.12.6 and on Neovim's nightly build, so a change in Neovim that breaks parhelion fails a
 run before a release ships it. `tests/parhelion/ci-install.sh` installs the version `PARHELION_NEOVIM` names, 0.12.6 by

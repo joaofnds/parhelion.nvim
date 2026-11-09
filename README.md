@@ -176,7 +176,8 @@ Highlight groups ship for these plugins:
 
 ## Tests
 
-`tests/parhelion/run.sh` runs the suite. [DESIGN.md](DESIGN.md) lists what it needs.
+`make test` runs the suite, `make bench` times a load against its floor, and `make format-check` checks the formatting
+with StyLua. [DESIGN.md](DESIGN.md) lists what the suite needs.
 
 ## Thanks
 

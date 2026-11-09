@@ -24,7 +24,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: 2.6.0
-          args: --check --config-path=stylua.toml .
+          args: false
+      - run: make format-check
 
   suite:
     name: Test suite on Neovim ${{ matrix.neovim }}
@@ -44,7 +45,7 @@ jobs:
           persist-credentials: false
       - run: tests/parhelion/ci-install.sh
       - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - run: tests/parhelion/run.sh
+      - run: make test
 
   load-time:
     name: Load time
@@ -56,7 +57,7 @@ jobs:
           persist-credentials: false
       - run: tests/parhelion/ci-install.sh
       - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - run: tests/parhelion/bench.sh
+      - run: make bench
 
   parser-drift:
     name: Extra queries survive the newest parsers
@@ -71,4 +72,4 @@ jobs:
           persist-credentials: false
       - run: tests/parhelion/ci-install.sh
       - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - run: tests/parhelion/run.sh
+      - run: make test
