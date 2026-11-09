@@ -22,6 +22,9 @@ The changes a user can see, newest release first. A change not yet released goes
 - The reactive cursor takes the mode's hue in insert, visual, select, replace and command modes, and keeps parhelion's
   cursor in the others. The reactive cursorline takes the added-line fill in insert mode and the removed-line fill in
   replace mode, and leaves the line as parhelion draws it in the others.
+- lazy.nvim's home heading and mason's title are strong and bold on the raised step instead of solid yellow and
+  violet, and mason's current tab is strong and bold on the selected step instead of solid blue, with the other tabs
+  quiet on raised instead of solid gray.
 
 ### Removed
 

@@ -213,11 +213,13 @@ The rules, in both modes:
 2. In a plugin with label families, each kind of label holds one hue within that plugin, so it can be found without
    being read. Neogit, Diffview, which-key, mini.clue, mason, lazy.nvim, todo-comments, mini.hipatterns and the markdown
    plugins have them. A TODO or NOTE marker from todo-comments or mini.hipatterns holds the magenta the core `Todo`
-   group takes, so a marker looks the same whichever of them draws it. Mason's headers and tags are filled blocks of
-   violet, blue, green, yellow and the quiet step, and its secondary highlight is magenta. lazy.nvim's load reasons and
-   buttons follow the core groups lazy.nvim links them to, such as `Constant` for an event and `Statement` for keys, so
-   they take the code's colors. Its home heading links to `IncSearch` and takes the current match's yellow fill. Its
-   section titles and times take the core `Bold` group, which parhelion sets to bold alone, and its dimmed text is
+   group takes, so a marker looks the same whichever of them draws it. Mason's title is strong and bold on the raised
+   step and its current tab strong and bold on the selected step, with the other tabs quiet on raised, so neither
+   spends a fill of hue. Its tags and secondary headers are filled blocks of violet, blue, green and yellow, and its
+   secondary highlight is magenta. lazy.nvim's load reasons and buttons follow the core groups lazy.nvim links them to,
+   such as `Constant` for an event and `Statement` for keys, so they take the code's colors. Its home heading is strong
+   and bold on the raised step its buttons sit on, where lazy.nvim would link it to the current match's yellow fill.
+   Its section titles and times take the core `Bold` group, which parhelion sets to bold alone, and its dimmed text is
    quiet. The same kind of label can differ between plugins, so a key is violet in a Neogit popup and blue in which-key.
    A title adds bold to its hue in Neogit, Diffview and mason. Elsewhere a window's main title holds the strong step and
    bold, as `FloatTitle`, `TelescopeTitle` and `NeoTreeRootName` do, and a secondary one is quiet. Hashes and kinds stay
