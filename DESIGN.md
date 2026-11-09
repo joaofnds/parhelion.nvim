@@ -400,8 +400,9 @@ changed what a line does. `git blame` reads that file once a clone runs
 
 `make lint` type-checks the clone's Lua files with lua-language-server, leaving out what git ignores. It reads
 `.luarc.json` and takes the types of Neovim's Lua API from the runtime of the `nvim` on the `PATH`. Its runtime path
-finds a required module under `lua/` or `tests/parhelion/`, so a test helper kept anywhere else needs an entry there
-too, or the check fails on every value the helper returns. `.luarc.json` turns on every diagnostic group, so the check
+finds a required module under `lua/` as a file or a folder's `init.lua`, and under `tests/parhelion/` as a file
+only, so a test helper kept anywhere else, or as a folder there, needs an entry too, or the check fails on every
+value the helper returns. `.luarc.json` turns on every diagnostic group, so the check
 also fails on a value whose type it cannot infer, and leaves out only the spell check, the naming check and
 lua-language-server's own formatter, since StyLua formats the code. A group takes `Any`, not `Any!`, which
 lua-language-server 3.19.2 ignores without a warning. Where lua-language-server cannot follow a value, as with a table
