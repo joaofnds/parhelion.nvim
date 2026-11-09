@@ -294,7 +294,7 @@ taking it to `#001a20` at 1.20:1. On a light page the same black gives `#989488`
 window it frames. So light mode's backdrop is `#a39c87`, which dims the page to `#d9d2be` at 1.40:1 and keeps its
 warmth. Neovim's float shadows take the backdrop too, at Neovim's own blends of 80 for `FloatShadow` and 100 for
 `FloatShadowThrough`, where Neovim draws them in grays of its own palette, `#4f5258` in dark and `#9b9ea4` in light.
-`PmenuShadow`, `PmenuShadowThrough` and snacks.nvim's `SnacksBackdrop` link to them.
+`PmenuShadow` and `PmenuShadowThrough` link to them.
 
 Every group `chrome.lua` names may differ from the base tables, and that file is the complete list. It takes in the
 plugins the base tables style, such as telescope, nvim-tree, neo-tree, nvim-notify and noice, the plugins that draw from
@@ -487,6 +487,9 @@ Departs:
   - File icons keep nvim-web-devicons' own colors, which it sets again after every `ColorScheme`, so a few are dim on
     a dark page: css at 1.87:1 and tsx at 2.28:1 on a float. `color_icons = false` in its setup draws them all in
     `#6d8086`.
+  - snacks.nvim draws a window's backdrop in a group it makes from that window's `backdrop` option, black at 40% by
+    default, and sets that group again for each window, so `SnacksBackdrop` never draws. On a light page the black
+    gives `#989488` at 2.81:1. `backdrop = { bg = "#a39c87" }` in a window's options draws light mode's backdrop.
   - `cmp.config.window.bordered()` maps a selected row to `Visual`, so it is gray in dark and pink in light. On Neovim
     0.11 and later it also draws no border unless `winborder` is set or a border is passed, and with `Normal:Normal`
     that leaves the menu's text directly over the code. The stock menu, which has neither problem, is what the
