@@ -224,6 +224,7 @@ local function looks(background)
     page_error = { fg = scale.error, bg = scale.page },
     page_hairline = { fg = scale.hairline, bg = scale.page },
     page_ink = { fg = scale.page },
+    page_strong = { fg = scale.strong, bg = scale.page },
     page_title = { fg = scale.strong, bg = scale.page, bold = true },
     page_accent = { fg = scale.accent, bg = scale.page },
     page_quiet = { fg = scale.quiet, bg = scale.page },
@@ -453,7 +454,7 @@ M.families = {
   tab_line = {
     float_quiet = "TabLine",
     float_body = "TabLineFill",
-    page_title = "TabLineSel",
+    page_strong = "TabLineSel",
   },
 
   telescope = {
@@ -643,7 +644,7 @@ M.families = {
     page_hairline = "BufferLineSeparatorSelected BufferLineTabSeparatorSelected",
     page_quiet = "BufferLineCloseButtonSelected BufferLineDiagnosticSelected BufferLineDuplicateSelected "
       .. "BufferLineNumbersSelected",
-    page_title = "BufferLineBufferSelected BufferLineTabSelected",
+    page_strong = "BufferLineBufferSelected BufferLineTabSelected",
     page_warn = "BufferLineModifiedSelected BufferLineWarningDiagnosticSelected BufferLineWarningSelected",
     float_warn = "BufferLineModified BufferLineModifiedVisible",
   },
@@ -656,7 +657,7 @@ M.families = {
     label = "BufferCurrentTarget",
     page_accent = "BufferCurrentSign",
     page_quiet = "BufferCurrentIndex",
-    page_title = "BufferCurrent",
+    page_strong = "BufferCurrent",
     page_warn = "BufferCurrentMod",
     float_warn = "BufferAlternateMod BufferInactiveMod BufferVisibleMod",
   },
@@ -665,7 +666,7 @@ M.families = {
     float_quiet = "MiniTablineHidden MiniTablineTrunc",
     float_strong = "MiniTablineVisible",
     float_warn = "MiniTablineModifiedHidden MiniTablineModifiedVisible",
-    page_title = "MiniTablineCurrent",
+    page_strong = "MiniTablineCurrent",
     page_warn = "MiniTablineModifiedCurrent",
   },
   navic = {
