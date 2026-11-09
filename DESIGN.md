@@ -130,6 +130,12 @@ nothing has required it yet, since a `require` would search the runtimepath firs
 stores the module where a later `require("parhelion")` finds it. `init.lua` reads `plugins.lua` the same way the first
 time `setup` or a load needs the plugin list.
 
+The built tables ship as Lua source. The dark table as stripped LuaJIT bytecode reads in about 0.24 ms against 0.68 ms
+for the source, the median of 25 fresh starts with `vim.loader` off, but `vim.loader` already keeps the source's
+bytecode in its cache, which brings the source to 0.39 ms against 0.37 ms. The bytecode would also be a binary file,
+125 KB against the source's 97 KB, that no one can review in a diff, and a Neovim built with PUC Lua, which
+`:h lua-luajit` says a plugin cannot rule out, refuses to read it.
+
 The script fails when a load fails or when a first load takes more than 1.25 times its floor. CI does not run it, so
 run it after a change to the load or to the built tables. The suite's guards count rather than time, so their results
 are the same on every machine:
