@@ -18,7 +18,7 @@ function Nvim.spawn(opts)
 		next_id = 1,
 		grid = {},
 		attrs = {},
-		drawn_with = {},
+		items = {},
 		rows = opts.rows,
 		cols = opts.cols,
 		cursor = { row = 0, col = 0 },
@@ -92,7 +92,7 @@ function Nvim:on_default_colors_set(fg, bg, sp) self.defaults = { fg = hex(fg), 
 
 function Nvim:on_hl_attr_define(id, rgb, _, info)
 	self.attrs[id] = rgb
-	self.drawn_with[id] = vim.iter(info):map(function(item) return item.hi_name end):totable()
+	self.items[id] = info
 end
 
 function Nvim:on_grid_resize(_, width, height)
@@ -197,6 +197,15 @@ function Nvim:wait_for_startup()
 	self.last_change = vim.uv.now()
 end
 
+local function drawn_with(nvim, id)
+	return vim.iter(nvim.items[id] or {})
+		:map(function(item)
+			local own = nvim.attrs[item.id] or {}
+			return { kind = item.kind, name = item.hi_name, bg = hex(own.background) }
+		end)
+		:totable()
+end
+
 local function style_of(attr, defaults)
 	local fg = attr.foreground and hex(attr.foreground) or defaults.fg
 	local bg = attr.background and hex(attr.background) or defaults.bg
@@ -227,7 +236,7 @@ function Nvim:capture()
 				bg = style.bg,
 				sp = style.sp,
 				flags = style.flags,
-				drawn_with = self.drawn_with[cell[2]] or {},
+				drawn_with = drawn_with(self, cell[2]),
 			}
 		end
 	end

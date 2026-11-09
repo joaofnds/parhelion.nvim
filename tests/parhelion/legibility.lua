@@ -96,15 +96,18 @@ local function text_and_background(cell)
 	return cell.fg, cell.bg
 end
 
+local function is_remapped_onto(item, fill, groups)
+	local group = groups[item.name]
+	return item.kind == "ui" and group ~= nil and group.bg ~= fill
+end
+
 local function is_over_the_selection(cell, background, groups)
 	local selection = groups and groups.Visual and groups.Visual.bg
-	if background ~= selection or #cell.drawn_with == 0 then return false end
+	local drawing_the_fill = vim.iter(cell.drawn_with):filter(function(item) return item.bg == background end):totable()
+	if background ~= selection or #drawing_the_fill == 0 then return false end
 
-	for _, name in ipairs(cell.drawn_with) do
-		if name ~= "Visual" and (groups[name] == nil or groups[name].bg == background) then return false end
-	end
-
-	return true
+	return vim.iter(drawing_the_fill)
+		:all(function(item) return item.name == "Visual" or is_remapped_onto(item, background, groups) end)
 end
 
 function M.illegible_text(shot, is_exempt)
