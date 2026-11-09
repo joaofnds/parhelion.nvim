@@ -410,7 +410,10 @@ for _, path in ipairs(paths) do
 		test("no group Neovim's help names for colorschemes draws Neovim's palette, " .. path.label, function()
 			local groups = parhelion_world:lua(documented_groups_drawing_neovims_palette)
 
-			assert(groups.documented >= 200, string.format("Neovim's help names %d groups, fewer than 200", groups.documented))
+			assert(
+				groups.documented >= 200,
+				string.format("Neovim's help names %d groups, fewer than 200", groups.documented)
+			)
 			assert(groups.palette_colors > 0, "Neovim's palette has no colors")
 			expect_none(groups.drawn, "groups draw Neovim's palette")
 		end)
