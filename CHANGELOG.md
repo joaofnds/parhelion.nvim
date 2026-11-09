@@ -2,7 +2,7 @@
 
 The changes a user can see, newest release first. A change not yet released goes under an Unreleased heading.
 
-## Unreleased
+## 1.1.0 - 2026-11-09
 
 ### Added
 
