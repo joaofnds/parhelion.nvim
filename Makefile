@@ -1,7 +1,10 @@
 SHELL := bash
 RANGE ?= origin/main..HEAD
 
-.PHONY: test bench format-check lintcommit
+.PHONY: build test bench format-check lintcommit
+
+build:
+	nvim --headless --clean --cmd "set rtp^=." -c "lua require('parhelion.build').write()" -c "qa!"
 
 test:
 	tests/parhelion/run.sh

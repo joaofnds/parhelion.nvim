@@ -57,7 +57,7 @@ function M.build(background)
 	}
 end
 
-M.command = [[nvim --headless --clean --cmd "set rtp^=." -c "lua require('parhelion.build').write()" -c "qa!"]]
+M.command = "make build"
 
 local function sorted_keys(values)
 	local keys = vim.tbl_keys(values)

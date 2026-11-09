@@ -49,7 +49,7 @@ Plugin support below for how they are checked.
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries, which began as solarized.nvim's |
 | `tests/parhelion/` | The test suite |
 | `.github/workflows/parhelion.yml` | Runs the suite, the load bench, the format check and the commit lint in CI |
-| `Makefile` | The `test`, `bench`, `format-check` and `lintcommit` targets that CI runs |
+| `Makefile` | The `test`, `bench`, `format-check` and `lintcommit` targets that CI runs, and `build` |
 | `doc/parhelion.txt` | The `:help` page |
 | `CHANGELOG.md` | The changes a user can see |
 | `LICENSE.md` | The license |
@@ -86,7 +86,7 @@ After a change to the base tables, `refinement.lua` or `chrome.lua`, write the b
 again from the repository's root:
 
 ```sh
-nvim --headless --clean --cmd "set rtp^=." -c "lua require('parhelion.build').write()" -c "qa!"
+make build
 ```
 
 The `the built tables are what the sources build` tests fail, naming each stale group, until they are written, and a

@@ -1,4 +1,4 @@
--- Written by nvim --headless --clean --cmd "set rtp^=." -c "lua require('parhelion.build').write()" -c "qa!"
+-- Written by make build
 -- from the base tables, refinement.lua and chrome.lua. Edit those, not this file.
 local looks = {
 	{ link = "Keyword" },
