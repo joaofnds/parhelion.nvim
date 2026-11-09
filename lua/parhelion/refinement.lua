@@ -1,7 +1,9 @@
 local M = {}
 
+---@type ("fg"|"bg"|"sp")[]
 M.color_attributes = { "fg", "bg", "sp" }
 
+---@type table<parhelion.Background, table<string, string>>
 M.tones = {
   dark = {
     ["#0c4e53"] = "#0b474c",
@@ -56,9 +58,16 @@ local literal_groups = {
   },
 }
 
+---@param background parhelion.Background
+---@param color string
+---@return string
 function M.color(background, color) return M.tones[background][color:lower()] or color end
 
+---@param background parhelion.Background
+---@param hl parhelion.Highlight
+---@return parhelion.Highlight
 function M.highlight(background, hl)
+  ---@type table<string, string|integer|boolean>
   local refined = vim.tbl_extend("force", {}, hl)
   for _, attribute in ipairs(M.color_attributes) do
     if hl[attribute] then refined[attribute] = M.color(background, hl[attribute]) end
@@ -67,15 +76,21 @@ function M.highlight(background, hl)
   return refined
 end
 
+---@param background parhelion.Background
+---@param base_groups table<string, parhelion.Highlight>
+---@param name string
+---@return string
 local function foreground_of(background, base_groups, name)
   local hl = base_groups[name]
-  while hl.link do
-    hl = base_groups[hl.link]
-  end
+  local link = hl.link
+  if link then return foreground_of(background, base_groups, link) end
 
-  return M.color(background, hl.fg)
+  return M.color(background, assert(hl.fg))
 end
 
+---@param background parhelion.Background
+---@param base_groups table<string, parhelion.Highlight>
+---@return table<string, parhelion.Highlight>
 function M.repaired_groups(background, base_groups)
   local repaired = vim.deepcopy(literal_groups[background])
 

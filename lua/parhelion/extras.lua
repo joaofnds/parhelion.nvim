@@ -2,23 +2,38 @@ local M = {}
 
 local ansi_names = { "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white" }
 
+---@class parhelion.TerminalTheme
+---@field name string
+---@field page string
+---@field text string
+---@field cursor string
+---@field cursor_text string
+---@field selection string
+---@field ansi string[]
+
+---@param built parhelion.Built
+---@return parhelion.TerminalTheme
 local function palette(built)
   local normal, cursor, visual = built.groups.Normal, built.groups.Cursor, built.groups.Visual
 
   return {
     name = "Parhelion " .. built.colors.background:gsub("^%l", string.upper),
-    page = normal.bg:lower(),
-    text = normal.fg:lower(),
-    cursor = cursor.bg:lower(),
-    cursor_text = cursor.fg:lower(),
-    selection = visual.bg:lower(),
+    page = assert(normal.bg):lower(),
+    text = assert(normal.fg):lower(),
+    cursor = assert(cursor.bg):lower(),
+    cursor_text = assert(cursor.fg):lower(),
+    selection = assert(visual.bg):lower(),
     ansi = vim.tbl_map(string.lower, built.terminal),
   }
 end
 
-local function quoted(colors)
-  return table.concat(vim.tbl_map(function(color) return '"' .. color .. '"' end, colors), ", ")
-end
+---@param color string
+---@return string
+local function in_quotes(color) return '"' .. color .. '"' end
+
+---@param colors string[]
+---@return string
+local function quoted(colors) return table.concat(vim.tbl_map(in_quotes, colors), ", ") end
 
 local function ghostty(p)
   local lines = {
@@ -96,6 +111,9 @@ local function alacritty(p)
   return lines
 end
 
+---@param lines string[]
+---@param key string
+---@param color string
 local function iterm2_color(lines, key, color)
   local red, green, blue = tonumber(color:sub(2, 3), 16), tonumber(color:sub(4, 5), 16), tonumber(color:sub(6, 7), 16)
   vim.list_extend(lines, {
@@ -137,6 +155,8 @@ local function iterm2(p)
   return lines
 end
 
+---@param built parhelion.Built
+---@return table<string, string>
 function M.themes(built)
   local p = palette(built)
   local function text(lines) return table.concat(lines, "\n") .. "\n" end

@@ -12,6 +12,28 @@ local M = {}
 
 ---@class (partial) parhelion.UserOptions: parhelion.Options
 
+---@alias parhelion.Background "dark"|"light"
+
+---@class parhelion.Highlight: vim.api.keyset.highlight
+---@field fg? string
+---@field bg? string
+---@field sp? string
+---@field link? string
+
+---@class parhelion.Base
+---@field terminal string[]
+---@field groups table<string, parhelion.Highlight>
+
+---@class parhelion.Built
+---@field colors table<string, string>
+---@field mode_hues table<string, string>
+---@field dimmed string
+---@field transparent_clears string[]
+---@field terminal string[]
+---@field groups table<string, parhelion.Highlight>
+
+---@alias parhelion.Changes table<string, vim.api.keyset.highlight|false>
+
 ---@type parhelion.Options
 local defaults = {
   transparent = false,
@@ -47,6 +69,10 @@ local fzf_colors = {
 
 -- A group as the options applied so far leave it: its attributes, false when the load sets none, or nil when parhelion
 -- does not draw it.
+---@param built parhelion.Built
+---@param changed parhelion.Changes
+---@param name string
+---@return vim.api.keyset.highlight|false|nil
 local function drawn(built, changed, name)
   local hl = changed[name]
   if hl == nil then return built.groups[name] end
@@ -54,7 +80,12 @@ local function drawn(built, changed, name)
   return hl
 end
 
+---@param hl table<string, string|integer|boolean>
+---@param attribute string
+---@param value string|boolean
+---@return table<string, string|integer|boolean>
 local function with(hl, attribute, value)
+  ---@type table<string, string|integer|boolean>
   local copy = {}
   for key, held in pairs(hl) do
     copy[key] = held
@@ -64,17 +95,23 @@ local function with(hl, attribute, value)
   return copy
 end
 
+---@type string
 local directory = debug.getinfo(1, "S").source:match "^@(.*[/\\])"
 
+---@return table<string, string[]>
 local function supported_plugins()
   if not package.loaded["parhelion.plugins"] then
-    package.loaded["parhelion.plugins"] = assert(loadfile(directory .. "plugins.lua"))()
+    ---@type table<string, string[]>
+    local plugins = assert(loadfile(directory .. "plugins.lua"))()
+    package.loaded["parhelion.plugins"] = plugins
   end
 
   return package.loaded["parhelion.plugins"]
 end
 
+---@return string[]
 local function patterns_turned_off()
+  ---@type table<string, string[]>, string[]
   local plugins, patterns = supported_plugins(), {}
   for plugin, on in pairs(options.plugins) do
     if not on then vim.list_extend(patterns, plugins[plugin]) end
@@ -83,7 +120,10 @@ local function patterns_turned_off()
   return patterns
 end
 
+---@param patterns string[]
+---@return table<integer, true>
 local function first_letters(patterns)
+  ---@type table<integer, true>
   local letters = {}
   for _, pattern in ipairs(patterns) do
     letters[pattern:byte(2)] = true
@@ -92,6 +132,9 @@ local function first_letters(patterns)
   return letters
 end
 
+---@param name string
+---@param patterns string[]
+---@return boolean
 local function matches_any(name, patterns)
   for _, pattern in ipairs(patterns) do
     if name:find(pattern) then return true end
@@ -100,6 +143,8 @@ local function matches_any(name, patterns)
   return false
 end
 
+---@param built parhelion.Built
+---@param changed parhelion.Changes
 local function turn_off_plugins(built, changed)
   local patterns = patterns_turned_off()
   local letters = first_letters(patterns)
@@ -111,6 +156,8 @@ local function turn_off_plugins(built, changed)
   end
 end
 
+---@param built parhelion.Built
+---@param changed parhelion.Changes
 local function clear_backgrounds(built, changed)
   for _, name in ipairs(built.transparent_clears) do
     local hl = drawn(built, changed, name)
@@ -118,6 +165,9 @@ local function clear_backgrounds(built, changed)
   end
 end
 
+---@param style "bold"|"italic"
+---@param built parhelion.Built
+---@param changed parhelion.Changes
 local function remove_style(style, built, changed)
   for name in pairs(built.groups) do
     local hl = drawn(built, changed, name)
@@ -129,6 +179,8 @@ local raises_on_a_missing_color = {
   __index = function(_, name) error(string.format("parhelion has no color named %s", name), 2) end,
 }
 
+---@param built parhelion.Built
+---@return table<string, string>
 local function colors(built) return setmetatable(vim.deepcopy(built.colors), raises_on_a_missing_color) end
 
 local scratch = vim.api.nvim_create_namespace "parhelion.overrides"
@@ -169,7 +221,10 @@ local function validate_overrides(overrides)
   end
 end
 
+---@param groups table<string, parhelion.Highlight>
+---@return table<string, string>
 local function spellings(groups)
+  ---@type table<string, string>
   local spelling = {}
   for name in pairs(groups) do
     spelling[name:lower()] = name
@@ -178,6 +233,8 @@ local function spellings(groups)
   return spelling
 end
 
+---@param built parhelion.Built
+---@param changed parhelion.Changes
 local function apply_overrides(built, changed)
   local overrides = options.overrides
   if type(overrides) == "function" then
@@ -186,6 +243,7 @@ local function apply_overrides(built, changed)
   end
   validate_overrides(overrides)
 
+  ---@type table<string, string>?
   local spelling
   for name, override in pairs(overrides) do
     if built.groups[name] == nil then
@@ -206,7 +264,10 @@ end
 local function turns_a_plugin_off() return vim.tbl_contains(vim.tbl_values(options.plugins), false) end
 
 -- The groups the options change, each mapped to its new attributes or to false when the load sets none.
+---@param built parhelion.Built
+---@return parhelion.Changes
 local function changes(built)
+  ---@type parhelion.Changes
   local changed = {}
   if turns_a_plugin_off() then turn_off_plugins(built, changed) end
   if options.transparent then clear_backgrounds(built, changed) end
@@ -218,6 +279,8 @@ local function changes(built)
   return changed
 end
 
+---@param groups table<string, parhelion.Highlight>
+---@param changed parhelion.Changes
 local function set_groups(groups, changed)
   for name, hl in pairs(groups) do
     if changed[name] == nil then vim.api.nvim_set_hl(0, name, hl) end
@@ -250,7 +313,9 @@ end
 ---@param user_options? parhelion.UserOptions
 function M.setup(user_options)
   user_options = user_options or {}
-  for name in pairs(user_options) do
+  ---@type table<string, unknown>
+  local given = user_options
+  for name in pairs(given) do
     if defaults[name] == nil then error(string.format("parhelion has no option named %s", name), 2) end
   end
 
@@ -298,11 +363,15 @@ end
 function M.draws_bold() return options.bold end
 
 local built_directory = directory .. "built/"
+---@type table<parhelion.Background, parhelion.Built>
 local built_tables = {}
 
 ---@private
+---@param background parhelion.Background
+---@return parhelion.Built
 function M.built(background)
   if not built_tables[background] then
+    ---@type parhelion.Built
     local built = assert(loadfile(built_directory .. background .. ".lua"))()
     setmetatable(built.colors, raises_on_a_missing_color)
     built_tables[background] = built

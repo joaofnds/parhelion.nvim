@@ -92,9 +92,15 @@ M.scale = strict("scale", {
   },
 })
 
+---@alias parhelion.Accent "yellow"|"orange"|"red"|"magenta"|"violet"|"blue"|"cyan"|"green"
+
+---@type parhelion.Accent[]
 local accent_names = { "yellow", "orange", "red", "magenta", "violet", "blue", "cyan", "green" }
 
+---@param background parhelion.Background
+---@return table<parhelion.Accent, string>
 local function toned_accents(background)
+  ---@type table<parhelion.Accent, string>
   local accents = {}
   for _, name in ipairs(accent_names) do
     accents[name] = tone(background, solarized[name])
@@ -123,16 +129,32 @@ M.label_hues = strict("label_hues", {
   },
 })
 
-local function base_look(background, name)
-  local hl = require("parhelion.base." .. background).groups[name]
+---@param background parhelion.Background
+---@param name string
+---@return parhelion.Highlight
+local function base_group(background, name)
+  ---@type parhelion.Base
+  local base = require("parhelion.base." .. background)
 
-  return { fg = tone(background, hl.fg):lower(), bold = hl.bold }
+  return base.groups[name]
 end
 
-local function base_fill(background, name)
-  local hl = require("parhelion.base." .. background).groups[name]
+---@param background parhelion.Background
+---@param name string
+---@return parhelion.Highlight
+local function base_look(background, name)
+  local hl = base_group(background, name)
 
-  return { bg = tone(background, hl.bg):lower() }
+  return { fg = tone(background, assert(hl.fg)):lower(), bold = hl.bold }
+end
+
+---@param background parhelion.Background
+---@param name string
+---@return parhelion.Highlight
+local function base_fill(background, name)
+  local hl = base_group(background, name)
+
+  return { bg = tone(background, assert(hl.bg)):lower() }
 end
 
 M.mode_hues = {
@@ -148,6 +170,8 @@ M.dimmed = {
   light = M.scale.light.raised,
 }
 
+---@param background parhelion.Background
+---@return table<string, parhelion.Highlight>
 local function looks(background)
   local scale = M.scale[background]
   local hues = M.label_hues[background]
@@ -1208,6 +1232,9 @@ M.links = {
   SnacksNormalNC = "NormalFloat",
 }
 
+---@param groups table<string, parhelion.Highlight>
+---@param family_name string
+---@param look table<string, parhelion.Highlight>
 local function add_family(groups, family_name, look)
   for role, names in pairs(M.families[family_name]) do
     local hl = look[role] or error(string.format("the %s family names %s, which is not a look", family_name, role), 0)
@@ -1217,7 +1244,10 @@ local function add_family(groups, family_name, look)
   end
 end
 
+---@param groups table<string, parhelion.Highlight>
+---@return table<string, true>
 local function names_in_lowercase(groups)
+  ---@type table<string, true>
   local names = {}
   for name in pairs(groups) do
     names[name:lower()] = true
@@ -1226,9 +1256,12 @@ local function names_in_lowercase(groups)
   return names
 end
 
+---@param background parhelion.Background
+---@return table<string, parhelion.Highlight>
 function M.groups(background)
   local look = looks(background)
 
+  ---@type table<string, parhelion.Highlight>
   local groups = {}
   for family_name in pairs(M.families) do
     add_family(groups, family_name, look)
@@ -1243,7 +1276,11 @@ function M.groups(background)
   return groups
 end
 
+---@param background parhelion.Background
+---@param family_name string
+---@return table<string, parhelion.Highlight>
 function M.family_groups(background, family_name)
+  ---@type table<string, parhelion.Highlight>
   local groups = {}
   add_family(groups, family_name, looks(background))
 
