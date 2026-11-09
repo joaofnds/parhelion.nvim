@@ -176,8 +176,8 @@ Highlight groups ship for these plugins:
 
 ## Tests
 
-`make test` runs the suite, `make bench` times a load against its floor, and `make format-check` checks the formatting
-with StyLua. [DESIGN.md](DESIGN.md) lists what the suite needs.
+`make test` runs the suite, `make bench` times a load against a colorscheme that only writes the same groups, and
+`make format-check` checks the formatting with StyLua. [DESIGN.md](DESIGN.md) lists what the suite needs.
 
 ## Thanks
 
