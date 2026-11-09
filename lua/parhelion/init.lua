@@ -1,5 +1,18 @@
 local M = {}
 
+---@alias parhelion.Groups table<string, vim.api.keyset.highlight>
+
+---@class parhelion.Options
+---@field transparent boolean
+---@field dim_inactive boolean
+---@field bold boolean
+---@field italic boolean
+---@field overrides parhelion.Groups|fun(colors: table<string, string>): parhelion.Groups
+---@field plugins table<string, boolean>
+
+---@class (partial) parhelion.UserOptions: parhelion.Options
+
+---@type parhelion.Options
 local defaults = {
   transparent = false,
   dim_inactive = false,
@@ -9,6 +22,7 @@ local defaults = {
   plugins = {},
 }
 
+---@type parhelion.Options
 local options = vim.deepcopy(defaults)
 
 local fzf_colors = {
@@ -223,6 +237,17 @@ local function set_fzf_colors()
   end
 end
 
+---@generic T
+---@param given T?
+---@param default T
+---@return T
+local function given_or(given, default)
+  if given == nil then return default end
+
+  return given
+end
+
+---@param user_options? parhelion.UserOptions
 function M.setup(user_options)
   user_options = user_options or {}
   for name in pairs(user_options) do
@@ -234,10 +259,11 @@ function M.setup(user_options)
   vim.validate("bold", user_options.bold, "boolean", true)
   vim.validate("italic", user_options.italic, "boolean", true)
 
-  vim.validate("overrides", user_options.overrides, { "table", "function" }, true)
-  if type(user_options.overrides) == "table" then
-    validate_overrides(user_options.overrides)
-    for name, override in pairs(user_options.overrides) do
+  local overrides = user_options.overrides
+  vim.validate("overrides", overrides, { "table", "function" }, true)
+  if type(overrides) == "table" then
+    validate_overrides(overrides)
+    for name, override in pairs(overrides) do
       refuse_what_neovim_refuses(name, override)
     end
   end
@@ -251,7 +277,14 @@ function M.setup(user_options)
   end
 
   local previous = options
-  options = vim.tbl_extend("force", defaults, user_options)
+  options = {
+    transparent = given_or(user_options.transparent, defaults.transparent),
+    dim_inactive = given_or(user_options.dim_inactive, defaults.dim_inactive),
+    bold = given_or(user_options.bold, defaults.bold),
+    italic = given_or(user_options.italic, defaults.italic),
+    overrides = given_or(user_options.overrides, defaults.overrides),
+    plugins = given_or(user_options.plugins, defaults.plugins),
+  }
   if vim.g.colors_name ~= "parhelion" then return end
 
   local reloaded, message = pcall(vim.cmd.colorscheme, "parhelion")
