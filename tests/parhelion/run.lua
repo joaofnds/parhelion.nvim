@@ -2531,7 +2531,6 @@ test("setup with the defaults written out requires no module but parhelion", fun
     ]]
 
     ---@type string[]
-    ---@type string[]
     local required = world:lua(modules_of_parhelion_loaded)
     assert(vim.deep_equal(required, { "parhelion" }), vim.inspect(required))
   end)
@@ -3980,7 +3979,6 @@ for _, path in ipairs { paths[1], paths[2] } do
 
         ---@type boolean, string?, table<string, vim.api.keyset.get_hl_info>, boolean, table<string, vim.api.keyset.get_hl_info>
         local accepted, message, after, reloaded, reloaded_look = unpack(world:lua([[
-          ---@type boolean, string?
           local accepted, message = pcall(require("parhelion").setup, { overrides = ]] .. case.overrides .. [[ })
           local after = vim.api.nvim_get_hl(0, {})
           local reloaded = pcall(vim.cmd.colorscheme, "parhelion")
