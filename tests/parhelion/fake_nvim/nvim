@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Stands in for nvim in the bench's tests, printing the first load and reload timings that
+# PARHELION_FAKE_TIMINGS_<colorscheme> holds.
+set -euo pipefail
+timings=PARHELION_FAKE_TIMINGS_$PARHELION_BENCH_COLORSCHEME
+echo "${!timings}"

@@ -56,8 +56,8 @@ for background in dark light; do
 
     first=$(median parhelion 2 "$times") floor_first=$(median parhelion_floor 2 "$times")
     reload=$(median parhelion 3 "$times") floor_reload=$(median parhelion_floor 3 "$times")
-    ratio=$(awk -v a="$first" -v b="$floor_first" 'BEGIN { printf "%.2f", a / b }')
-    printf "%-5s loader %-3s first load %.2f ms, floor %.2f ms, %sx | reload %.2f ms, floor %.2f ms\n" \
+    ratio=$(awk -v a="$first" -v b="$floor_first" 'BEGIN { printf "%.17g", a / b }')
+    printf "%-5s loader %-3s first load %.2f ms, floor %.2f ms, %.3fx | reload %.2f ms, floor %.2f ms\n" \
       "$background" "$([ "$loader" = 1 ] && echo on || echo off)" "$first" "$floor_first" "$ratio" \
       "$reload" "$floor_reload"
     if awk -v r="$ratio" 'BEGIN { exit !(r > 1.25) }'; then slow=1; fi
