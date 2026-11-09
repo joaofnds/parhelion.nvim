@@ -2570,23 +2570,25 @@ test("every file git tracks under extras is a terminal theme the built tables gi
 	expect_none(unknown, "files under extras have no source, so delete them")
 end)
 
+local pinned_families = vim.list.unique(vim.list_extend({
+	"diff_lines",
+	"diff_marks",
+	"diffview",
+	"gitsigns",
+	"headlines",
+	"lazy",
+	"markdown_text",
+	"markview",
+	"mason",
+	"mini_clue",
+	"mini_diff",
+	"neogit",
+	"render_markdown",
+	"which_key",
+}, dofile(root .. "/tests/parhelion/base_refined/families.lua")))
+
 for _, background in ipairs { "dark", "light" } do
-	for _, family_name in ipairs {
-		"diff_lines",
-		"diff_marks",
-		"diffview",
-		"gitsigns",
-		"headlines",
-		"lazy",
-		"markdown_text",
-		"markview",
-		"mason",
-		"mini_clue",
-		"mini_diff",
-		"neogit",
-		"render_markdown",
-		"which_key",
-	} do
+	for _, family_name in ipairs(pinned_families) do
 		test(string.format("every name in %s has a pinned look in %s", family_name, background), function()
 			local unpinned = vim.tbl_filter(
 				function(name) return approved[background][name] == nil end,

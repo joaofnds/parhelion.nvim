@@ -548,7 +548,8 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   role in each family of `chrome.lua` with their exact look, per mode, and each row is a test on the two load paths that
   end in that mode. A test fails when a tone or a role has no pinned group, or when a name has none in the diff lines,
   the diff marks, Diffview, gitsigns, headlines, lazy.nvim, markdown text, markview, mason, mini.clue, mini.diff,
-  Neogit, render-markdown or which-key, since those are the families whose hues and washes the other checks accept.
+  Neogit, render-markdown or which-key, since those are the families whose hues and washes the other checks accept, or
+  in a family the base side of the render comparison applies too, since that comparison cannot see a change to it.
   Changing a tone, a repair, a step or a role means changing this table on purpose.
 - On each wash a comment clears Lc 30, body text reaches 4.5:1, and the raised step sits at least 5 away. `DiffChange`
   holds its wash, and Neogit's cursor rows and focused header differ from the rows around them.
