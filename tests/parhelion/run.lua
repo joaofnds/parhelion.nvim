@@ -4256,10 +4256,52 @@ end)
 
 local reproduction_placeholder = "/path/to/parhelion.nvim"
 
+local reproduction_in_form = [=[
+local form = ...
+local tree = vim.treesitter.get_string_parser(form, "yaml"):parse()[1]
+assert(not tree:root():has_error(), "the bug report form is not valid YAML")
+
+local field = vim.treesitter.query.parse("yaml", [[
+  (block_mapping
+    (block_mapping_pair
+      key: (flow_node) @key (#eq? @key "id")
+      value: (flow_node) @id (#eq? @id "reproduction"))) @field
+]])
+local value = vim.treesitter.query.parse("yaml", [[
+  (block_mapping_pair
+    key: (flow_node) @key (#eq? @key "value")
+    value: (block_node (block_scalar) @value))
+]])
+for id, field_node in field:iter_captures(tree:root(), form) do
+  if field.captures[id] == "field" then
+    for value_id, value_node in value:iter_captures(field_node, form) do
+      if value.captures[value_id] == "value" then
+        return (vim.treesitter.get_node_text(value_node, form):gsub("^[^\n]*\n", ""))
+      end
+    end
+  end
+end
+error "the bug report form has no reproduction field with a value"
+]=]
+
+---@return string
+local function reproduction_the_form_gives()
+  local form = table.concat(vim.fn.readfile(root .. "/.github/ISSUE_TEMPLATE/bug_report.yml"), "\n")
+  ---@type string
+  local reproduction
+
+  in_world("parhelion", paths[1], function(world)
+    ---@type string
+    local text = world:lua(reproduction_in_form, form)
+    reproduction = text
+  end)
+
+  return reproduction
+end
+
 ---@return string path
 local function reproduction_on_this_checkout()
-  local block = code_block(".github/ISSUE_TEMPLATE/bug_report.yml", "id: reproduction", "^%s+value: |$", "^    %S")
-  local parts = vim.split(block, reproduction_placeholder, { plain = true })
+  local parts = vim.split(reproduction_the_form_gives(), reproduction_placeholder, { plain = true })
   assert(#parts == 2, "the reproduction does not name " .. reproduction_placeholder .. " once")
 
   local path = vim.fn.tempname() .. ".lua"
