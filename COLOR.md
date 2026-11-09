@@ -251,7 +251,7 @@ The rules, in both modes:
 | raised | Cursor line, code blocks, menus with no border | `#073642` | 30.9 | `#eee8d5` | 93.1 |
 | selected | List selection, occurrence highlights | `#0d414e` | 34.9 | `#e2dbc7` | 89.2 |
 | hairline | Borders, separators, indent guides | `#27505b` | 40.6 | `#c9c6b6` | 82.5 |
-| ghost | Inline suggestions, inlay hints, dimmed notifications | `#71888f` | 61.1 | `#798686` | 60.9 |
+| ghost | The comment color, for Copilot's and Avante's suggestions, inlay hints, dimmed notifications | `#71888f` | 61.1 | `#798686` | 60.9 |
 | quiet | Icons, kinds, hashes, most counts, the paths beside a file name | `#71888f` | 61.1 | `#728284` | 59.4 |
 | body | Text | `#93a1a1` | 69.8 | `#586e75` | 52.3 |
 | strong | Titles outside the label families, directories, selected text | `#c9ccc3` | 84.0 | `#2a4c55` | 39.4 |
