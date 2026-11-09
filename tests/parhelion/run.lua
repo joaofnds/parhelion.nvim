@@ -2649,6 +2649,14 @@ test("make lintcommit names a commit on HEAD that origin/main lacks", function()
 	assert(linted.stderr:match "^%x+ is not a Conventional Commit: bump application version\n", linted.stderr)
 end)
 
+test("make lintcommit ignores a RANGE in the environment", function()
+	local repository = { GIT_DIR = fixture .. "/.git", RANGE = "HEAD..HEAD" }
+
+	local linted = vim.system({ "make", "-C", root, "lintcommit" }, { env = repository, text = true }):wait(10000)
+
+	assert(linted.code == 2, string.format("make exited %d: %s", linted.code, linted.stderr))
+end)
+
 local modules_a_theme_file_requires = [[
 	local theme_file = ...
 	require(theme_file)

@@ -1,5 +1,5 @@
 SHELL := bash
-RANGE ?= origin/main..HEAD
+RANGE = origin/main..HEAD
 
 .PHONY: build test bench format-check lintcommit
 
