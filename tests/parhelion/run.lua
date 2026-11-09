@@ -3401,16 +3401,57 @@ local function groups_a_setup_block_changes(block)
 	return changed
 end
 
+local function readme_options_block() return code_block("README.md", "^## Options", "^```lua$", "^```$") end
+
+local function help_defaults_block() return code_block("doc/parhelion.txt", "The defaults: >lua", ">lua$", "^<") end
+
+local function options_the_help_documents()
+	local names, in_options = {}, false
+	for line in io.lines(root .. "/doc/parhelion.txt") do
+		if line:find "%*parhelion%-options%*" then in_options = true end
+		if line:find "%*parhelion%-plugins%*" then break end
+		local name = in_options and line:match "^([%l_]+) ~$"
+		if name then table.insert(names, name) end
+	end
+	assert(#names > 0, "the help page documents no option")
+	table.sort(names)
+
+	return names
+end
+
+local function options_a_setup_block_names(block)
+	local names = {}
+	for _, line in ipairs(vim.split(block, "\n")) do
+		local name = line:match "^%s*([%l_]+) = "
+		if name then table.insert(names, name) end
+	end
+	table.sort(names)
+
+	return names
+end
+
 test("the README's options block, run as written, draws what no setup draws", function()
-	local block = code_block("README.md", "^## Options", "^```lua$", "^```$")
+	local block = readme_options_block()
 
 	expect_none(groups_a_setup_block_changes(block), "groups change")
 end)
 
 test("the help page's defaults, run as written, draw what no setup draws", function()
-	local block = code_block("doc/parhelion.txt", "The defaults: >lua", ">lua$", "^<")
+	local block = help_defaults_block()
 
 	expect_none(groups_a_setup_block_changes(block), "groups change")
+end)
+
+test("the README's options block names each option the help page documents", function()
+	local named = options_a_setup_block_names(readme_options_block())
+
+	assert(vim.deep_equal(named, options_the_help_documents()), "the block names " .. table.concat(named, " "))
+end)
+
+test("the help page's defaults name each option the help page documents", function()
+	local named = options_a_setup_block_names(help_defaults_block())
+
+	assert(vim.deep_equal(named, options_the_help_documents()), "the defaults name " .. table.concat(named, " "))
 end)
 
 test("every plugin's patterns fix the letter the names they match start with", function()
