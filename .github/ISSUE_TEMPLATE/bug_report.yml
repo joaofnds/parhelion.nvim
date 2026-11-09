@@ -1,0 +1,67 @@
+name: Bug report
+description: A group drawn in the wrong color, an option that does nothing, or an error from parhelion.
+labels: [bug]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What looks wrong
+      description: What you see, where you see it, and what you expected to see.
+    validations:
+      required: true
+  - type: dropdown
+    id: background
+    attributes:
+      label: Background
+      options:
+        - dark
+        - light
+        - both
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: >-
+        Save this as repro.lua, set the path to a clone of parhelion.nvim, put each plugin the problem needs on the
+        runtimepath the same way and set it up as your config does, then check that `nvim --clean -u repro.lua` shows
+        the problem.
+      render: lua
+      value: |
+        vim.opt.runtimepath:prepend "/path/to/parhelion.nvim"
+        require("parhelion").setup {}
+        vim.cmd.colorscheme "parhelion"
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      description: The parhelion.nvim commit that shows the problem, from `git rev-parse --short HEAD` in its clone.
+    validations:
+      required: true
+  - type: textarea
+    id: inspect
+    attributes:
+      label: Highlight groups
+      description: The output of `:Inspect` with the cursor on the text that looks wrong.
+      render: text
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: A screenshot of the problem in the reproduction.
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal
+      description: The terminal or GUI Neovim runs in, and its version.
+  - type: textarea
+    id: version
+    attributes:
+      label: Neovim version
+      description: The output of `nvim --version`.
+      render: text
+    validations:
+      required: true

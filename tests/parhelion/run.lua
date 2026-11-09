@@ -4254,6 +4254,41 @@ test("the help page's defaults name each option the help page documents", functi
   )
 end)
 
+local reproduction_placeholder = "/path/to/parhelion.nvim"
+
+---@return string path
+local function reproduction_on_this_checkout()
+  local block = code_block(".github/ISSUE_TEMPLATE/bug_report.yml", "id: reproduction", "^%s+value: |$", "^    %S")
+  local parts = vim.split(block, reproduction_placeholder, { plain = true })
+  assert(#parts == 2, "the reproduction does not name " .. reproduction_placeholder .. " once")
+
+  local path = vim.fn.tempname() .. ".lua"
+  vim.fn.writefile(vim.split(table.concat(parts, root), "\n"), path)
+
+  return path
+end
+
+test("the bug report form's reproduction, run as written on this checkout, loads parhelion", function()
+  local reproduction, xdg = reproduction_on_this_checkout(), vim.fn.tempname()
+
+  local started = vim
+    .system({
+      "nvim",
+      "--clean",
+      "--headless",
+      "-u",
+      reproduction,
+      "+lua io.write(vim.g.colors_name or 'no colorscheme', ' [', vim.v.errmsg, ']')",
+      "+qa!",
+    }, {
+      env = { XDG_CONFIG_HOME = xdg, XDG_DATA_HOME = xdg, XDG_STATE_HOME = xdg, XDG_CACHE_HOME = xdg },
+      text = true,
+    })
+    :wait(10000)
+
+  assert(started.stdout == "parhelion []", string.format("nvim wrote %q and %q", started.stdout, started.stderr))
+end)
+
 test("every plugin's patterns fix the letter the names they match start with", function()
   local loose = {}
   for plugin, patterns in pairs(plugins) do
