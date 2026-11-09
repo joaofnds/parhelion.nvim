@@ -1,9 +1,35 @@
 {
   "runtime": {
-    "version": "LuaJIT"
+    "version": "LuaJIT",
+    "path": ["lua/?.lua", "lua/?/init.lua", "tests/parhelion/?.lua"]
   },
   "workspace": {
     "checkThirdParty": false,
     "library": ["$VIMRUNTIME/lua"]
+  },
+  "diagnostics": {
+    "groupFileStatus": {
+      "ambiguity": "Any",
+      "await": "Any",
+      "codestyle": "Any",
+      "conventions": "Any",
+      "duplicate": "Any",
+      "global": "Any",
+      "luadoc": "Any",
+      "redefined": "Any",
+      "strict": "Any",
+      "strong": "Any",
+      "type-check": "Any",
+      "unbalanced": "Any",
+      "unused": "Any"
+    },
+    "disable": ["codestyle-check", "spell-check", "name-style-check"]
+  },
+  "type": {
+    "castNumberToInteger": false,
+    "checkTableShape": true,
+    "inferParamType": true,
+    "weakNilCheck": false,
+    "weakUnionCheck": false
   }
 }

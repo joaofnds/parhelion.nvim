@@ -19,6 +19,8 @@ format-check:
 
 lint:
 	shellcheck $(SHELL_SCRIPTS)
+	VIMRUNTIME="$$(nvim --clean --headless +'lua io.write(vim.env.VIMRUNTIME)' +q)" \
+		lua-language-server --check=. --checklevel=Hint --configpath=.luarc.json --check_format=pretty
 
 lintcommit:
 	set -o pipefail; git log --no-merges --format='%h %s' $(RANGE) | tests/parhelion/lintcommit.sh

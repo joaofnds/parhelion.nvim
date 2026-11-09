@@ -178,7 +178,7 @@ Highlight groups ship for these plugins:
 
 `make test` runs the suite, `make bench` times a load against a colorscheme that only writes the same groups,
 `make format-check` checks the formatting with StyLua and shfmt, and `make lint` checks the shell scripts with
-ShellCheck. [DESIGN.md](DESIGN.md) lists what the suite needs.
+ShellCheck and the Lua's types with lua-language-server. [DESIGN.md](DESIGN.md) lists what the suite needs.
 
 ## Thanks
 

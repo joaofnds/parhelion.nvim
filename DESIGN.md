@@ -384,11 +384,21 @@ Set `PARHELION_TEST_FILTER=<substring>` to run the tests whose name contains it.
 non-zero. The whole suite takes about eight minutes on an Apple M5 Pro once the dependencies are fetched.
 
 `.github/workflows/parhelion.yml` runs the suite, the load bench, a formatting check with StyLua and shfmt and a
-ShellCheck lint on a pull request, on a push to `main` and every Monday, which needs the repository hosted on GitHub.
-In a clone with no such remote they only run by hand, as `make test`, `make bench`, `make format-check` and
-`make lint`. `.shellcheckrc` turns on every optional check, so ShellCheck also asks for braces around each variable
-and for `[[` in place of `[`. shfmt takes its indent from `.editorconfig`, which names the one shell script without a
-`.sh` extension, `tests/parhelion/fake_nvim/nvim`, so a new one needs a section there too, or shfmt asks for tabs.
+lint with ShellCheck and lua-language-server on a pull request, on a push to `main` and every Monday, which needs the
+repository hosted on GitHub. In a clone with no such remote they only run by hand, as `make test`, `make bench`,
+`make format-check` and `make lint`. `.shellcheckrc` turns on every optional check, so ShellCheck also asks for braces
+around each variable and for `[[` in place of `[`. shfmt takes its indent from `.editorconfig`, which names the one
+shell script without a `.sh` extension, `tests/parhelion/fake_nvim/nvim`, so a new one needs a section there too, or
+shfmt asks for tabs.
+
+`make lint` type-checks the clone's Lua files with lua-language-server, leaving out what git ignores. It reads
+`.luarc.json` and takes the types of Neovim's Lua API from the runtime of the `nvim` on the `PATH`. Its runtime path
+finds a required module under `lua/` or `tests/parhelion/`, so a test helper kept anywhere else needs an entry there
+too, or the check fails on every value the helper returns. `.luarc.json` turns on every diagnostic group, so the check
+also fails on a value whose type it cannot infer, and leaves out only the spell check, the naming check and
+lua-language-server's own formatter, since StyLua formats the code. A group takes `Any`, not `Any!`, which
+lua-language-server 3.19.2 ignores without a warning. Where lua-language-server cannot follow a value, as with a table
+loaded by a computed module name, the local that receives it declares its type.
 
 Commit subjects follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). A subject starts with
 one of the types `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` and `revert`, in
