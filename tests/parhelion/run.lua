@@ -3140,6 +3140,29 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
+	test("an override with a color replaces a group parhelion links, " .. path.label, function()
+		local overrides = [[require("parhelion").setup {
+			overrides = function(colors) return { Boolean = { fg = colors.red } } end,
+		}]]
+		with_options(path, overrides, function(world)
+			local boolean = world:lua(resolved_look, "Boolean")
+
+			assert(
+				boolean.fg == require("parhelion.chrome").hues[path.background].red,
+				"the boolean is " .. tostring(boolean.fg)
+			)
+		end)
+	end)
+
+	test("an override sets the bold that bold off removed, " .. path.label, function()
+		local overrides = [[require("parhelion").setup { bold = false, overrides = { Keyword = { bold = true } } }]]
+		with_options(path, overrides, function(world)
+			local keyword = world:lua(resolved_look, "Keyword")
+
+			assert(keyword.bold, "the keyword is not bold")
+		end)
+	end)
+
 	test("an override function gets the mode's colors, " .. path.label, function()
 		local overrides = [[require("parhelion").setup {
 			overrides = function(colors) return { Keyword = { fg = colors.violet, bg = colors.raised } } end,
