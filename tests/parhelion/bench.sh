@@ -55,8 +55,11 @@ ratio() { # time floor
   awk -v time="$1" -v floor="$2" 'BEGIN { printf "%.17g", time / floor }'
 }
 
-over_the_bound() { # ratio
-  awk -v ratio="$1" -v bound="$bound" 'BEGIN { exit !(ratio > bound) }'
+within_the_bound() { # ratio load
+  if awk -v ratio="$1" -v bound="$bound" 'BEGIN { exit !(ratio > bound) }'; then
+    printf '  the %s takes more than %s times its floor\n' "$2" "$bound"
+    return 1
+  fi
 }
 
 slow=0
@@ -80,7 +83,8 @@ for background in dark light; do
     printf "%-5s loader %-3s first load %.2f ms, floor %.2f ms, %.3fx | reload %.2f ms, floor %.2f ms, %.3fx\n" \
       "$background" "$([ "$loader" = 1 ] && echo on || echo off)" "$first" "$floor_first" "$first_ratio" \
       "$reload" "$floor_reload" "$reload_ratio"
-    if over_the_bound "$first_ratio" || over_the_bound "$reload_ratio"; then slow=1; fi
+    within_the_bound "$first_ratio" "first load" || slow=1
+    within_the_bound "$reload_ratio" reload || slow=1
   done
 done
 

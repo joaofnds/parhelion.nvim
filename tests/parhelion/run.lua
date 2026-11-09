@@ -2128,6 +2128,24 @@ for _, case in ipairs {
 	end)
 end
 
+local function lines_naming(stdout, load)
+	local named = string.format("  the %s takes more than 1.25 times its floor", load)
+
+	return #vim.tbl_filter(function(line) return line == named end, vim.split(stdout, "\n", { plain = true }))
+end
+
+for _, case in ipairs {
+	{ slow = "first load", fast = "reload", parhelion = "2.6 1" },
+	{ slow = "reload", fast = "first load", parhelion = "2 1.3" },
+} do
+	test(string.format("the bench names the %s that takes more than its bound", case.slow), function()
+		local bench = bench_with_timings { parhelion = case.parhelion, parhelion_floor = "2 1" }
+
+		assert(lines_naming(bench.stdout, case.slow) == 4, bench.stdout)
+		assert(lines_naming(bench.stdout, case.fast) == 0, bench.stdout)
+	end)
+end
+
 for _, case in ipairs {
 	{ name = "parhelion_dark_0", label = "in dark with vim.loader off" },
 	{ name = "parhelion_dark_1", label = "in dark with vim.loader on" },
