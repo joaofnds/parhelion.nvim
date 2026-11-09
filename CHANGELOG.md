@@ -8,6 +8,8 @@ The changes a user can see, newest release first. A change not yet released goes
 
 - Terminal themes for Ghostty, kitty, WezTerm, Alacritty and iTerm2 in `extras/`, in dark and light, with the page,
   text, cursor, selection and terminal colors parhelion uses in Neovim. The README says how to install each.
+- Types for `setup`'s options. Where lua-language-server loads the plugin, it flags an option of the wrong type in
+  the `setup` call, such as `bold = "yes"`. It does not flag a misspelled option name, which `setup` still raises on.
 
 ### Changed
 
