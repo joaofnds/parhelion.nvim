@@ -32,9 +32,6 @@ The changes a user can see, newest release first. A change not yet released goes
   already had.
 - The current buffer or tab in Neovim's tab line, bufferline, barbar and mini.tabline keeps its strong text on the
   page and loses its bold.
-- The filler rows of a diff window, which stand in for lines the other side lacks, are gray dashes on the page instead
-  of on the removed-line wash. With Diffview's `enhanced_diff_hl` on, the lines a change removed take the same look on
-  the old side, so they are gray text on the page with no wash.
 
 ### Removed
 

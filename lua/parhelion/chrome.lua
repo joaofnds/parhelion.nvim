@@ -397,7 +397,7 @@ M.families = {
     added_word = "DiffTextAdd",
     changed_inline = "DiffText",
     changed_line = "DiffChange",
-    quiet = "DiffDelete",
+    removed_filler = "DiffDelete",
   },
   diffview = {
     accent = "DiffviewFolderSign DiffviewPrimary DiffviewSecondary",
