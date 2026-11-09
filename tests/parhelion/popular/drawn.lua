@@ -34,6 +34,19 @@ local function bar_draws(bar, opts, group)
 	return vim.iter(highlights):any(function(highlight) return vim.list_contains(highlight.groups, group) end)
 end
 
+function M.bordered(filetype)
+	return vim.iter(windows()):any(function(window)
+		local border = vim.api.nvim_win_get_config(window).border
+		return vim.bo[vim.api.nvim_win_get_buf(window)].filetype == filetype and type(border) == "table"
+	end)
+end
+
+function M.shows_the_last_line() return vim.fn.line "w$" == vim.fn.line "$" end
+
+function M.tabline_holds(text)
+	return vim.api.nvim_eval_statusline(vim.o.tabline, { use_tabline = true }).str:find(text, 1, true) ~= nil
+end
+
 function M.draws(group)
 	return vim.iter(windows()):any(function(window) return window_draws(window, group) end)
 		or bar_draws(vim.o.tabline, { use_tabline = true }, group)

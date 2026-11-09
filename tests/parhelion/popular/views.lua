@@ -8,8 +8,14 @@ local function shows(filetype) return string.format("%s.shows(%q)", drawn, filet
 
 local function draws(group) return string.format("%s.draws(%q)", drawn, group) end
 
+local function bordered(filetype) return string.format("%s.bordered(%q)", drawn, filetype) end
+
+local function tabline_holds(text) return string.format("%s.tabline_holds(%q)", drawn, text) end
+
+local shows_the_last_line = drawn .. ".shows_the_last_line()"
+
 local function view(name, spec)
-	assert(spec.drawn, name .. " names nothing its plugin draws")
+	assert(spec.drawn and #spec.drawn > 0, name .. " names nothing its plugin draws")
 
 	spec.name = name
 	table.insert(M.list, spec)
@@ -94,10 +100,10 @@ view("oil", {
 	run = function(nvim) cmd(nvim, "Oil", 900) end,
 })
 
-local function cmp_view(name, window)
+local function cmp_view(name, drawn, window)
 	view(name, {
 		plugins = { "nvim-cmp" },
-		drawn = { shows "cmp_menu" },
+		drawn = drawn,
 		setup = function()
 			local cmp = require "cmp"
 			local source = {}
@@ -133,17 +139,17 @@ local function cmp_view(name, window)
 	})
 end
 
-cmp_view("cmp", function() return {} end)
+cmp_view("cmp", { shows "cmp_menu" }, function() return {} end)
 
-cmp_view("cmp-bordered", function(cmp)
+cmp_view("cmp-bordered", { bordered "cmp_menu" }, function(cmp)
 	local bordered = cmp.config.window.bordered { border = "rounded" }
 	return { completion = bordered, documentation = bordered }
 end)
 
-local function blink_view(name, menu)
+local function blink_view(name, drawn, menu)
 	view(name, {
 		plugins = { "blink.cmp" },
-		drawn = { shows "blink-cmp-menu" },
+		drawn = drawn,
 		setup = function()
 			require("blink.cmp").setup {
 				fuzzy = { implementation = "lua" },
@@ -160,8 +166,8 @@ local function blink_view(name, menu)
 	})
 end
 
-blink_view("blink", {})
-blink_view("blink-bordered", { border = "rounded" })
+blink_view("blink", { shows "blink-cmp-menu" }, {})
+blink_view("blink-bordered", { bordered "blink-cmp-menu" }, { border = "rounded" })
 
 view("noice", {
 	plugins = { "noice.nvim", "nui.nvim", "nvim-notify" },
@@ -303,7 +309,7 @@ view("indent-rainbow", {
 
 view("illuminate-diagnostics", {
 	plugins = { "vim-illuminate" },
-	drawn = { draws "IlluminatedWordText" },
+	drawn = { draws "IlluminatedWordText", draws "DiagnosticVirtualTextError" },
 	run = function(nvim)
 		code_with_lsp(nvim)
 		nvim:lua "vim.diagnostic.config({ virtual_text = true }); vim.fn.cursor(25, 15)"
@@ -353,7 +359,7 @@ view("render-markdown", {
 
 view("render-markdown-end", {
 	plugins = { "render-markdown.nvim" },
-	drawn = { draws "RenderMarkdownCode" },
+	drawn = { draws "RenderMarkdownTableHead", shows_the_last_line },
 	setup = function() require("render-markdown").setup {} end,
 	run = function(nvim)
 		edit(nvim, rich, 1000)
@@ -374,7 +380,7 @@ view("markview", {
 
 view("markview-end", {
 	plugins = { "markview.nvim" },
-	drawn = { draws "MarkviewCode" },
+	drawn = { draws "MarkviewTableHeader", shows_the_last_line },
 	run = function(nvim)
 		edit(nvim, rich, 1200)
 		nvim:lua "vim.fn.cursor(60, 1)"
@@ -498,7 +504,7 @@ view("bufferline", {
 
 view("bufferline-slant", {
 	plugins = { "bufferline.nvim" },
-	drawn = { draws "BufferLineBufferSelected" },
+	drawn = { tabline_holds "\u{e0bc}" },
 	setup = function() require("bufferline").setup { options = { separator_style = "slant" } } end,
 	run = function(nvim)
 		edit(nvim, "notes.md")
@@ -511,7 +517,7 @@ view("bufferline-slant", {
 
 view("bufferline-diagnostics", {
 	plugins = { "bufferline.nvim" },
-	drawn = { draws "BufferLineBufferSelected" },
+	drawn = { draws "BufferLineErrorDiagnosticSelected" },
 	setup = function()
 		require("bufferline").setup {
 			options = {
