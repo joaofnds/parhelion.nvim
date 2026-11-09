@@ -3371,13 +3371,13 @@ test("the help page names every plugin that can be turned off", function()
 	assert(vim.deep_equal(named, names), "the help names " .. table.concat(named, " "))
 end)
 
-local function code_block(path, marker, opening, closing)
+local function code_block(path, marker, opening_line, closing_line)
 	local code, marked, open = {}, false, false
 	for line in io.lines(root .. "/" .. path) do
 		marked = marked or line:find(marker) ~= nil
-		if open and line:find(closing) then break end
+		if open and line:find(closing_line) then break end
 		if open then table.insert(code, line) end
-		open = open or (marked and line:find(opening) ~= nil)
+		open = open or (marked and line:find(opening_line) ~= nil)
 	end
 	assert(#code > 0, path .. " has no code block after " .. marker)
 
