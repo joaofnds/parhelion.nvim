@@ -2572,6 +2572,21 @@ for _, slower_starts in ipairs { "odd", "even" } do
 	)
 end
 
+for _, version in ipairs { "v0.11.0", "0.12.6", "stable" } do
+	test(string.format("the CI install refuses Neovim %s", version), function()
+		local env = { PARHELION_NEOVIM = version }
+
+		local install = vim.system({ "bash", root .. "/tests/parhelion/ci-install.sh" }, { env = env, text = true })
+			:wait(10000)
+
+		assert(install.code == 2, string.format("the install exited %d: %s", install.code, install.stderr))
+		assert(
+			install.stderr == string.format('PARHELION_NEOVIM must be v0.12.6 or nightly, not "%s"\n', version),
+			install.stderr
+		)
+	end)
+end
+
 local function lint(commits)
 	return vim.system({ "bash", root .. "/tests/parhelion/lintcommit.sh" }, { stdin = commits, text = true })
 		:wait(10000)
