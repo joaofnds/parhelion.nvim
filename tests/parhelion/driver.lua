@@ -232,7 +232,7 @@ function Nvim:drawn_row(row)
 	for col = 0, self.cols - 1 do
 		local cell = self.grid[row - 1][col]
 		local style = style_of(self.attrs[cell[2]] or {}, self.defaults)
-		table.insert(cells, { text = cell[1], fg = style.fg, bg = style.bg })
+		table.insert(cells, { text = cell[1], fg = style.fg, bg = style.bg, flags = style.flags })
 	end
 
 	return cells

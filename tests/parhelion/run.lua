@@ -1364,31 +1364,6 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
-for _, path in ipairs { paths[3], paths[4] } do
-	test("the feline statusline, built before a toggle, gives the new mode's colors, " .. path.label, function()
-		in_world("parhelion", path, function(world)
-			world:lua("_G.statusline = loadstring(...)()", feline_statusline)
-			toggle_when_path_requires_it(world, "parhelion", path)
-
-			local colors = world:lua(feline_colors_by_slot, "return _G.statusline")
-
-			local want = approved_presets[path.background].feline
-			assert(vim.deep_equal(colors, want), vim.inspect { got = colors, want = want })
-		end)
-	end)
-end
-
-test("the feline statusline, built before bold is turned off, writes its mode without bold", function()
-	in_world("parhelion", paths[1], function(world)
-		world:lua("_G.statusline = loadstring(...)()", feline_statusline)
-		world:lua [[require("parhelion").setup { bold = false }]]
-
-		local cell = world:lua "return _G.statusline.active[1][1].hl()"
-
-		assert(cell.style == nil, "the mode is written in " .. tostring(cell.style))
-	end)
-end)
-
 local feline_draws_parhelions_statusline_in_every_buffer = [[
 	vim.opt.rtp:append(vim.env.PARHELION_DEPS .. "/feline.nvim")
 	require("feline").setup {
@@ -1407,8 +1382,53 @@ local function drawn_statusline(world)
 		mode_width = mode_width + 1
 	end
 
-	return { text = table.concat(texts), mode = table.concat(texts, "", 1, mode_width), hue = cells[1].bg }
+	return {
+		text = table.concat(texts),
+		mode = table.concat(texts, "", 1, mode_width),
+		hue = cells[1].bg,
+		mode_cell = cells[1],
+		file_name_cell = cells[mode_width + 1],
+	}
 end
+
+local function approved_feline_colors(background)
+	local feline = approved_presets[background].feline
+	return {
+		mode = { fg = feline[".active.1.1.hl.fg"], bg = feline[".active.1.1.hl.bg"] },
+		file_name = { fg = feline[".active.1.3.hl.fg"], bg = feline[".active.1.3.hl.bg"] },
+	}
+end
+
+for _, path in ipairs { paths[3], paths[4] } do
+	test("the feline statusline, drawn before a toggle, draws the new mode's colors, " .. path.label, function()
+		in_world("parhelion", path, function(world)
+			world:lua(feline_draws_parhelions_statusline_in_every_buffer)
+			drawn_statusline(world)
+
+			toggle_when_path_requires_it(world, "parhelion", path)
+
+			local statusline = drawn_statusline(world)
+			local drawn = {
+				mode = { fg = statusline.mode_cell.fg, bg = statusline.mode_cell.bg },
+				file_name = { fg = statusline.file_name_cell.fg, bg = statusline.file_name_cell.bg },
+			}
+			local want = approved_feline_colors(path.background)
+			assert(vim.deep_equal(drawn, want), vim.inspect { drawn = drawn, want = want })
+		end)
+	end)
+end
+
+test("the feline statusline, drawn before bold is turned off, draws its mode without bold", function()
+	in_world("parhelion", paths[1], function(world)
+		world:lua(feline_draws_parhelions_statusline_in_every_buffer)
+		drawn_statusline(world)
+
+		world:lua [[require("parhelion").setup { bold = false }]]
+
+		local statusline = drawn_statusline(world)
+		assert(not statusline.mode_cell.flags:find "bold", statusline.mode_cell.flags)
+	end)
+end)
 
 for _, keys in ipairs { "d", "dv", "dV", "d<C-v>" } do
 	test("the feline statusline names the operator-pending mode after " .. keys, function()
