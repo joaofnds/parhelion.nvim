@@ -365,8 +365,8 @@ Set `PARHELION_TEST_FILTER=<substring>` to run the tests whose name contains it.
 non-zero. The whole suite takes about seven minutes.
 
 `.github/workflows/parhelion.yml` runs the suite, the load bench and a StyLua check on a pull request, on a push to
-`main` and every Monday, which needs the repository hosted on GitHub. In a clone with no such remote they only run by hand, the check as
-`stylua --check --config-path=stylua.toml .`.
+`main` and every Monday, which needs the repository hosted on GitHub. In a clone with no such remote they only run by
+hand, the check as `stylua --check --config-path=stylua.toml .`.
 
 ### When a parser update breaks a query
 
