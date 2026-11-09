@@ -43,8 +43,15 @@ function Nvim.spawn(opts)
 		if chunk then table.insert(self.errors, chunk) end
 	end)
 
-	self:request("nvim_ui_attach", self.cols, self.rows, { rgb = true, ext_linegrid = true })
-	self:wait_for_startup()
+	local started, err = xpcall(function()
+		self:request("nvim_ui_attach", self.cols, self.rows, { rgb = true, ext_linegrid = true })
+		self:wait_for_startup()
+	end, debug.traceback)
+	if not started then
+		self:close()
+		error(err, 0)
+	end
+
 	return self
 end
 

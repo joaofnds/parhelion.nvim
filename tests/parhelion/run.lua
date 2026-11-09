@@ -102,17 +102,31 @@ local function toggle_when_path_requires_it(nvim, theme, path)
 	nvim:request("nvim_command", "colorscheme " .. theme)
 end
 
-local function both_worlds(label, path, plugins, body)
-	local base = start_world("base_refined", path, plugins)
-	local parhelion = start_world("parhelion", path, plugins)
+local function in_worlds(label, starts, body)
+	local worlds = {}
 	local ok, err = xpcall(function()
+		for _, start in ipairs(starts) do
+			table.insert(worlds, start())
+		end
+		body(unpack(worlds))
+	end, debug.traceback)
+
+	for _, world in ipairs(worlds) do
+		world:close()
+	end
+
+	if not ok then record_failure(label, err) end
+end
+
+local function both_worlds(label, path, plugins, body)
+	in_worlds(label .. ", " .. path.label, {
+		function() return start_world("base_refined", path, plugins) end,
+		function() return start_world("parhelion", path, plugins) end,
+	}, function(base, parhelion)
 		toggle_when_path_requires_it(base, "base_refined", path)
 		toggle_when_path_requires_it(parhelion, "parhelion", path)
 		body(base, parhelion)
-	end, debug.traceback)
-	base:close()
-	parhelion:close()
-	if not ok then record_failure(label .. ", " .. path.label, err) end
+	end)
 end
 
 local function closing(world, body)
@@ -679,9 +693,10 @@ for _, path in ipairs { paths[1], paths[2] } do
 end
 
 for _, path in ipairs { paths[1], paths[2] } do
-	local installed = start_world("default", path, false)
-	local absent = start_world("default", path, false, { installed = false })
-	local ok, err = xpcall(function()
+	in_worlds("worlds under another colorscheme, " .. path.label, {
+		function() return start_world("default", path, false) end,
+		function() return start_world("default", path, false, { installed = false }) end,
+	}, function(installed, absent)
 		for _, language in ipairs(query_languages) do
 			local sample = samples .. "/" .. views.sample_for(language)
 			test(
@@ -698,10 +713,7 @@ for _, path in ipairs { paths[1], paths[2] } do
 				end
 			)
 		end
-	end, debug.traceback)
-	installed:close()
-	absent:close()
-	if not ok then record_failure("worlds under another colorscheme, " .. path.label, err) end
+	end)
 end
 
 local group_colors_code = [[
@@ -879,7 +891,9 @@ end
 local feline_statusline = [[return require("parhelion.feline").get_statusline()]]
 
 for _, path in ipairs(paths) do
-	local opened, err = pcall(in_world, "parhelion", path, function(world)
+	in_worlds("the overlay groups load, " .. path.label, {
+		function() return start_world("parhelion", path, false) end,
+	}, function(world)
 		toggle_when_path_requires_it(world, "parhelion", path)
 		local groups = snapshot(world).groups
 
@@ -951,7 +965,6 @@ for _, path in ipairs(paths) do
 			end)
 		end
 	end)
-	if not opened then record_failure("the overlay groups load, " .. path.label, err) end
 end
 
 local search_inside_a_selection = [[
@@ -1539,7 +1552,9 @@ for _, path in ipairs { paths[1], paths[2] } do
 		end)
 	end)
 
-	in_world("parhelion", path, function(world)
+	in_worlds("the fzf colors world, " .. path.label, {
+		function() return start_world("parhelion", path, false) end,
+	}, function(world)
 		local scale = require("parhelion.chrome").scale[path.background]
 		local resolved_code = [[
 			local key = ...
@@ -2734,8 +2749,9 @@ for _, mode in ipairs { "dark", "light" } do
 				color_floor_test,
 			}
 		then
-			local nvim = start_popular(view, mode)
+			local nvim
 			local opened, shot = xpcall(function()
+				nvim = start_popular(view, mode)
 				run_popular(nvim, view)
 				local captured = nvim:capture()
 				captured.groups = vim.json.decode(nvim:lua(group_colors_code))
@@ -2813,7 +2829,7 @@ for _, mode in ipairs { "dark", "light" } do
 				record_failure(view.name .. " opens in " .. mode, shot)
 			end
 
-			nvim:close()
+			if nvim then nvim:close() end
 		end
 	end
 end
