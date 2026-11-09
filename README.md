@@ -32,13 +32,13 @@ With lazy.nvim:
 
 ```lua
 {
-	"joaofnds/parhelion.nvim",
-	lazy = false,
-	priority = 1000,
-	config = function()
-		vim.o.background = "dark" -- or "light"
-		vim.cmd.colorscheme "parhelion"
-	end,
+  "joaofnds/parhelion.nvim",
+  lazy = false,
+  priority = 1000,
+  config = function()
+    vim.o.background = "dark" -- or "light"
+    vim.cmd.colorscheme "parhelion"
+  end,
 }
 ```
 
@@ -51,12 +51,12 @@ shown with their defaults:
 
 ```lua
 require("parhelion").setup {
-	transparent = false, -- clear the page's and the gutter's background
-	dim_inactive = false, -- give windows without focus a dimmer surface
-	bold = true,
-	italic = true,
-	overrides = {}, -- groups to change, or a function from the mode's colors to them
-	plugins = {}, -- { ["telescope.nvim"] = false } leaves that plugin's groups to it
+  transparent = false, -- clear the page's and the gutter's background
+  dim_inactive = false, -- give windows without focus a dimmer surface
+  bold = true,
+  italic = true,
+  overrides = {}, -- groups to change, or a function from the mode's colors to them
+  plugins = {}, -- { ["telescope.nvim"] = false } leaves that plugin's groups to it
 }
 ```
 

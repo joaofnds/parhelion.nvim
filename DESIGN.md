@@ -241,8 +241,8 @@ A plugin gets a family in `chrome.lua`, which names each of its groups under the
 
 ```lua
 my_plugin = {
-	title = "MyPluginTitle",
-	quiet = "MyPluginCount MyPluginPath",
+  title = "MyPluginTitle",
+  quiet = "MyPluginCount MyPluginPath",
 },
 ```
 
