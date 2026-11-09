@@ -22,57 +22,57 @@ M.smallest_staged_sign_difference = 6
 M.smallest_control_contrast = 3
 
 M.diff_wash_hues = {
-	added_wash = { name = "green", from = 145, to = 170 },
-	added_word_wash = { name = "green", from = 145, to = 170 },
-	removed_wash = { name = "red", from = -10, to = 30 },
-	removed_word_wash = { name = "red", from = -10, to = 30 },
+  added_wash = { name = "green", from = 145, to = 170 },
+  added_word_wash = { name = "green", from = 145, to = 170 },
+  removed_wash = { name = "red", from = -10, to = 30 },
+  removed_word_wash = { name = "red", from = -10, to = 30 },
 }
 
 M.page_colors = { "#002b36", "#073642", "#002731", "#fdf6e3", "#eee8d5", "#fbf3db" }
 
 M.accents = {
-	yellow = "#b58900",
-	orange = "#cb4b16",
-	red = "#dc322f",
-	magenta = "#d33682",
-	violet = "#6c71c4",
-	blue = "#268bd2",
-	cyan = "#2aa198",
-	green = "#859900",
+  yellow = "#b58900",
+  orange = "#cb4b16",
+  red = "#dc322f",
+  magenta = "#d33682",
+  violet = "#6c71c4",
+  blue = "#268bd2",
+  cyan = "#2aa198",
+  green = "#859900",
 }
 
 local code = {
-	"Added",
-	"Changed",
-	"Constant",
-	"DiagnosticError",
-	"DiagnosticHint",
-	"DiagnosticInfo",
-	"DiagnosticOk",
-	"DiagnosticWarn",
-	"Function",
-	"Identifier",
-	"Keyword",
-	"Removed",
-	"Special",
-	"Statement",
-	"String",
-	"Title",
-	"Type",
+  "Added",
+  "Changed",
+  "Constant",
+  "DiagnosticError",
+  "DiagnosticHint",
+  "DiagnosticInfo",
+  "DiagnosticOk",
+  "DiagnosticWarn",
+  "Function",
+  "Identifier",
+  "Keyword",
+  "Removed",
+  "Special",
+  "Statement",
+  "String",
+  "Title",
+  "Type",
 }
 local quiet = { "Comment", "LineNr", "LspInlayHint" }
 
 M.tiers = {
-	dark = {
-		{ name = "body", groups = { "Normal" }, ratio = 5.5, lightness = 46 },
-		{ name = "code", groups = code, ratio = 4.5, lightness = 38 },
-		{ name = "quiet", groups = quiet, ratio = 3, lightness = 30 },
-	},
-	light = {
-		{ name = "body", groups = { "Normal" }, ratio = 4.9, lightness = 71 },
-		{ name = "code", groups = code, ratio = 4, lightness = 64 },
-		{ name = "quiet", groups = quiet, ratio = 3, lightness = 55 },
-	},
+  dark = {
+    { name = "body", groups = { "Normal" }, ratio = 5.5, lightness = 46 },
+    { name = "code", groups = code, ratio = 4.5, lightness = 38 },
+    { name = "quiet", groups = quiet, ratio = 3, lightness = 30 },
+  },
+  light = {
+    { name = "body", groups = { "Normal" }, ratio = 4.9, lightness = 71 },
+    { name = "code", groups = code, ratio = 4, lightness = 64 },
+    { name = "quiet", groups = quiet, ratio = 3, lightness = 55 },
+  },
 }
 
 local separators = { "▎", "│", "\u{E0B0}", "\u{E0B2}", "\u{E0BA}", "\u{E0BC}", "\u{E0BE}" }
@@ -80,142 +80,140 @@ local separators = { "▎", "│", "\u{E0B0}", "\u{E0B2}", "\u{E0BA}", "\u{E0BC}
 function M.is_separator(text) return vim.list_contains(separators, text) end
 
 function M.is_icon(text)
-	local codepoint = vim.fn.char2nr(text)
-	return (codepoint >= 0xE000 and codepoint <= 0xF8FF) or codepoint >= 0xF0000
+  local codepoint = vim.fn.char2nr(text)
+  return (codepoint >= 0xE000 and codepoint <= 0xF8FF) or codepoint >= 0xF0000
 end
 
 function M.draws_its_own_color(text) return M.is_icon(text) and not M.is_separator(text) end
 
 function M.is_line_art_or_icon(text)
-	local codepoint = vim.fn.char2nr(text)
-	return (codepoint >= 0x2500 and codepoint <= 0x259F) or M.is_icon(text)
+  local codepoint = vim.fn.char2nr(text)
+  return (codepoint >= 0x2500 and codepoint <= 0x259F) or M.is_icon(text)
 end
 
 local function text_and_background(cell)
-	if cell.flags:find("reverse", 1, true) then return cell.bg, cell.fg end
-	return cell.fg, cell.bg
+  if cell.flags:find("reverse", 1, true) then return cell.bg, cell.fg end
+  return cell.fg, cell.bg
 end
 
 local function is_remapped_onto(item, fill, groups)
-	local group = groups[item.name]
-	return item.kind == "ui" and group ~= nil and group.bg ~= fill
+  local group = groups[item.name]
+  return item.kind == "ui" and group ~= nil and group.bg ~= fill
 end
 
 local function is_over_the_selection(cell, background, groups)
-	local selection = groups and groups.Visual and groups.Visual.bg
-	local drawing_the_fill = vim.iter(cell.drawn_with):filter(function(item) return item.bg == background end):totable()
-	if background ~= selection or #drawing_the_fill == 0 then return false end
+  local selection = groups and groups.Visual and groups.Visual.bg
+  local drawing_the_fill = vim.iter(cell.drawn_with):filter(function(item) return item.bg == background end):totable()
+  if background ~= selection or #drawing_the_fill == 0 then return false end
 
-	return vim.iter(drawing_the_fill)
-		:all(function(item) return item.name == "Visual" or is_remapped_onto(item, background, groups) end)
+  return vim
+    .iter(drawing_the_fill)
+    :all(function(item) return item.name == "Visual" or is_remapped_onto(item, background, groups) end)
 end
 
 function M.illegible_text(shot, is_exempt)
-	local found, seen = {}, {}
-	for _, row in ipairs(shot.rows) do
-		for _, cell in ipairs(row) do
-			if not cell.text:match "^%s*$" and not is_exempt(cell.text) then
-				local text, background = text_and_background(cell)
-				local key = text .. background
-				local lightness = math.abs(color.lightness_contrast(text, background))
-				local over_the_selection = is_over_the_selection(cell, background, shot.groups)
-				local floor = over_the_selection and M.floor_over_a_selection or M.text_floor
-				if not seen[key] and lightness < floor then
-					seen[key] = true
-					table.insert(found, {
-						text = text,
-						background = background,
-						lightness = lightness,
-						cell = cell.text,
-					})
-				end
-			end
-		end
-	end
+  local found, seen = {}, {}
+  for _, row in ipairs(shot.rows) do
+    for _, cell in ipairs(row) do
+      if not cell.text:match "^%s*$" and not is_exempt(cell.text) then
+        local text, background = text_and_background(cell)
+        local key = text .. background
+        local lightness = math.abs(color.lightness_contrast(text, background))
+        local over_the_selection = is_over_the_selection(cell, background, shot.groups)
+        local floor = over_the_selection and M.floor_over_a_selection or M.text_floor
+        if not seen[key] and lightness < floor then
+          seen[key] = true
+          table.insert(found, {
+            text = text,
+            background = background,
+            lightness = lightness,
+            cell = cell.text,
+          })
+        end
+      end
+    end
+  end
 
-	return found
+  return found
 end
 
 M.decorations = {
-	"@markup.heading.1.delimiter.vimdoc",
-	"@markup.heading.2.delimiter.vimdoc",
-	"EndOfBuffer",
-	"NeoTreeStatusLineNC",
-	"NvimTreeEndOfBuffer",
-	"NvimTreeStatuslineNc",
-	"OctoBubbleDelimiterGrey",
-	"OctoGrey",
+  "@markup.heading.1.delimiter.vimdoc",
+  "@markup.heading.2.delimiter.vimdoc",
+  "EndOfBuffer",
+  "NeoTreeStatusLineNC",
+  "NvimTreeEndOfBuffer",
+  "NvimTreeStatuslineNc",
+  "OctoBubbleDelimiterGrey",
+  "OctoGrey",
 }
 
 local words_for_line_art = {
-	"Border",
-	"Bullet",
-	"Dash$",
-	"Gradient%d",
-	"Guide",
-	"Indent",
-	"Marker",
-	"ProgressTodo",
-	"Scrollbar",
-	"Sep$",
-	"Separator",
-	"Sign$",
-	"TableAlign",
-	"TableHead",
-	"TableRow",
-	"VertSplit",
-	"Whitespace",
-	"VirtLine",
+  "Border",
+  "Bullet",
+  "Dash$",
+  "Gradient%d",
+  "Guide",
+  "Indent",
+  "Marker",
+  "ProgressTodo",
+  "Scrollbar",
+  "Sep$",
+  "Separator",
+  "Sign$",
+  "TableAlign",
+  "TableHead",
+  "TableRow",
+  "VertSplit",
+  "Whitespace",
+  "VirtLine",
 }
 
 local function is_line_art(name)
-	for _, word in ipairs(words_for_line_art) do
-		if name:find(word) then return true end
-	end
+  for _, word in ipairs(words_for_line_art) do
+    if name:find(word) then return true end
+  end
 
-	return false
+  return false
 end
 
 function M.groups_under_text_floor(snapshot)
-	local found = {}
-	for name, group in pairs(snapshot.groups) do
-		local is_text = not is_line_art(name) and not vim.list_contains(M.decorations, name)
-		if group.fg and not snapshot.links[name] and is_text then
-			local text, background = group.fg, group.bg or snapshot.groups.Normal.bg
-			if group.reverse then
-				text, background = background, text
-			end
+  local found = {}
+  for name, group in pairs(snapshot.groups) do
+    local is_text = not is_line_art(name) and not vim.list_contains(M.decorations, name)
+    if group.fg and not snapshot.links[name] and is_text then
+      local text, background = group.fg, group.bg or snapshot.groups.Normal.bg
+      if group.reverse then
+        text, background = background, text
+      end
 
-			local lightness = math.abs(color.lightness_contrast(text, background))
-			if lightness < M.text_floor then
-				table.insert(found, { group = name, text = text, background = background, lightness = lightness })
-			end
-		end
-	end
+      local lightness = math.abs(color.lightness_contrast(text, background))
+      if lightness < M.text_floor then
+        table.insert(found, { group = name, text = text, background = background, lightness = lightness })
+      end
+    end
+  end
 
-	return found
+  return found
 end
 
 function M.pair(snapshot, name)
-	local group = snapshot.groups[name]
-	return group.fg, group.bg or snapshot.groups.Normal.bg
+  local group = snapshot.groups[name]
+  return group.fg, group.bg or snapshot.groups.Normal.bg
 end
 
 function M.below_tier(snapshot, tier)
-	local found = {}
-	for _, name in ipairs(tier.groups) do
-		local text, background = M.pair(snapshot, name)
-		local ratio = color.contrast_ratio(text, background)
-		local lightness = math.abs(color.lightness_contrast(text, background))
-		if ratio < tier.ratio or lightness < tier.lightness then
-			table.insert(
-				found,
-				{ group = name, text = text, background = background, ratio = ratio, lightness = lightness }
-			)
-		end
-	end
+  local found = {}
+  for _, name in ipairs(tier.groups) do
+    local text, background = M.pair(snapshot, name)
+    local ratio = color.contrast_ratio(text, background)
+    local lightness = math.abs(color.lightness_contrast(text, background))
+    if ratio < tier.ratio or lightness < tier.lightness then
+      table.insert(found, { group = name, text = text, background = background, ratio = ratio, lightness = lightness })
+    end
+  end
 
-	return found
+  return found
 end
 
 return M

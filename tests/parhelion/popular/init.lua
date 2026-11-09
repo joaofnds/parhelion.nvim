@@ -22,32 +22,32 @@ vim.cmd.colorscheme "parhelion"
 local view = dofile(vim.env.POPULAR_HERE .. "/views.lua").by_name[vim.env.POPULAR_VIEW]
 
 local function add(name)
-	local dir = deps .. "/" .. name
-	vim.opt.rtp:append(dir)
-	if vim.fn.isdirectory(dir .. "/after") == 1 then vim.opt.rtp:append(dir .. "/after") end
+  local dir = deps .. "/" .. name
+  vim.opt.rtp:append(dir)
+  if vim.fn.isdirectory(dir .. "/after") == 1 then vim.opt.rtp:append(dir .. "/after") end
 end
 
 for _, name in ipairs { "nvim-treesitter", "nvim-web-devicons", "plenary.nvim", "lualine.nvim" } do
-	add(name)
+  add(name)
 end
 for _, name in ipairs(view.plugins or {}) do
-	add(name)
+  add(name)
 end
 
 vim.api.nvim_create_autocmd("FileType", { callback = function(args) pcall(vim.treesitter.start, args.buf) end })
 
 if not view.no_lualine then
-	require("lualine").setup {
-		options = { theme = "parhelion", globalstatus = true },
-		sections = {
-			lualine_a = { "mode" },
-			lualine_b = { "branch" },
-			lualine_c = { "filename", "diff", "diagnostics" },
-			lualine_x = { "encoding", "filetype" },
-			lualine_y = { "progress" },
-			lualine_z = { "location" },
-		},
-	}
+  require("lualine").setup {
+    options = { theme = "parhelion", globalstatus = true },
+    sections = {
+      lualine_a = { "mode" },
+      lualine_b = { "branch" },
+      lualine_c = { "filename", "diff", "diagnostics" },
+      lualine_x = { "encoding", "filetype" },
+      lualine_y = { "progress" },
+      lualine_z = { "location" },
+    },
+  }
 end
 require("nvim-web-devicons").setup {}
 if view.setup then view.setup() end

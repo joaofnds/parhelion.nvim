@@ -3,14 +3,14 @@
 -- the text overlays. Those are restyled on purpose, and every other chrome group is left out so a leak shows up as a
 -- difference.
 return {
-	"bufferline",
-	"diff_lines",
-	"diff_marks",
-	"diffview",
-	"markdown_text",
-	"mini_cursorword",
-	"neogit",
-	"tab_line",
-	"text_overlays",
-	"window_separators",
+  "bufferline",
+  "diff_lines",
+  "diff_marks",
+  "diffview",
+  "markdown_text",
+  "mini_cursorword",
+  "neogit",
+  "tab_line",
+  "text_overlays",
+  "window_separators",
 }
