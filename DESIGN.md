@@ -387,9 +387,8 @@ non-zero. The whole suite takes about eight minutes on an Apple M5 Pro once the 
 lint with ShellCheck and lua-language-server on a pull request, on a push to `main` and every Monday, which needs the
 repository hosted on GitHub. In a clone with no such remote they only run by hand, as `make test`, `make bench`,
 `make format-check` and `make lint`. `.shellcheckrc` turns on every optional check, so ShellCheck also asks for braces
-around each variable and for `[[` in place of `[`. shfmt takes its indent from `.editorconfig`, which names the one
-shell script without a `.sh` extension, `tests/parhelion/fake_nvim/nvim`, so a new one needs a section there too, or
-shfmt asks for tabs.
+around each variable and for `[[` in place of `[`. `make format-check` tells shfmt to indent with two spaces, which
+also holds a shell script without a `.sh` extension, such as `tests/parhelion/fake_nvim/nvim`, to that indent.
 
 A commit that only reformats goes in `.git-blame-ignore-revs` under its subject, so blame names the commit that last
 changed what a line does. `git blame` reads that file once a clone runs

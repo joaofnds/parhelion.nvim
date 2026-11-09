@@ -15,7 +15,7 @@ bench:
 
 format-check:
 	stylua --check --config-path=stylua.toml .
-	shfmt --diff $(SHELL_SCRIPTS)
+	shfmt --indent=2 --diff $(SHELL_SCRIPTS)
 
 lint:
 	shellcheck $(SHELL_SCRIPTS)
