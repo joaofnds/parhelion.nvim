@@ -29,12 +29,20 @@ function Nvim.spawn(opts)
 
 	self.stdin, self.stdout, self.stderr = vim.uv.new_pipe(), vim.uv.new_pipe(), vim.uv.new_pipe()
 	local args = vim.list_extend({ "--embed" }, opts.args)
-	self.handle = assert(vim.uv.spawn("nvim", {
+	local handle, failure = vim.uv.spawn("nvim", {
 		args = args,
 		env = environment(opts.env),
 		cwd = opts.cwd,
 		stdio = { self.stdin, self.stdout, self.stderr },
-	}, function() self.exited = true end))
+	}, function() self.exited = true end)
+	if not handle then
+		for _, pipe in ipairs { self.stdin, self.stdout, self.stderr } do
+			pipe:close()
+		end
+		error(failure, 0)
+	end
+
+	self.handle = handle
 
 	self.stdout:read_start(function(err, chunk)
 		assert(not err, err)

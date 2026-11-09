@@ -1952,6 +1952,25 @@ for _, background in ipairs { "dark", "light" } do
 	end
 end
 
+local function open_handles()
+	local count = 0
+	vim.uv.walk(function(handle)
+		if not handle:is_closing() then count = count + 1 end
+	end)
+
+	return count
+end
+
+test("a Neovim that fails to start leaves no pipe open", function()
+	local before = open_handles()
+
+	local started = pcall(Nvim.spawn, { args = {}, cwd = fixture .. "/no such directory", rows = 10, cols = 40 })
+
+	local after = open_handles()
+	assert(not started, "Neovim started in a directory that does not exist")
+	assert(after == before, string.format("%d handles open, %d before", after, before))
+end)
+
 test("a command a plugin defines after a slow start is ready once the screen settles", function()
 	local nvim = Nvim.spawn {
 		args = {
