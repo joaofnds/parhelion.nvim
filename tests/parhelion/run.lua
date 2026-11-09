@@ -2640,6 +2640,15 @@ test("make lintcommit passes a range with no commits", function()
 	assert(linted.code == 0, string.format("make exited %d: %s", linted.code, linted.stderr))
 end)
 
+test("make lintcommit names a commit on HEAD that origin/main lacks", function()
+	local repository = { GIT_DIR = fixture .. "/.git" }
+
+	local linted = vim.system({ "make", "-C", root, "lintcommit" }, { env = repository, text = true }):wait(10000)
+
+	assert(linted.code == 2, string.format("make exited %d: %s", linted.code, linted.stderr))
+	assert(linted.stderr:match "^%x+ is not a Conventional Commit: bump application version\n", linted.stderr)
+end)
+
 local modules_a_theme_file_requires = [[
 	local theme_file = ...
 	require(theme_file)
