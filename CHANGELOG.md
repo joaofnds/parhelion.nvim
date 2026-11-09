@@ -35,8 +35,6 @@ The changes a user can see, newest release first. A change not yet released goes
 - The feline statusline names operator-pending mode while an operator waits for its motion, and normal mode again once
   the operator ends, instead of normal mode throughout.
 - The reactive cursorline keeps the line number's color in normal mode, where it used to drop it.
-- The reactive presets follow a change to 'background' and to `bold`. They used to keep the colors and the bold of the
-  mode they were first loaded in until Neovim restarted.
 - The feline statusline follows a change to 'background'. It used to keep the colors of the mode it was built in until
   Neovim restarted.
 - Bufferline's slanted and sloped separators, its pick labels, its group separator and a visible tab's diagnostics draw

@@ -1,29 +1,16 @@
-local parhelion = require "parhelion"
+local built = require("parhelion").built(vim.o.background)
+local colors, hues, cursor = built.colors, built.mode_hues, built.groups.Cursor
 
-local function built() return parhelion.built(vim.o.background) end
-
-local function cursor_in(mode)
-	return {
-		hl = function()
-			local current = built()
-			return { ReactiveCursor = { fg = current.colors.page, bg = current.mode_hues[mode] } }
-		end,
-	}
-end
+local function cursor_in(hue) return { hl = { ReactiveCursor = { fg = colors.page, bg = hue } } } end
 
 return {
 	name = "parhelion-cursor",
 	init = function() vim.opt.guicursor:append "a:ReactiveCursor" end,
-	static = {
-		hl = function()
-			local cursor = built().groups.Cursor
-			return { ReactiveCursor = { fg = cursor.fg, bg = cursor.bg } }
-		end,
-	},
+	static = { hl = { ReactiveCursor = { fg = cursor.fg, bg = cursor.bg } } },
 	modes = {
-		[{ "v", "V", "\22", "s", "S", "\19" }] = cursor_in "visual",
-		i = cursor_in "insert",
-		R = cursor_in "replace",
-		c = cursor_in "command",
+		[{ "v", "V", "\22", "s", "S", "\19" }] = cursor_in(hues.visual),
+		i = cursor_in(hues.insert),
+		R = cursor_in(hues.replace),
+		c = cursor_in(hues.command),
 	},
 }

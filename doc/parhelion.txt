@@ -244,11 +244,12 @@ reactive.nvim ~
     parhelion draws them.
 
 Lualine and barbecue run their files again on every |ColorScheme| event,
-reactive asks its presets for their colors again on that event and on every
-mode change, and feline asks the statusline for its colors each time it draws
-it, so all four follow a toggle and a change to `bold`. These files take
-parhelion's colors before |parhelion-overrides| apply, so an override does not
-change them.
+and feline asks the statusline for its colors each time it draws it, so the
+three follow a toggle and a change to `bold`. The reactive presets read
+'background' and `bold` when they are first required, so after a toggle or a
+change to `bold` they keep the earlier colors until Neovim restarts. These
+files take parhelion's colors before |parhelion-overrides| apply, so an
+override does not change them.
 
 ==============================================================================
 6. TERMINAL THEMES                                 *parhelion-terminal-themes*
