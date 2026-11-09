@@ -127,7 +127,8 @@ the code puts reading the built table at about 0.75 ms, or 0.4 ms with `vim.load
 with `vim.loader`, `syntax reset`, 0.07 ms, and the terminal and fzf colors, 0.02 ms. Taking those timings costs a
 little, so they add up to slightly more than the script's. `colors/parhelion.lua` reads `init.lua` by its path when
 nothing has required it yet, since a `require` would search the runtimepath first, about 0.05 to 0.1 ms here, and it
-stores the module where a later `require("parhelion")` finds it.
+stores the module where a later `require("parhelion")` finds it. `init.lua` reads `plugins.lua` the same way the first
+time `setup` or a load needs the plugin list.
 
 The script fails when a load fails or when a first load takes more than 1.25 times its floor. CI does not run it, so
 run it after a change to the load or to the built tables. The suite's guards count rather than time, so their results
@@ -136,7 +137,9 @@ are the same on every machine:
 - `a load with the default options requires no module but parhelion` and `a load with the <option> option requires
   nothing that builds the groups` fail when a load builds the groups again, which takes 2.6 to 2.8 times the floor.
 - `setup with the defaults written out requires no module but parhelion` fails when a `setup` call that turns no plugin
-  off reads the plugin list, which takes 0.3 to 0.5 ms here the first time, against about 2.4 ms for a load.
+  off reads the plugin list, which takes about 0.04 ms here the first time, or 0.05 ms without `vim.loader`.
+- `a load with the <option> option searches for none of parhelion's modules` fails when a load finds one of parhelion's
+  files through a `require` search, which doubles what reading the plugin list costs.
 - `a reload with the default options copies no groups` fails when a reload through `:colorscheme parhelion`, the path
   a user takes, allocates more than 32 KB of Lua memory. It allocates about 6 KB, and a table that only holds every
   group takes about 100 KB.

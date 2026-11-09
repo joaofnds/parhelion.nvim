@@ -57,8 +57,18 @@ local function with(hl, attribute, value)
 	return copy
 end
 
+local directory = debug.getinfo(1, "S").source:match "^@(.*[/\\])"
+
+local function supported_plugins()
+	if not package.loaded["parhelion.plugins"] then
+		package.loaded["parhelion.plugins"] = assert(loadfile(directory .. "plugins.lua"))()
+	end
+
+	return package.loaded["parhelion.plugins"]
+end
+
 local function patterns_turned_off()
-	local plugins, patterns = require "parhelion.plugins", {}
+	local plugins, patterns = supported_plugins(), {}
 	for plugin, on in pairs(options.plugins) do
 		if not on then vim.list_extend(patterns, plugins[plugin]) end
 	end
@@ -228,7 +238,7 @@ function M.setup(user_options)
 
 	vim.validate("plugins", user_options.plugins, "table", true)
 	for plugin, on in pairs(user_options.plugins or {}) do
-		if require("parhelion.plugins")[plugin] == nil then
+		if supported_plugins()[plugin] == nil then
 			error(string.format("parhelion sets no groups for a plugin named %s", plugin), 2)
 		end
 		vim.validate("plugins." .. plugin, on, "boolean")
@@ -247,7 +257,7 @@ end
 
 function M.draws_bold() return options.bold end
 
-local built_directory = debug.getinfo(1, "S").source:match "^@(.*[/\\])" .. "built/"
+local built_directory = directory .. "built/"
 local built_tables = {}
 
 function M.built(background)

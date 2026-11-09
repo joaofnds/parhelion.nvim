@@ -2638,6 +2638,14 @@ local modules_that_build_the_groups = [[
 	return names
 ]]
 
+local recording_searches = [[
+	local searched = {}
+	table.insert(package.loaders, 1, function(name)
+		if name:find "^parhelion" then table.insert(searched, name) end
+	end)
+	package.loaded["parhelion_tests.searched"] = searched
+]]
+
 -- Compares the groups drawn with the option, which must be in force, against those drawn with the defaults, which it
 -- leaves in force.
 local kilobytes_a_copy_of_the_changed_groups_takes = kilobytes_allocated_by
@@ -2885,6 +2893,23 @@ for _, path in ipairs { paths[1], paths[2] } do
 					local required = world:lua(modules_that_build_the_groups)
 
 					expect_none(required, "modules that build the groups are loaded")
+				end)
+			end
+		)
+
+		test(
+			string.format("a load with the %s option searches for none of parhelion's modules, %s", option, path.label),
+			function()
+				in_world("parhelion", path, function(world)
+					world:lua(recording_searches)
+
+					world:lua(setup_code)
+					world:request("nvim_command", "colorscheme parhelion")
+
+					expect_none(
+						world:lua [[return package.loaded["parhelion_tests.searched"] ]],
+						"modules were searched for"
+					)
 				end)
 			end
 		)
