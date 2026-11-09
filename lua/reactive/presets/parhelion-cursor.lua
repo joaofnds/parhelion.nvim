@@ -6,7 +6,6 @@ local function cursor_in(mode)
 	return {
 		hl = function()
 			local current = built()
-
 			return { ReactiveCursor = { fg = current.colors.page, bg = current.mode_hues[mode] } }
 		end,
 	}
@@ -18,7 +17,6 @@ return {
 	static = {
 		hl = function()
 			local cursor = built().groups.Cursor
-
 			return { ReactiveCursor = { fg = cursor.fg, bg = cursor.bg } }
 		end,
 	},
