@@ -1,7 +1,7 @@
 # Parhelion
 
-A Neovim colorscheme that draws code in a modern take on [Solarized](https://ethanschoonover.com/solarized/), dark and
-light, and gives plugin interfaces a quiet, consistent look of their own.
+A modern take on [Solarized](https://ethanschoonover.com/solarized/) for Neovim, in dark and light. It keeps Solarized's
+page colors and hues, makes its text easier to read, and gives 78 plugins a quiet, consistent look of their own.
 
 <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/editor-dark.png">
