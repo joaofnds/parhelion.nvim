@@ -391,6 +391,10 @@ around each variable and for `[[` in place of `[`. shfmt takes its indent from `
 shell script without a `.sh` extension, `tests/parhelion/fake_nvim/nvim`, so a new one needs a section there too, or
 shfmt asks for tabs.
 
+A commit that only reformats goes in `.git-blame-ignore-revs` under its subject, so blame names the commit that last
+changed what a line does. `git blame` reads that file once a clone runs
+`git config blame.ignoreRevsFile .git-blame-ignore-revs`.
+
 `make lint` type-checks the clone's Lua files with lua-language-server, leaving out what git ignores. It reads
 `.luarc.json` and takes the types of Neovim's Lua API from the runtime of the `nvim` on the `PATH`. Its runtime path
 finds a required module under `lua/` or `tests/parhelion/`, so a test helper kept anywhere else needs an entry there
