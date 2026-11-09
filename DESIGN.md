@@ -265,8 +265,13 @@ LSP group, a group from a Vim syntax file, a plugin group that draws inside the 
 Both tests live in `tests/parhelion/run.lua`, and the lists they read live in `tests/parhelion/restraint.lua`.
 
 To check it by eye, add the plugin's pinned commit to `tests/parhelion/deps.txt` and a view to
-`tests/parhelion/popular/views.lua`, whose `plugins` list names that dependency and whose `drawn` list names a window
-filetype the plugin opens or a group it draws, so the view fails to open when the plugin draws nothing, then render the
+`tests/parhelion/popular/views.lua`, whose `plugins` list names that dependency and whose `drawn` list names something
+only this view draws: a window filetype the plugin opens, a group it draws, a bordered window, text in the tabline, or
+the file's last line on screen. The view fails to open until every entry holds, so it fails when the plugin draws
+nothing, or when a variant such as a border or a scroll draws only what another view of the same plugin draws. A group
+counts as drawn when an extmark on any line of a window's buffer or a `matchadd` match in the window names it, or when
+the tabline, the global statusline or the current window's winbar draws it, so a group drawn through `:syntax` or a
+window's own statusline needs another entry, and so does a part of the buffer that has to be on screen. Then render the
 sheets above. Add the plugin to the list in `README.md`.
 
 Add the plugin's repository name to `lua/parhelion/plugins.lua` with the patterns its group names match, and the name to
@@ -278,9 +283,9 @@ open, on a README plugin with no entry, and on a help list that differs from the
 
 Every name in a family needs a look pinned in `tests/parhelion/approved.lua` for the diff lines, the diff marks,
 Diffview, gitsigns, headlines, lazy.nvim, markdown text, markview, mason, mini.clue, mini.diff, Neogit, render-markdown,
-which-key and each family the base side applies, and every role in any family needs one, because those pins are what
-fail when a color changes by accident. The `has a pinned look` tests name what is missing. Each link's resolved look is
-pinned there too.
+which-key and each family `tests/parhelion/base_refined/families.lua` lists, which the test suite applies to both sides
+of its comparison, and every role in any family needs one, because those pins are what fail when a color changes by
+accident. The `has a pinned look` tests name what is missing. Each link's resolved look is pinned there too.
 
 A Neogit update can add groups it derives by dimming. The `every Neogit group clears the text floor` test catches those,
 and the fix is the group's name under a role in the `neogit` family, with its pin.
@@ -313,15 +318,14 @@ embedded Neovim instances, one with the base tables and one with parhelion, and 
 
 The base instance loads the `base_refined` colorscheme in `tests/parhelion/base_refined`, which sets the base tables,
 applies `lua/parhelion/refinement.lua` on top, and then applies the `chrome.lua` families that frame or fill the buffers
-the views compare, or that Neovim links its own groups to, as `tests/parhelion/base_refined/families.lua` lists:
-`bufferline`, `tab_line`, `window_separators`, `markdown_text`, `mini_cursorword`, `diff_lines`, `diff_marks`,
-`text_overlays`, `diffview` and `neogit`. On a load path that starts in that mode, this happens before any plugin
-derives colors from it. On a toggled path the plugins have already derived from the other mode, and they derive again on
-the `ColorScheme` event. So in the list below, "same" means the same as the base tables with those applied, and any
-other group `chrome.lua` names is left out of the group comparison and held by its own tests. Both sides share what the
-base side applies, so `tests/parhelion/approved.lua` pins what it produces, `tests/parhelion/approved_files.lua` holds a
-checksum of the base tables and the extra queries, and `tests/parhelion/approved_presets.lua` pins the theme files'
-colors, so changing one means changing its pin on purpose. The tests that judge `refinement.lua` and `chrome.lua` are
+the views compare, or that Neovim links its own groups to, as `tests/parhelion/base_refined/families.lua` lists. On a
+load path that starts in that mode, this happens before any plugin derives colors from it. On a toggled path the plugins
+have already derived from the other mode, and they derive again on the `ColorScheme` event. So in the list below, "same"
+means the same as the base tables with those applied, and any other group `chrome.lua` names is left out of the group
+comparison and held by its own tests. Both sides share what the base side applies, so `tests/parhelion/approved.lua`
+pins what it produces, `tests/parhelion/approved_files.lua` holds a checksum of the base tables and the extra queries,
+and `tests/parhelion/approved_presets.lua` pins the colors of the lualine theme, the feline statusline and the reactive
+presets, so changing one means changing its pin on purpose. The tests that judge `refinement.lua` and `chrome.lua` are
 listed in [COLOR.md](COLOR.md).
 
 The base tables hold 517 groups in dark and 515 in light, from 25 and 24 colors, and in them `Normal` is `#839496` on
@@ -351,15 +355,16 @@ Every comparison runs on all four load paths. The checks on query files run once
   such as grug-far, oil, trouble and undotree, are held by their views.
 - Neogit status, Neogit commit view, Neogit commit popup, diffview, and 16 sample files render the same text, fg, bg, sp
   and flags in every cell of a 130 by 50 grid, lualine and the restyled tabline included, once the families that restyle
-  those screens are applied to the base side too, as [COLOR.md](COLOR.md) lists. Neogit builds its hint row in a random
-  order, so the cells of that row are sorted before they are compared. Both sides start with the same messages, each
-  sample file opens with no other buffer and no earlier message and raises the same messages, and every group is
-  compared again after each plugin view opens.
+  those screens are applied to the base side too, as `tests/parhelion/base_refined/families.lua` lists. Neogit builds
+  its hint row in a random order, so the cells of that row are sorted before they are compared. Both sides start with
+  the same messages, each sample file opens with no other buffer and no earlier message and raises the same messages,
+  and every group is compared again after each plugin view opens.
 - The css, scss, javascript, tsx and lua samples render the same under a fake language server that marks every
   identifier as a `type` semantic token. The lua and javascript queries only change the screen when a language server is
   attached, because their priorities of 130 and 127 exist to beat semantic tokens at 125. The tsx query also changes it
-  with no server. Under that server a lua function call and a javascript or tsx tag draw the color their parhelion
-  capture gives, so a query whose priority falls below the tokens' fails.
+  with no server. Under that server a lua function call and a javascript or tsx tag, whether opening, closing or
+  self-closing, draw the color their parhelion capture gives, so any of those patterns whose priority falls below the
+  tokens' fails.
 - Each extra query parses, each of its patterns matches its sample, and each capture it names draws a color.
 - Under Neovim's default colorscheme, in dark and light and under the fake language server, the css, scss, javascript,
   tsx and lua samples render the same with parhelion on the runtimepath as without it.
@@ -371,7 +376,7 @@ Every comparison runs on all four load paths. The checks on query files run once
 - The popular plugin views and the plugin side theme files, as described under Plugin support.
 
 Set `PARHELION_TEST_FILTER=<substring>` to run the tests whose name contains it. A filter that matches nothing exits
-non-zero. The whole suite takes about seven minutes.
+non-zero. The whole suite takes about eight minutes on an Apple M5 Pro once the dependencies are fetched.
 
 `.github/workflows/parhelion.yml` runs the suite, the load bench and a StyLua check on a pull request, on a push to
 `main` and every Monday, which needs the repository hosted on GitHub. In a clone with no such remote they only run by

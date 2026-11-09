@@ -534,25 +534,25 @@ Departs:
 ## How the suite holds this
 
 The suite renders the base tables with `refinement.lua` applied on top, renders parhelion, and compares every cell and
-every group. Only the groups `chrome.lua` names may differ. On the base side it applies ten chrome families and no
-others: bufferline, the tab line, window separators, markdown text, mini.cursorword, the diff lines, the diff marks, the
-text overlays, Neogit and Diffview, because they frame or fill the buffers the views compare, or Neovim links its own
-groups to them. So any other chrome group that reaches a code, Neogit or Diffview screen by accident shows up as a
-difference. A change to `refinement.lua`, the base tables or the extra queries applies to both sides and that comparison
-stays green, so these tests judge those files and `chrome.lua` themselves:
+every group. Only the groups `chrome.lua` names may differ. On the base side it applies only the chrome families
+`tests/parhelion/base_refined/families.lua` lists, because they frame or fill the buffers the views compare, or Neovim
+links its own groups to them. So any other chrome group that reaches a code, Neogit or Diffview screen by accident shows
+up as a difference. A change to `refinement.lua`, the base tables or the extra queries applies to both sides and that
+comparison stays green, so these tests judge those files and `chrome.lua` themselves:
 
 - `tests/parhelion/approved_files.lua` holds a checksum of the base tables and the extra queries, and
-  `tests/parhelion/approved_presets.lua` pins the lualine theme's colors, so changing one means changing its pin on
-  purpose. A new query file fails until it has a pin.
+  `tests/parhelion/approved_presets.lua` pins the colors of the lualine theme, the feline statusline and the reactive
+  presets, so changing one means changing its pin on purpose. A new query file fails until it has a pin.
 - `tests/parhelion/approved.lua` lists one group for each tone, every repaired group and at least one group for each
   role in each family of `chrome.lua` with their exact look, per mode, and each row is a test on the two load paths that
   end in that mode. A test fails when a tone or a role has no pinned group, or when a name has none in the diff lines,
   the diff marks, Diffview, gitsigns, headlines, lazy.nvim, markdown text, markview, mason, mini.clue, mini.diff,
   Neogit, render-markdown or which-key, since those are the families whose hues and washes the other checks accept, or
-  in a family the base side of the render comparison applies too, since that comparison cannot see a change to it.
+  in a family the base side of the render comparison also applies, since that comparison cannot see a change to it.
   Changing a tone, a repair, a step or a role means changing this table on purpose.
-- On each wash a comment clears Lc 30, body text reaches 4.5:1, and the raised step sits at least 5 away. `DiffChange`
-  holds its wash, and Neogit's cursor rows and focused header differ from the rows around them.
+- On each wash a comment clears Lc 30, body text reaches 4.5:1, and the raised step sits at least 5 away. A changed
+  line's fill differs from the page by a color difference of at least 3, and Neogit's cursor rows and focused header
+  differ from the rows around them.
 - Each added wash sits at a perceptual hue of 145 to 170 and each removed wash at -10 to 30, in both modes, with more
   chroma than the page, so an added line reads green and not olive, and a removed line red and not orange or gray.
 - A changed word in a diff window, in Neogit, in gitsigns or in mini.diff differs from its row by a color difference of
@@ -587,12 +587,15 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
   or guide, or it is on the list of decorations. Both lists are in `tests/parhelion/legibility.lua`.
 - Every text cell in Neogit status, the commit view, the commit popup, diffview and 16 sample files clears Lc 30. Only
   the tabline's `▎`, window separators and lualine's two section arrows are exempt.
-- Every text cell in the views of `tests/parhelion/popular` clears Lc 30 in both modes. Box drawing, block
-  elements and icon glyphs are exempt there, since plugins draw lines with them and pick icon colors
-  themselves. A cell over the selection's fill clears Lc 20 instead, because the selection keeps the text's own color
-  and quiet text reads at Lc 23.9 on it in dark. nvim-cmp's bordered menu draws its selected row that way. A band
-  of another group in the same color, such as render-markdown's level six heading in light, keeps Lc 30, since Neovim
-  reports the groups that draw each cell.
+- Every text cell in the views of `tests/parhelion/popular` clears Lc 30 in both modes. Box drawing, block elements and
+  icon glyphs are exempt there, since plugins draw lines with them and pick icon colors themselves. A cell over the
+  selection's fill clears Lc 20 instead, because the selection keeps the text's own color and quiet text reads at Lc
+  23.9 on it in dark. nvim-cmp's bordered menu draws its selected row that way, since its window remaps the cursor line
+  onto the selection. A band of another group in the same color, such as render-markdown's level six heading in light,
+  keeps Lc 30, because Neovim reports each group that draws a cell and the fill it draws, and so does a built-in group
+  whose own color is the selection's. A built-in group that a window remaps onto the selection's fill, through
+  'winhighlight' or its own highlight namespace, gets Lc 20 whether or not it marks a selection, because Neovim reports
+  it under its own name.
 - Every color those views draw, and every group each view leaves defined, sits within 4 units of straight line CIELAB
   distance of a mix of two theme colors, because plugins derive shades by mixing and a color a
   plugin hard codes lands further out. It is a straight line distance because each color is compared against every mix.
