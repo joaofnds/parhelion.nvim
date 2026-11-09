@@ -424,6 +424,8 @@ M.families = {
 	},
 	backdrops = {
 		backdrop = "FzfLuaBackdrop LazyBackdrop MasonBackdrop",
+	},
+	shadows = {
 		shadow = "FloatShadow",
 		shadow_through = "FloatShadowThrough",
 	},
