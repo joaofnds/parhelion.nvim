@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
+# Installs the Neovim, tree-sitter and fzf the suite runs with under ~/.local. PARHELION_NEOVIM=nightly installs Neovim's
+# nightly build in place of v0.12.6, unchecked, since Neovim publishes no checksum for it.
 set -euo pipefail
-neovim_version=v0.12.6
+neovim_version=${PARHELION_NEOVIM:-v0.12.6}
 tree_sitter_version=v0.26.11
 fzf_version=0.74.5
 prefix=$HOME/.local
@@ -38,10 +40,12 @@ curl -fsSL --max-time 300 -o "$download/tree-sitter.gz" \
 curl -fsSL --max-time 300 -o "$download/fzf.tar.gz" \
   "https://github.com/junegunn/fzf/releases/download/v$fzf_version/fzf-$fzf_version-$fzf_platform.tar.gz"
 sha256sum -c - <<EOF
-$neovim_sha256  $download/nvim.tar.gz
 $tree_sitter_sha256  $download/tree-sitter.gz
 $fzf_sha256  $download/fzf.tar.gz
 EOF
+if [ "$neovim_version" != nightly ]; then
+  sha256sum -c - <<<"$neovim_sha256  $download/nvim.tar.gz"
+fi
 
 mkdir -p "$prefix/bin"
 tar -xzf "$download/nvim.tar.gz" --strip-components=1 -C "$prefix"

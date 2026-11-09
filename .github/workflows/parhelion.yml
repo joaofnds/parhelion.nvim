@@ -27,9 +27,17 @@ jobs:
           args: --check --config-path=stylua.toml .
 
   suite:
-    name: Test suite
+    name: Test suite on Neovim ${{ matrix.neovim }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        neovim:
+          - v0.12.6
+          - nightly
+    env:
+      PARHELION_NEOVIM: ${{ matrix.neovim }}
     steps:
       - uses: actions/checkout@v7
         with:

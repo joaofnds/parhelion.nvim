@@ -382,6 +382,11 @@ non-zero. The whole suite takes about eight minutes on an Apple M5 Pro once the 
 `main` and every Monday, which needs the repository hosted on GitHub. In a clone with no such remote they only run by
 hand, the check as `stylua --check --config-path=stylua.toml .`.
 
+The suite job runs on Neovim 0.12.6 and on Neovim's nightly build, so a change in Neovim that breaks parhelion fails a
+run before a release ships it. `tests/parhelion/ci-install.sh` installs the version `PARHELION_NEOVIM` names, 0.12.6 by
+default, and checks each download against the checksum it pins. It installs nightly unchecked, since Neovim publishes
+no checksum for it.
+
 ### When a parser update breaks a query
 
 Neovim raises an error whenever it highlights a language whose query names a node or field the parser no longer has. The

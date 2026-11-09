@@ -19,7 +19,8 @@ own. It follows 'background', so setting it switches modes.
 
 Parhelion needs Neovim 0.12 or later with 'termguicolors' on, which Neovim
 turns on by itself in a terminal that supports 24-bit color. Its test suite
-runs on Neovim 0.12, and nothing older is tested.
+runs on Neovim 0.12 and on Neovim's nightly build, and nothing older is
+tested.
 
 ==============================================================================
 2. INSTALLATION                                       *parhelion-installation*
