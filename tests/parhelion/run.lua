@@ -2572,6 +2572,74 @@ for _, slower_starts in ipairs { "odd", "even" } do
 	)
 end
 
+local function lint(commits)
+	return vim.system({ "bash", root .. "/tests/parhelion/lintcommit.sh" }, { stdin = commits, text = true })
+		:wait(10000)
+end
+
+for _, subject in ipairs {
+	"feat: name the mode in its hue",
+	"fix(feline): follow a toggle",
+	"refactor!: drop the setup function",
+	"perf(load)!: read the built table once",
+} do
+	test(string.format('the commit lint passes "%s"', subject), function()
+		local linted = lint("0a1b2c3 " .. subject .. "\n")
+
+		assert(linted.code == 0, string.format("the lint exited %d: %s", linted.code, linted.stderr))
+		assert(linted.stderr == "", linted.stderr)
+	end)
+end
+
+for _, type in ipairs { "feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert" } do
+	test(string.format('the commit lint passes the "%s" type', type), function()
+		local linted = lint("0a1b2c3 " .. type .. ": follow a toggle\n")
+
+		assert(linted.code == 0, string.format("the lint exited %d: %s", linted.code, linted.stderr))
+	end)
+end
+
+for _, case in ipairs {
+	{ shape = "an unknown type", subject = "feature: name the mode in its hue" },
+	{ shape = "no space after the colon", subject = "fix:follow a toggle" },
+	{ shape = "no type", subject = "Follow a toggle" },
+	{ shape = "an empty scope", subject = "fix(): follow a toggle" },
+	{ shape = "words before the type", subject = "wip fix: follow a toggle" },
+} do
+	test("the commit lint fails a subject with " .. case.shape .. ", naming it", function()
+		local linted = lint("0a1b2c3 " .. case.subject .. "\n")
+
+		assert(linted.code == 1, string.format("the lint exited %d: %s", linted.code, linted.stderr))
+		assert(linted.stderr == "0a1b2c3 is not a Conventional Commit: " .. case.subject .. "\n", linted.stderr)
+	end)
+end
+
+test("the commit lint names only the subjects that are not Conventional Commits", function()
+	local commits = "1111111 feat: name the mode\n2222222 Update the readme\n3333333 docs: say what a view waits on\n"
+
+	local linted = lint(commits)
+
+	assert(linted.code == 1, string.format("the lint exited %d: %s", linted.code, linted.stderr))
+	assert(linted.stderr == "2222222 is not a Conventional Commit: Update the readme\n", linted.stderr)
+end)
+
+local function make_lintcommit(range)
+	return vim.system({ "make", "-C", root, "lintcommit", "RANGE=" .. range }, { text = true }):wait(10000)
+end
+
+test("make lintcommit fails when git cannot read its range", function()
+	local linted = make_lintcommit "parhelion-no-such-ref..HEAD"
+
+	assert(linted.code == 2, string.format("make exited %d: %s", linted.code, linted.stderr))
+	assert(linted.stderr:find("parhelion-no-such-ref..HEAD", 1, true), linted.stderr)
+end)
+
+test("make lintcommit passes a range with no commits", function()
+	local linted = make_lintcommit "HEAD..HEAD"
+
+	assert(linted.code == 0, string.format("make exited %d: %s", linted.code, linted.stderr))
+end)
+
 local modules_a_theme_file_requires = [[
 	local theme_file = ...
 	require(theme_file)

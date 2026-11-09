@@ -48,8 +48,8 @@ Plugin support below for how they are checked.
 | `lua/reactive/presets/parhelion-*.lua`, `lua/parhelion/feline.lua` | The theme files those plugins load, built from the colors, mode hues and groups in the built tables |
 | `after/queries/{css,scss,javascript,tsx,lua}/highlights.scm` | The extra queries, which began as solarized.nvim's |
 | `tests/parhelion/` | The test suite |
-| `.github/workflows/parhelion.yml` | Runs the suite, the load bench and the format check in CI |
-| `Makefile` | The `test`, `bench` and `format-check` targets that CI runs |
+| `.github/workflows/parhelion.yml` | Runs the suite, the load bench, the format check and the commit lint in CI |
+| `Makefile` | The `test`, `bench`, `format-check` and `lintcommit` targets that CI runs |
 | `doc/parhelion.txt` | The `:help` page |
 | `CHANGELOG.md` | The changes a user can see |
 | `LICENSE.md` | The license |
@@ -382,6 +382,11 @@ non-zero. The whole suite takes about eight minutes on an Apple M5 Pro once the 
 `.github/workflows/parhelion.yml` runs the suite, the load bench and a StyLua check on a pull request, on a push to
 `main` and every Monday, which needs the repository hosted on GitHub. In a clone with no such remote they only run by
 hand, as `make test`, `make bench` and `make format-check`.
+
+Commit subjects follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). On a push and a pull
+request, the `commits` job runs `make lintcommit` over the commits that event brings, leaving out merges, and fails
+naming each subject that is not one. Run by hand, it checks the commits on `HEAD` that `origin/main` lacks, and
+`make lintcommit RANGE=<range>` checks another range.
 
 The suite job runs on Neovim 0.12.6 and on Neovim's nightly build, so a change in Neovim that breaks parhelion fails a
 run before a release ships it. `tests/parhelion/ci-install.sh` installs the version `PARHELION_NEOVIM` names, 0.12.6 by

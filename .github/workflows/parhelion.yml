@@ -73,3 +73,20 @@ jobs:
       - run: tests/parhelion/ci-install.sh
       - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: make test
+
+  commits:
+    name: Commit messages
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      RANGE: >-
+        ${{ github.event_name == 'pull_request'
+        && format('{0}..{1}', github.event.pull_request.base.sha, github.event.pull_request.head.sha)
+        || format('{0}..{1}', github.event.before, github.sha) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - run: make lintcommit RANGE="$RANGE"
