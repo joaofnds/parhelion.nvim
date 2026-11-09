@@ -3341,6 +3341,48 @@ test("the help page names every plugin that can be turned off", function()
 	assert(vim.deep_equal(named, names), "the help names " .. table.concat(named, " "))
 end)
 
+local function code_block(path, marker, opening, closing)
+	local code, marked, open = {}, false, false
+	for line in io.lines(root .. "/" .. path) do
+		marked = marked or line:find(marker) ~= nil
+		if open and line:find(closing) then break end
+		if open then table.insert(code, line) end
+		open = open or (marked and line:find(opening) ~= nil)
+	end
+	assert(#code > 0, path .. " has no code block after " .. marker)
+
+	return table.concat(code, "\n")
+end
+
+local function groups_a_setup_block_changes(block)
+	local changed
+	in_world("parhelion", paths[1], function(world)
+		local before = world:lua "return vim.api.nvim_get_hl(0, {})"
+		world:lua(block)
+		local after = world:lua "return vim.api.nvim_get_hl(0, {})"
+
+		changed = vim.tbl_filter(
+			function(name) return not vim.deep_equal(before[name], after[name]) end,
+			vim.tbl_keys(vim.tbl_extend("force", before, after))
+		)
+	end)
+	table.sort(changed)
+
+	return changed
+end
+
+test("the README's options block, run as written, draws what no setup draws", function()
+	local block = code_block("README.md", "^## Options", "^```lua$", "^```$")
+
+	expect_none(groups_a_setup_block_changes(block), "groups change")
+end)
+
+test("the help page's defaults, run as written, draw what no setup draws", function()
+	local block = code_block("doc/parhelion.txt", "The defaults: >lua", ">lua$", "^<")
+
+	expect_none(groups_a_setup_block_changes(block), "groups change")
+end)
+
 test("every plugin's patterns fix the letter the names they match start with", function()
 	local loose = {}
 	for plugin, patterns in pairs(plugins) do
