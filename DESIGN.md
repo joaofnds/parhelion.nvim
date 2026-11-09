@@ -265,8 +265,9 @@ LSP group, a group from a Vim syntax file, a plugin group that draws inside the 
 Both tests live in `tests/parhelion/run.lua`, and the lists they read live in `tests/parhelion/restraint.lua`.
 
 To check it by eye, add the plugin's pinned commit to `tests/parhelion/deps.txt` and a view to
-`tests/parhelion/popular/views.lua`, whose `plugins` list names that dependency, then render the sheets above. Add the
-plugin to the list in `README.md`.
+`tests/parhelion/popular/views.lua`, whose `plugins` list names that dependency and whose `drawn` list names a window
+filetype the plugin opens or a group it draws, so the view fails to open when the plugin draws nothing, then render the
+sheets above. Add the plugin to the list in `README.md`.
 
 Add the plugin's repository name to `lua/parhelion/plugins.lua` with the patterns its group names match, and the name to
 the list under Plugins in `doc/parhelion.txt`, so the `plugins` option can turn it off. Each pattern starts with `^` and

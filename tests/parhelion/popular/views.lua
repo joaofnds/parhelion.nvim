@@ -2,7 +2,15 @@ local M = { list = {}, by_name = {} }
 local here = vim.env.POPULAR_HERE
 local nest, rich = here .. "/nest.lua", here .. "/rich.md"
 
+local drawn = "return dofile(vim.env.POPULAR_HERE .. '/drawn.lua')"
+
+local function shows(filetype) return string.format("%s.shows(%q)", drawn, filetype) end
+
+local function draws(group) return string.format("%s.draws(%q)", drawn, group) end
+
 local function view(name, spec)
+	assert(spec.drawn, name .. " names nothing its plugin draws")
+
 	spec.name = name
 	table.insert(M.list, spec)
 	M.by_name[name] = spec
@@ -30,6 +38,7 @@ end
 
 view("telescope", {
 	plugins = { "telescope.nvim" },
+	drawn = { shows "TelescopePrompt" },
 	setup = function()
 		require("telescope").setup {
 			defaults = { layout_strategy = "horizontal", layout_config = { preview_cutoff = 1 } },
@@ -46,6 +55,7 @@ view("telescope", {
 
 view("nvim-tree", {
 	plugins = { "nvim-tree.lua" },
+	drawn = { shows "NvimTree" },
 	setup = function() require("nvim-tree").setup { view = { width = 34 } } end,
 	run = function(nvim)
 		edit(nvim, "src/app.lua")
@@ -58,6 +68,7 @@ view("nvim-tree", {
 
 view("neo-tree", {
 	plugins = { "neo-tree.nvim", "nui.nvim" },
+	drawn = { shows "neo-tree" },
 	setup = function()
 		require("neo-tree").setup {
 			window = { width = 100 },
@@ -78,6 +89,7 @@ view("neo-tree", {
 
 view("oil", {
 	plugins = { "oil.nvim" },
+	drawn = { shows "oil" },
 	setup = function() require("oil").setup {} end,
 	run = function(nvim) cmd(nvim, "Oil", 900) end,
 })
@@ -85,6 +97,7 @@ view("oil", {
 local function cmp_view(name, window)
 	view(name, {
 		plugins = { "nvim-cmp" },
+		drawn = { shows "cmp_menu" },
 		setup = function()
 			local cmp = require "cmp"
 			local source = {}
@@ -130,6 +143,7 @@ end)
 local function blink_view(name, menu)
 	view(name, {
 		plugins = { "blink.cmp" },
+		drawn = { shows "blink-cmp-menu" },
 		setup = function()
 			require("blink.cmp").setup {
 				fuzzy = { implementation = "lua" },
@@ -151,6 +165,7 @@ blink_view("blink-bordered", { border = "rounded" })
 
 view("noice", {
 	plugins = { "noice.nvim", "nui.nvim", "nvim-notify" },
+	drawn = { shows "noice", shows "notify" },
 	setup = function()
 		require("notify").setup {
 			stages = "static",
@@ -179,6 +194,7 @@ view("noice", {
 
 view("notify", {
 	plugins = { "nvim-notify" },
+	drawn = { shows "notify" },
 	setup = function()
 		require("notify").setup {
 			stages = "static",
@@ -207,6 +223,7 @@ view("notify", {
 
 view("snacks-picker", {
 	plugins = { "snacks.nvim" },
+	drawn = { shows "snacks_picker_list" },
 	setup = function()
 		require("snacks").setup {
 			picker = { enabled = true },
@@ -228,6 +245,7 @@ view("snacks-dashboard", {
 	draws_no_code = true,
 	no_lualine = false,
 	plugins = { "snacks.nvim" },
+	drawn = { shows "snacks_dashboard" },
 	setup = function()
 		vim.g.snacks_animate = false
 		require("snacks").setup {
@@ -249,6 +267,7 @@ view("snacks-dashboard", {
 
 view("snacks-notifier", {
 	plugins = { "snacks.nvim" },
+	drawn = { shows "snacks_notif" },
 	setup = function()
 		vim.g.snacks_animate = false
 		require("snacks").setup {
@@ -273,6 +292,7 @@ view("snacks-notifier", {
 
 view("indent-rainbow", {
 	plugins = { "indent-blankline.nvim", "rainbow-delimiters.nvim" },
+	drawn = { draws "@ibl.indent.char.1", draws "RainbowDelimiterRed" },
 	setup = function() require("ibl").setup {} end,
 	run = function(nvim)
 		edit(nvim, nest, 800)
@@ -283,6 +303,7 @@ view("indent-rainbow", {
 
 view("illuminate-diagnostics", {
 	plugins = { "vim-illuminate" },
+	drawn = { draws "IlluminatedWordText" },
 	run = function(nvim)
 		code_with_lsp(nvim)
 		nvim:lua "vim.diagnostic.config({ virtual_text = true }); vim.fn.cursor(25, 15)"
@@ -293,6 +314,7 @@ view("illuminate-diagnostics", {
 view("dashboard", {
 	draws_no_code = true,
 	plugins = { "dashboard-nvim" },
+	drawn = { shows "dashboard" },
 	setup = function()
 		require("dashboard").setup {
 			theme = "hyper",
@@ -310,6 +332,7 @@ view("dashboard", {
 
 view("alpha", {
 	plugins = { "alpha-nvim" },
+	drawn = { shows "alpha" },
 	setup = function()
 		local theme = require "alpha.themes.dashboard"
 		require("alpha").setup(theme.config)
@@ -319,6 +342,7 @@ view("alpha", {
 
 view("render-markdown", {
 	plugins = { "render-markdown.nvim" },
+	drawn = { draws "RenderMarkdownCode" },
 	setup = function() require("render-markdown").setup {} end,
 	run = function(nvim)
 		edit(nvim, rich, 1000)
@@ -329,6 +353,7 @@ view("render-markdown", {
 
 view("render-markdown-end", {
 	plugins = { "render-markdown.nvim" },
+	drawn = { draws "RenderMarkdownCode" },
 	setup = function() require("render-markdown").setup {} end,
 	run = function(nvim)
 		edit(nvim, rich, 1000)
@@ -339,6 +364,7 @@ view("render-markdown-end", {
 
 view("markview", {
 	plugins = { "markview.nvim" },
+	drawn = { draws "MarkviewCode" },
 	run = function(nvim)
 		edit(nvim, rich, 1200)
 		nvim:lua "vim.fn.cursor(2, 1)"
@@ -348,6 +374,7 @@ view("markview", {
 
 view("markview-end", {
 	plugins = { "markview.nvim" },
+	drawn = { draws "MarkviewCode" },
 	run = function(nvim)
 		edit(nvim, rich, 1200)
 		nvim:lua "vim.fn.cursor(60, 1)"
@@ -357,6 +384,7 @@ view("markview-end", {
 
 view("lspsaga", {
 	plugins = { "lspsaga.nvim" },
+	drawn = { shows "sagaoutline" },
 	setup = function() require("lspsaga").setup { ui = { border = "rounded" } } end,
 	run = function(nvim)
 		code_with_lsp(nvim)
@@ -369,6 +397,7 @@ view("lspsaga", {
 
 view("dap-ui", {
 	plugins = { "nvim-dap", "nvim-dap-ui", "nvim-nio" },
+	drawn = { shows "dapui_scopes" },
 	setup = function() require("dapui").setup {} end,
 	run = function(nvim)
 		edit(nvim, nest)
@@ -379,6 +408,7 @@ view("dap-ui", {
 
 view("harpoon", {
 	plugins = { "harpoon" },
+	drawn = { shows "harpoon" },
 	setup = function() require("harpoon"):setup {} end,
 	run = function(nvim)
 		edit(nvim, nest)
@@ -389,6 +419,7 @@ view("harpoon", {
 
 view("aerial", {
 	plugins = { "aerial.nvim" },
+	drawn = { shows "aerial" },
 	setup = function()
 		require("aerial").setup {
 			backends = { "lsp", "treesitter" },
@@ -404,6 +435,7 @@ view("aerial", {
 
 view("navic-winbar", {
 	plugins = { "nvim-navic" },
+	drawn = { draws "NavicText" },
 	setup = function() require("nvim-navic").setup { highlight = true } end,
 	run = function(nvim)
 		code_with_lsp(nvim)
@@ -422,6 +454,7 @@ view("navic-winbar", {
 
 view("dropbar", {
 	plugins = { "dropbar.nvim" },
+	drawn = { shows "dropbar_menu" },
 	setup = function() require("dropbar").setup {} end,
 	run = function(nvim)
 		edit(nvim, nest, 700)
@@ -434,6 +467,7 @@ view("dropbar", {
 
 view("barbar", {
 	plugins = { "barbar.nvim" },
+	drawn = { draws "BufferCurrent" },
 	setup = function()
 		vim.g.barbar_auto_setup = false
 		require("barbar").setup {}
@@ -450,6 +484,7 @@ view("barbar", {
 
 view("bufferline", {
 	plugins = { "bufferline.nvim" },
+	drawn = { draws "BufferLineBufferSelected" },
 	setup = function() require("bufferline").setup {} end,
 	run = function(nvim)
 		edit(nvim, "notes.md")
@@ -463,6 +498,7 @@ view("bufferline", {
 
 view("bufferline-slant", {
 	plugins = { "bufferline.nvim" },
+	drawn = { draws "BufferLineBufferSelected" },
 	setup = function() require("bufferline").setup { options = { separator_style = "slant" } } end,
 	run = function(nvim)
 		edit(nvim, "notes.md")
@@ -475,6 +511,7 @@ view("bufferline-slant", {
 
 view("bufferline-diagnostics", {
 	plugins = { "bufferline.nvim" },
+	drawn = { draws "BufferLineBufferSelected" },
 	setup = function()
 		require("bufferline").setup {
 			options = {
@@ -508,6 +545,7 @@ view("bufferline-diagnostics", {
 
 view("flash", {
 	plugins = { "flash.nvim" },
+	drawn = { draws "FlashLabel" },
 	setup = function()
 		require("flash").setup {}
 		vim.keymap.set("n", "s", function() require("flash").jump() end)
@@ -521,6 +559,7 @@ view("flash", {
 
 view("mini-notify", {
 	plugins = { "mini.nvim" },
+	drawn = { shows "mininotify" },
 	setup = function() require("mini.notify").setup { window = { winblend = 0 } } end,
 	run = function(nvim)
 		edit(nvim, nest)
@@ -535,6 +574,7 @@ view("mini-notify", {
 
 view("undotree", {
 	plugins = { "undotree" },
+	drawn = { shows "undotree" },
 	run = function(nvim)
 		edit(nvim, nest)
 		nvim:request("nvim_input", "oone<Esc>otwo<Esc>")
@@ -545,6 +585,7 @@ view("undotree", {
 
 view("vim-sneak", {
 	plugins = { "vim-sneak" },
+	drawn = { draws "Sneak" },
 	run = function(nvim)
 		edit(nvim, nest)
 		nvim:request("nvim_input", "sta")
@@ -554,6 +595,7 @@ view("vim-sneak", {
 
 view("fidget", {
 	plugins = { "fidget.nvim" },
+	drawn = { shows "fidget" },
 	setup = function() require("fidget").setup {} end,
 	run = function(nvim)
 		edit(nvim, nest)
@@ -569,6 +611,7 @@ view("fidget", {
 
 view("hop", {
 	plugins = { "hop.nvim" },
+	drawn = { draws "HopNextKey" },
 	setup = function() require("hop").setup {} end,
 	run = function(nvim)
 		edit(nvim, nest)
@@ -579,6 +622,7 @@ view("hop", {
 
 view("leap", {
 	plugins = { "leap.nvim" },
+	drawn = { draws "LeapLabel" },
 	run = function(nvim)
 		edit(nvim, nest)
 		nvim:lua "vim.keymap.set('n', 's', '<Plug>(leap)')"
@@ -589,6 +633,7 @@ view("leap", {
 
 view("mini-files", {
 	plugins = { "mini.nvim" },
+	drawn = { shows "minifiles" },
 	setup = function() require("mini.files").setup {} end,
 	run = function(nvim)
 		edit(nvim, "src/app.lua")
@@ -599,6 +644,7 @@ view("mini-files", {
 
 view("mini-pick", {
 	plugins = { "mini.nvim" },
+	drawn = { shows "minipick" },
 	setup = function() require("mini.pick").setup {} end,
 	run = function(nvim)
 		edit(nvim, "src/app.lua")
@@ -613,6 +659,7 @@ view("mini-starter", {
 	draws_no_code = true,
 	no_lualine = true,
 	plugins = { "mini.nvim" },
+	drawn = { shows "ministarter" },
 	setup = function() require("mini.starter").setup {} end,
 	run = function(nvim)
 		nvim:lua "MiniStarter.open()"
@@ -623,6 +670,13 @@ view("mini-starter", {
 view("mini-editor", {
 	no_lualine = true,
 	plugins = { "mini.nvim" },
+	drawn = {
+		draws "MiniStatuslineModeNormal",
+		draws "MiniTablineCurrent",
+		draws "MiniIndentscopeSymbol",
+		draws "MiniHipatternsTodo",
+		draws "MiniClueNextKey",
+	},
 	setup = function()
 		require("mini.statusline").setup {}
 		require("mini.tabline").setup {}
@@ -656,6 +710,7 @@ view("mini-editor", {
 view("which-key", {
 	labels_on = "float",
 	plugins = { "which-key.nvim" },
+	drawn = { shows "wk" },
 	setup = function() require("which-key").setup { delay = 0 } end,
 	run = function(nvim)
 		edit(nvim, nest)
@@ -666,6 +721,7 @@ view("which-key", {
 
 view("fzf-lua", {
 	plugins = { "fzf-lua" },
+	drawn = { shows "fzf" },
 	setup = function() require("fzf-lua").setup { winopts = { backdrop = 100 } } end,
 	run = function(nvim)
 		edit(nvim, "src/app.lua")
@@ -679,6 +735,7 @@ view("fzf-lua", {
 view("mason", {
 	draws_no_code = true,
 	plugins = { "mason.nvim" },
+	drawn = { shows "mason" },
 	setup = function()
 		-- Mason's own registry downloads on open, and a failed download leaves an error at a hit-enter prompt that
 		-- blocks every later request to the view.
@@ -698,6 +755,7 @@ view("mason", {
 view("lazy", {
 	labels_on = "float",
 	plugins = { "lazy.nvim" },
+	drawn = { shows "lazy" },
 	setup = function()
 		local deps = vim.env.PARHELION_DEPS
 		require("lazy").setup({
@@ -720,6 +778,7 @@ view("lazy", {
 
 view("grug-far", {
 	plugins = { "grug-far.nvim" },
+	drawn = { shows "grug-far" },
 	setup = function() require("grug-far").setup {} end,
 	run = function(nvim)
 		edit(nvim, nest)
@@ -729,6 +788,7 @@ view("grug-far", {
 
 view("trouble", {
 	plugins = { "trouble.nvim" },
+	drawn = { shows "trouble" },
 	setup = function() require("trouble").setup {} end,
 	run = function(nvim)
 		code_with_lsp(nvim)
@@ -738,6 +798,7 @@ view("trouble", {
 
 view("gitsigns", {
 	plugins = { "gitsigns.nvim" },
+	drawn = { draws "GitSignsAdd", draws "GitSignsAddPreview" },
 	setup = function() require("gitsigns").setup { signcolumn = true, word_diff = true, current_line_blame = true } end,
 	run = function(nvim)
 		edit(nvim, "src/app.lua", 900)
@@ -748,6 +809,7 @@ view("gitsigns", {
 
 view("overseer", {
 	plugins = { "overseer.nvim" },
+	drawn = { shows "OverseerList" },
 	setup = function() require("overseer").setup {} end,
 	run = function(nvim)
 		edit(nvim, nest)

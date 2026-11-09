@@ -2654,6 +2654,15 @@ local function start_popular(view, mode)
 	}
 end
 
+local function run_popular(nvim, view)
+	nvim:settle { quiet = 500 }
+	view.run(nvim)
+
+	for _, condition in ipairs(view.drawn) do
+		nvim:settle { until_lua = condition, quiet = 0 }
+	end
+end
+
 local function keep_shot(view, mode, shot)
 	if not shots_directory then return end
 
@@ -2690,8 +2699,7 @@ for _, mode in ipairs { "dark", "light" } do
 		then
 			local nvim = start_popular(view, mode)
 			local opened, shot = xpcall(function()
-				nvim:settle { quiet = 500 }
-				view.run(nvim)
+				run_popular(nvim, view)
 				local captured = nvim:capture()
 				captured.groups = vim.json.decode(nvim:lua(group_colors_code))
 				return captured
@@ -2776,8 +2784,7 @@ end
 local function groups_of_popular_view(view, mode)
 	local nvim = start_popular(view, mode)
 	local ok, groups = xpcall(function()
-		nvim:settle { quiet = 500 }
-		view.run(nvim)
+		run_popular(nvim, view)
 		return vim.json.decode(nvim:lua(group_colors_code))
 	end, debug.traceback)
 	nvim:close()
