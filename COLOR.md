@@ -568,8 +568,8 @@ stays green, so these tests judge those files and `chrome.lua` themselves:
 - Each new tone stays within the difference limit, and each saturated tone within a degree of its source
   hue, with orange named as the exception. Its source color is one the base tables really use.
 - The page colors stay fixed.
-- The step table under How plugins use color gives each step's colors, and their lightness to one decimal, as
-  `chrome.lua` holds them.
+- The step table under How plugins use color has a row for each step of the scale and for nothing else, and gives
+  each step's colors, and their lightness to one decimal, as `chrome.lua` holds them.
 - On all four load paths, terminal colors 1 to 6 and 9 to 14 are nearest the toned accent their ANSI names give them,
   black and bright white sit at least 3 from the page, about the step between the page and the raised surface, and
   white, bright black and bright white sit at least 3 from each other.

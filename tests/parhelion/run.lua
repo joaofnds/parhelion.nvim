@@ -3475,7 +3475,50 @@ end
 
 local function lightness(hex) return string.format("%.1f", 100 * color.perceptual_lch(hex).lightness) end
 
-for _, step in ipairs { "float", "page", "raised", "selected", "hairline", "ghost", "quiet", "body", "strong" } do
+local scale_colors_outside_the_step_table = {
+	"accent",
+	"error",
+	"warn",
+	"ok",
+	"added",
+	"added_wash",
+	"changed_wash",
+	"removed_wash",
+	"added_word_wash",
+	"changed_word_wash",
+	"removed_word_wash",
+	"match_wash",
+	"staged_added",
+	"staged_changed",
+	"staged_removed",
+	"backdrop",
+}
+
+local function steps_of(scale)
+	local steps = {}
+	for name in pairs(scale) do
+		if not vim.list_contains(scale_colors_outside_the_step_table, name) then table.insert(steps, name) end
+	end
+	table.sort(steps)
+
+	return steps
+end
+
+for _, background in ipairs { "dark", "light" } do
+	test("the step table in COLOR.md has a row for each step of the " .. background .. " scale and no other", function()
+		local rows = vim.tbl_keys(step_table_in_color_md)
+		table.sort(rows)
+
+		local steps = steps_of(require("parhelion.chrome").scale[background])
+
+		assert(
+			vim.deep_equal(rows, steps),
+			string.format("the table has %s and the scale %s", table.concat(rows, " "), table.concat(steps, " "))
+		)
+	end)
+end
+
+for _, step in ipairs(steps_of(require("parhelion.chrome").scale.dark)) do
 	test("the step table in COLOR.md gives " .. step .. "'s colors and lightness in both modes", function()
 		local scale = require("parhelion.chrome").scale
 		local expected = {
