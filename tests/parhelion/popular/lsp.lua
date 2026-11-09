@@ -26,21 +26,21 @@ symbols = {
       {
         name = "new",
         kind = 9,
-        range = { start = { line = 13, character = 0 }, ["end"] = { line = 32, character = 3 } },
+        range = { start = { line = 13, character = 0 }, ["end"] = { line = 29, character = 3 } },
         selectionRange = range(13, 15, 18),
         children = symbols,
       },
       {
         name = "push",
         kind = 6,
-        range = { start = { line = 33, character = 0 }, ["end"] = { line = 39, character = 3 } },
-        selectionRange = range(33, 15, 19),
+        range = { start = { line = 32, character = 0 }, ["end"] = { line = 35, character = 3 } },
+        selectionRange = range(32, 15, 19),
       },
       {
         name = "pop",
         kind = 6,
-        range = { start = { line = 40, character = 0 }, ["end"] = { line = 42, character = 3 } },
-        selectionRange = range(40, 15, 18),
+        range = range(38, 0, 56),
+        selectionRange = range(38, 15, 18),
       },
     },
   },
@@ -75,12 +75,12 @@ local function respond(method, params)
     }
   end
   if method == "textDocument/definition" or method == "textDocument/implementation" then
-    return { { uri = params.textDocument.uri, range = range(33, 15, 19) } }
+    return { { uri = params.textDocument.uri, range = range(32, 15, 19) } }
   end
   if method == "textDocument/references" then
     return {
-      { uri = params.textDocument.uri, range = range(33, 15, 19) },
-      { uri = params.textDocument.uri, range = range(45, 6, 10) },
+      { uri = params.textDocument.uri, range = range(32, 15, 19) },
+      { uri = params.textDocument.uri, range = range(41, 6, 10) },
     }
   end
   if method == "textDocument/codeAction" then
@@ -118,22 +118,22 @@ local function diagnostics(bufnr)
   vim.diagnostic.set(namespace, bufnr, {
     {
       lnum = 17,
-      col = 6,
-      end_col = 11,
+      col = 11,
+      end_col = 16,
       severity = vim.diagnostic.severity.ERROR,
       message = "value may be nil here",
       source = "gallery",
     },
     {
-      lnum = 20,
-      col = 8,
-      end_col = 13,
+      lnum = 19,
+      col = 10,
+      end_col = 15,
       severity = vim.diagnostic.severity.WARN,
       message = "unused variable index",
       source = "gallery",
     },
     {
-      lnum = 33,
+      lnum = 32,
       col = 15,
       end_col = 19,
       severity = vim.diagnostic.severity.INFO,
