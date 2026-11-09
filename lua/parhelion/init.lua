@@ -69,13 +69,13 @@ local function patterns_turned_off()
 	return patterns
 end
 
-local function bytes_after_the_caret(patterns)
-	local bytes = {}
+local function first_letters(patterns)
+	local letters = {}
 	for _, pattern in ipairs(patterns) do
-		bytes[pattern:byte(2)] = true
+		letters[pattern:byte(2)] = true
 	end
 
-	return bytes
+	return letters
 end
 
 local function matches_any(name, patterns)
@@ -88,11 +88,12 @@ end
 
 local function turn_off_plugins(built, changed)
 	local patterns = patterns_turned_off()
-	local first_bytes = bytes_after_the_caret(patterns)
-	-- Searching every group with the patterns, or through a callback, stops LuaJIT compiling this loop and adds about
-	-- 0.05 ms to a first load.
+	local letters = first_letters(patterns)
+
+	-- Testing a group's first letter before searching it is not redundant: searching every group stops LuaJIT compiling
+	-- this loop, which slows a first load.
 	for name in pairs(built.groups) do
-		if first_bytes[name:byte()] and matches_any(name, patterns) then changed[name] = false end
+		if letters[name:byte()] and matches_any(name, patterns) then changed[name] = false end
 	end
 end
 
@@ -178,6 +179,7 @@ local function apply_overrides(built, changed)
 			name = spelling[name:lower()] or name
 		end
 		local current = drawn(built, changed, name)
+
 		if override.link or not current or current.link then
 			changed[name] = override
 		else
