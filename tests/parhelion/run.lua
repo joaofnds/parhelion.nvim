@@ -2086,20 +2086,6 @@ for _, path in ipairs { paths[1], paths[2] } do
 	end)
 end
 
-for _, runs in ipairs { "0", "-1", "1.5", "forty" } do
-	test(string.format("the bench refuses %s runs", runs), function()
-		local command = { "bash", root .. "/tests/parhelion/bench.sh" }
-
-		local bench = vim.system(command, { env = { PARHELION_BENCH_RUNS = runs }, text = true }):wait(60000)
-
-		assert(bench.code == 2, string.format("the bench exited %d: %s%s", bench.code, bench.stdout, bench.stderr))
-		assert(
-			bench.stderr == string.format('PARHELION_BENCH_RUNS must be a whole number above 0, not "%s"\n', runs),
-			bench.stderr
-		)
-	end)
-end
-
 local function bench_with_timings(timings, settings)
 	local env = vim.tbl_extend("force", {
 		PARHELION_BENCH_RUNS = "1",
@@ -2110,6 +2096,18 @@ local function bench_with_timings(timings, settings)
 	end
 
 	return vim.system({ "bash", root .. "/tests/parhelion/bench.sh" }, { env = env, text = true }):wait(60000)
+end
+
+for _, runs in ipairs { "0", "-1", "1.5", "forty" } do
+	test(string.format("the bench refuses %s runs before it starts a Neovim", runs), function()
+		local bench = bench_with_timings({}, { PARHELION_BENCH_RUNS = runs })
+
+		assert(bench.code == 2, string.format("the bench exited %d: %s%s", bench.code, bench.stdout, bench.stderr))
+		assert(
+			bench.stderr == string.format('PARHELION_BENCH_RUNS must be a whole number above 0, not "%s"\n', runs),
+			bench.stderr
+		)
+	end)
 end
 
 for _, case in ipairs {
