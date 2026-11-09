@@ -72,11 +72,14 @@ local function literal(value)
 	return tostring(value)
 end
 
-local function inline(hl)
-	local fields = vim.tbl_map(function(key) return key .. " = " .. literal(hl[key]) end, sorted_keys(hl))
-	if #fields == 0 then return "{}" end
+local function fields(values)
+	return vim.tbl_map(function(key) return key .. " = " .. literal(values[key]) end, sorted_keys(values))
+end
 
-	return "{ " .. table.concat(fields, ", ") .. " }"
+local function inline(hl)
+	if next(hl) == nil then return "{}" end
+
+	return "{ " .. table.concat(fields(hl), ", ") .. " }"
 end
 
 local function shared_looks(groups, names)
@@ -90,6 +93,14 @@ local function shared_looks(groups, names)
 	end
 
 	return looks, look_of
+end
+
+local function append_part(lines, key, rows)
+	table.insert(lines, "\t" .. key .. " = {")
+	for _, row in ipairs(rows) do
+		table.insert(lines, "\t\t" .. row .. ",")
+	end
+	table.insert(lines, "\t},")
 end
 
 local function source(built)
@@ -108,38 +119,19 @@ local function source(built)
 	table.insert(lines, "")
 	table.insert(lines, "return {")
 
-	table.insert(lines, "\tcolors = {")
-	for _, name in ipairs(sorted_keys(built.colors)) do
-		table.insert(lines, string.format("\t\t%s = %s,", name, literal(built.colors[name])))
-	end
-	table.insert(lines, "\t},")
-
+	append_part(lines, "colors", fields(built.colors))
 	table.insert(lines, string.format("\tdimmed = %s,", literal(built.dimmed)))
-
-	table.insert(lines, "\tmode_hues = {")
-	for _, mode in ipairs(sorted_keys(built.mode_hues)) do
-		table.insert(lines, string.format("\t\t%s = %s,", mode, literal(built.mode_hues[mode])))
-	end
-	table.insert(lines, "\t},")
-
-	table.insert(lines, "\ttransparent_clears = {")
-	for _, name in ipairs(built.transparent_clears) do
-		table.insert(lines, string.format("\t\t%q,", name))
-	end
-	table.insert(lines, "\t},")
-
-	table.insert(lines, "\tgroups = {")
-	for _, name in ipairs(names) do
-		table.insert(lines, string.format("\t\t[%q] = looks[%d],", name, look_of[inline(built.groups[name])]))
-	end
-	table.insert(lines, "\t},")
-
-	table.insert(lines, "\tterminal = {")
-	for _, color in ipairs(built.terminal) do
-		table.insert(lines, string.format("\t\t%s,", literal(color)))
-	end
-	table.insert(lines, "\t},")
-
+	append_part(lines, "mode_hues", fields(built.mode_hues))
+	append_part(lines, "transparent_clears", vim.tbl_map(literal, built.transparent_clears))
+	append_part(
+		lines,
+		"groups",
+		vim.tbl_map(
+			function(name) return string.format("[%q] = looks[%d]", name, look_of[inline(built.groups[name])]) end,
+			names
+		)
+	)
+	append_part(lines, "terminal", vim.tbl_map(literal, built.terminal))
 	table.insert(lines, "}")
 
 	return lines
