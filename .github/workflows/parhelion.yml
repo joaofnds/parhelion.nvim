@@ -27,6 +27,7 @@ jobs:
           version: 2.6.0
           args: false
       - run: tests/parhelion/ci-install.sh
+      - run: tests/parhelion/ci-install-lint.sh
       - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: make format-check lint
 

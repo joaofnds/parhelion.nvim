@@ -389,6 +389,10 @@ repository hosted on GitHub. In a clone with no such remote they only run by han
 `make format-check` and `make lint`. `.shellcheckrc` turns on every optional check, so ShellCheck also asks for braces
 around each variable and for `[[` in place of `[`. `make format-check` tells shfmt to indent with two spaces, which
 also holds a shell script without a `.sh` extension, such as `tests/parhelion/fake_nvim/nvim`, to that indent.
+The formatting and lint job takes StyLua from its action and installs shfmt, ShellCheck and lua-language-server with
+`tests/parhelion/ci-install-lint.sh`, which pins each version and checks each download against its checksum. A job
+that runs only the suite or the bench installs none of them. Run the same versions locally, or a check can pass on
+one machine and fail on the other.
 
 A commit that only reformats goes in `.git-blame-ignore-revs` under its subject, so blame names the commit that last
 changed what a line does. `git blame` reads that file once a clone runs
